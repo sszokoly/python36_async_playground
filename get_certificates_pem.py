@@ -144,4 +144,4 @@ if __name__ == "__main__":
     elif len(sys.argv) == 2:
         main(sys.argv[1], 443)
     else:
-        main("google.com", 443)
+        main("google.com", 442)
