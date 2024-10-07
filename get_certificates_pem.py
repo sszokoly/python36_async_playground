@@ -43,7 +43,7 @@ async def async_shell(cmd: str, verbose: bool = False, name: Optional[str] = '')
 async def get_certificates_pem(
     host: str,
     port: int,
-    starttls: Optional[str] = None,
+    starttls: Optional[str] = None, # 'postgres', 'ldap', 'mysql', etc
     verbose: bool = False
 ) -> List[str]:
     """Retrieve the certificates in PEM format using openssl s_client command.
