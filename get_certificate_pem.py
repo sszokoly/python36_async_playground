@@ -79,7 +79,7 @@ def main(host: str, port: int):
             task.cancel()
         
         # Wait for all tasks to be cancelled
-        group = asyncio.gather(*tasks, return_exceptions=False)
+        group = asyncio.gather(*tasks, return_exceptions=True)
         loop.run_until_complete(group)
         loop.close()
 
