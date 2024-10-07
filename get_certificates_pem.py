@@ -16,7 +16,7 @@ def timeout(seconds: float) -> Callable[[F], F]:
     return decorator
 
 @timeout(1)
-async def async_shell(cmd: str, verbose: bool = False, name: Optional[str] = '') -> Tuple[str, str, int]:
+async def async_shell(cmd: str, verbose: bool = False, name: Optional[str] = "") -> Tuple[str, str, int]:
     """Shell command executor with timeout.
 
     Args:
@@ -37,8 +37,8 @@ async def async_shell(cmd: str, verbose: bool = False, name: Optional[str] = '')
         return stdout.decode(), stderr.decode(), proc.returncode
     except asyncio.CancelledError:
         if verbose:
-            print(f'Coro {name} canceled')
-        return '', 'canceled', 1
+            print(f"Coro {name} canceled")
+        return "", "canceled", 1
 
 async def get_certificates_pem(
     host: str,
@@ -108,7 +108,7 @@ def extract_certificates(output: str) -> List[str]:
 
     return certificates
 
-async def run(host: str, port: int):
+async def run(host: str, port: int) -> None:
     certificates = await get_certificates_pem(host, port, verbose=True)
     print(certificates)
 
