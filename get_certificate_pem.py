@@ -54,7 +54,8 @@ async def get_certificates_pem(
         certificates.append("".join((
             "-----BEGIN CERTIFICATE-----",
             certificate.split("-----END CERTIFICATE-----")[0],
-            "-----END CERTIFICATE-----")))
+            "-----END CERTIFICATE-----"))
+        )
 
     return certificates
 
