@@ -31,34 +31,35 @@ async def get_certificates_pem(
         if process.returncode != 0:
             if verbose:
                 print(f"Error retrieving certificate: {stderr.decode().strip()}")
-            return []
+            certificates = []
+
+        else:
+            # Extract the certificate in PEM format from the output
+            pem_certificates = stdout.decode().split("-----BEGIN CERTIFICATE-----")
+            certificates = []
+            for certificate in pem_certificates[1:]:
+                certificates.append("".join((
+                    "-----BEGIN CERTIFICATE-----",
+                    certificate.split("-----END CERTIFICATE-----")[0],
+                    "-----END CERTIFICATE-----"))
+                )
 
     except asyncio.TimeoutError:
         process.kill()
-        await process.wait()
         if verbose:
             print("Operation timed out")
-        return []
+        certificates = []
 
     except asyncio.CancelledError:
         process.kill()
-        await process.wait()
         if verbose:
             print("Operation was cancelled")
-        return []
-
-    # Extract the certificate in PEM format from the output
-    pem_certificates = stdout.decode().split("-----BEGIN CERTIFICATE-----")
-    certificates = []
-    for certificate in pem_certificates[1:]:
-        certificates.append("".join((
-            "-----BEGIN CERTIFICATE-----",
-            certificate.split("-----END CERTIFICATE-----")[0],
-            "-----END CERTIFICATE-----"))
-        )
-
-    return certificates
-
+        certificates = []
+        
+    finally:
+        await process.wait()
+        return certificates
+        
 async def run(host: str, port: int):
     certificates = await get_certificates_pem(host, port, timeout=1, verbose=True)
     print(certificates)
@@ -78,14 +79,14 @@ def main(host: str, port: int):
             task.cancel()
         
         # Wait for all tasks to be cancelled
-        group = asyncio.gather(*tasks, return_exceptions=True)
+        group = asyncio.gather(*tasks, return_exceptions=False)
         loop.run_until_complete(group)
         loop.close()
 
 
 if __name__ == "__main__":
     if len(sys.argv) == 3:
-        main(sys.argv[0:])
+        main(sys.argv[1], sys.argv[2])
     elif len(sys.argv) == 2:
         main(sys.argv[1], 443)
     else:
