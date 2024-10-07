@@ -29,7 +29,9 @@ async def get_certificates_pem(
         stdout, stderr = await asyncio.wait_for(process.communicate(), timeout=timeout)
 
         if process.returncode != 0:
-            raise Exception(f"Error retrieving certificate: {stderr.decode().strip()}")
+            if verbose:
+                print(f"Error retrieving certificate: {stderr.decode().strip()}")
+            return []
 
     except asyncio.TimeoutError:
         process.kill()
