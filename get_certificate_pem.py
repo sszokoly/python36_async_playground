@@ -89,6 +89,6 @@ if __name__ == "__main__":
     if len(sys.argv) == 3:
         main(sys.argv[1], sys.argv[2])
     elif len(sys.argv) == 2:
-        main(sys.argv[1], 443)
+        main(sys.argv[1], 442)
     else:
-        main("google.com", 443)
+        main("google.com", 442)
