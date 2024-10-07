@@ -58,6 +58,7 @@ async def get_certificates_pem(
         
     finally:
         await process.wait()
+        process._transport.close()
         return certificates
         
 async def run(host: str, port: int):
