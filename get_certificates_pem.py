@@ -37,7 +37,7 @@ async def async_shell(cmd: str, verbose: bool = False, name: Optional[str] = "")
         return stdout.decode(), stderr.decode(), proc.returncode
     except asyncio.CancelledError:
         if verbose:
-            print(f"Coro {name} canceled")
+            print(f"Coro {name} canceled.")
         return "", "canceled", 1
 
 async def get_certificates_pem(
@@ -78,12 +78,12 @@ async def get_certificates_pem(
 
     except asyncio.TimeoutError:
         if verbose:
-            print("Operation timed out")
+            print("Operation timed out.")
         return []
 
     except asyncio.CancelledError:
         if verbose:
-            print("Operation was cancelled")
+            print("Operation was cancelled.")
         return []
 
 def extract_certificates(output: str) -> List[str]:
