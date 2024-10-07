@@ -16,7 +16,7 @@ async def get_certificates_pem(
     cmd = f"echo|openssl s_client -showcerts {starttls} -connect {host}:{port}"
     if verbose:
         print(cmd)
-    
+
     # Create a subprocess to run the command
     process = await asyncio.create_subprocess_shell(
         cmd,
@@ -67,7 +67,10 @@ def main(host: str, port: int):
     try:
         loop = asyncio.get_event_loop()
         loop.run_until_complete(run(host, port))
-    
+
+    except KeyboardInterrupt:
+        pass
+
     finally:
         # Cancel all tasks
         tasks = asyncio.Task.all_tasks()
@@ -78,6 +81,7 @@ def main(host: str, port: int):
         group = asyncio.gather(*tasks, return_exceptions=True)
         loop.run_until_complete(group)
         loop.close()
+
 
 if __name__ == "__main__":
     if len(sys.argv) == 3:
