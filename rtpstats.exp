@@ -1,0 +1,50 @@
+#!/usr/bin/expect
+
+# Set variables
+set hostname "192.168.11.119"
+set username "root"
+set password "ss"
+
+# Spawn SSH connection
+spawn ssh -o StrictHostKeyChecking=no $username@$hostname
+
+# Handle SSH connection
+expect {
+    "password:" {
+        send "$password\r"
+    }
+    "(yes/no)?" {
+        send "yes\r"
+        expect "password:"
+        send "$password\r"
+    }
+}
+
+# Wait for prompt
+expect "]# "
+
+# Run 'show rtp-stats sessions active' command
+send "show_rtp-stat_sessions_active\r"
+expect "]# "
+
+# Capture the output
+set output $expect_out(buffer)
+
+# Process the output to extract session numbers
+set session_numbers [list]
+foreach line [split $output "\n"] {
+    if {[regexp {^\s*(\d+)} $line match number]} {
+        lappend session_numbers $number
+    }
+}
+
+# Loop through each session number and run 'show rtp-stats details'
+foreach session $session_numbers {
+    send "show_rtp-stat_detailed $session\r"
+    expect "]# "
+    # You can process or save the output here if needed
+}
+
+# Exit the SSH session
+send "exit\r"
+expect eof
