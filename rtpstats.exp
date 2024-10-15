@@ -1,34 +1,67 @@
 #!/usr/bin/expect
 
 # Set variables
-set hostname "192.168.11.119"
-set username "root"
-set password "ss"
+set timeout 2
+set host "10.10.48.58"
+set user "root"
+set passwd "cmb@Dm1n"
+set prompt "\)# "
+set more "*continue-- "
+set pattern "\r\n--type q to quit or space key to continue-- \r\[^ \]*"
 
 # Spawn SSH connection
-spawn ssh -o StrictHostKeyChecking=no $username@$hostname
+log_user 0
+exp_internal 1
+spawn ssh -q -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=$timeout $user@$host
 
 # Handle SSH connection
 expect {
-    "password:" {
-        send "$password\r"
+    "Password: " { send "$passwd\n" }
+    timeout {
+        puts stderr "Timeout"
+        exit 255
     }
-    "(yes/no)?" {
-        send "yes\r"
-        expect "password:"
-        send "$password\r"
+    eof {
+        #catch wait result
+        puts stderr "Timeout"
+        exit 255
     }
 }
 
-# Wait for prompt
-expect "]# "
+expect {
+    "*Permission denied*" {
+        puts stderr "Permission denied"
+        exit 255
+        }
+    $prompt
+}
 
 # Run 'show rtp-stats sessions active' command
-send "show_rtp-stat_sessions_active\r"
-expect "]# "
+set output ""
+send "show rtp-stat sessions\n"
+expect {
+    $more {
+        set current_output $expect_out(buffer)
+        #puts "\n#CURRENT"
+        #puts $current_output
+        append output $current_output
+        send "\n"
+        exp_continue
+    }
+    $prompt {
+        set current_output $expect_out(buffer)
+        #puts "\n#LAST"
+        #puts $current_output
+        append output $current_output
+    }
+}
 
-# Capture the output
-set output $expect_out(buffer)
+set cleaned_output [regsub $pattern $output ""]
+set output $cleaned_output
+log_user 1
+puts "#BEGIN"
+puts $output
+puts "\n#END"
 
 # Process the output to extract session numbers
 set session_numbers [list]
@@ -40,8 +73,16 @@ foreach line [split $output "\n"] {
 
 # Loop through each session number and run 'show rtp-stats details'
 foreach session $session_numbers {
-    send "show_rtp-stat_detailed $session\r"
-    expect "]# "
+    puts "#BEGIN"
+    send "show rtp-stat detailed $session\n"
+    expect {
+        $more {
+            send "\n"
+            exp_continue
+        }
+        $prompt
+    }
+    puts "\n#END"
     # You can process or save the output here if needed
 }
 
