@@ -9,28 +9,31 @@ set user "root"
 set passwd "cmb@Dm1n"
 set begindelim "#BEGIN\n"
 set enddelim "\n#END"
-set continue "\r\n--type q to quit or space key to continue-- \r\[^ \]*"
-set denied "*Permission denied*"
-set done "Done!.*"
-set footer "Note that field.*"
-set more "*continue-- "
 set prompt "\)# "
-set session_ids {00001 00016}
+set session_ids {00015}
+set commands {"show system\n"}
 
+# Procedures
 proc merge_lists {list1 list2} {
     set combined [concat $list1 $list2]
-    set unique [lsort -unique $combined]
-    set result [lsort -integer $unique]
+    set result [lsort -unique $combined]
+    return $result
+}
+
+proc clean_output {output} {
+    set type_removed [regsub "\r\n--type q to quit or space key to continue-- \r\[^ \]*K" $output ""]
+    set note_removed [regsub "Note that field.*" $type_removed ""]
+    set done_removed [regsub "Done!.*" $note_removed ""]
+    set result [string trimright $done_removed]
     return $result
 }
 
 proc cmd {command} {
-    global begindelim enddelim more prompt done
+    global begindelim enddelim more prompt
     set output $begindelim
-    set err 0
     send $command
     expect {
-        $more {
+        "*continue-- " {
             set current_output $expect_out(buffer)
             append output $current_output
             send "\n"
@@ -40,28 +43,24 @@ proc cmd {command} {
             set current_output $expect_out(buffer)
             append output $current_output
         }
-        timeout { set err 255 }
+        timeout {puts stderr "Timeout"; exit 255}
     }
-    set cleaned_output [regsub "Done!.*" $output ""]
-    set result [string trimright $cleaned_output]
+    set result [clean_output $output]
     append result $enddelim
-    return [list $result $err]
+    return $result
 }
 
 proc active_sessions_ids {} {
-    global cmd continue
-    set command "show rtp-stat sessions last 3\n"
-    lassign [cmd $command] output err
-    set cleaned_output [regsub $continue $output ""]
-    set active_session_ids [list]
-    if {$err == 0} {
-        foreach line [split $cleaned_output "\n"] {
-            if {[regexp {^\s*(\d+)} $line match number]} {
-                lappend active_session_ids $number
-            }
+    global cmd
+    set active_ids [list]
+    set command "show rtp-stat sessions active\n"
+    set active_sessions [cmd $command]
+    foreach line [split $active_sessions "\n"] {
+        if {[regexp {^\s*(\d+)} $line match number]} {
+            lappend active_ids $number
         }
     }
-    return $active_session_ids
+    return $active_ids
 }
 
 # Spawn SSH connection
@@ -71,25 +70,32 @@ spawn ssh -q -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o Conn
 expect {
     "Password: " {send "$passwd\n"}
     timeout {puts stderr "Timeout"; exit 255}
-    eof {puts stderr "Timeout" ; exit 255}
+    eof {puts stderr "Timeout"; exit 255}
 }
 expect {
-    $denied {puts stderr "Permission denied"; exit 255}
+    "*Permission denied*" {puts stderr "Permission denied"; exit 254}
     $prompt {}
 }
 
-# Loop through session ids and run 'show rtp-stats details id' on it
+# Loop through session ids and run 'show rtp-stats detailed id' on it
 set active_ids [active_sessions_ids]
 set merged_ids [merge_lists $active_ids $session_ids]
+set rtp_stat_output ""
 foreach id $merged_ids {
     set command "show rtp-stat detailed $id\n"
-    lassign [cmd $command] output err
-    if {$err == 0} {
-        log_user 1
-        puts $output
-        log_user 0
-    } else {puts stderr "Error"; exit $err}
+    append rtp_stat_output [cmd $command]
 }
+log_user 1
+puts $rtp_stat_output
+log_user 0
 
-# Exit the SSH session
+# Loop through the other commands
+set cmd_output ""
+foreach command $commands {
+    append cmd_output [cmd $command]
+}
+log_user 1
+puts $cmd_output
+log_user 0
+
 send "exit\n"
