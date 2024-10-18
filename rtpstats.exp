@@ -24,7 +24,8 @@ proc clean_output {output} {
     set type_removed [regsub "\r\n--type q to quit or space key to continue-- \r\[^ \]*K" $output ""]
     set note_removed [regsub "Note that field.*" $type_removed ""]
     set done_removed [regsub "Done!.*" $note_removed ""]
-    set result [string trimright $done_removed]
+    set prompt_removed [regsub "\r\n\[^ \]*\\)# " $done_removed ""]
+    set result [string trimright $prompt_removed]
     return $result
 }
 
