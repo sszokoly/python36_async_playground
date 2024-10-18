@@ -7,8 +7,6 @@ set timeout 2
 set host "10.10.48.58"
 set user "root"
 set passwd "cmb@Dm1n"
-set begindelim "#BEGIN\n"
-set enddelim "\n#END"
 set prompt "\)# "
 set session_ids {00015}
 set commands {"show system\n"}
@@ -30,8 +28,8 @@ proc clean_output {output} {
 }
 
 proc cmd {command} {
-    global begindelim enddelim more prompt
-    set output $begindelim
+    global prompt
+    set output "#BEGIN\n"
     send $command
     expect {
         "*continue-- " {
@@ -47,7 +45,7 @@ proc cmd {command} {
         timeout {puts stderr "Timeout"; exit 255}
     }
     set result [clean_output $output]
-    append result $enddelim
+    append result "\n#END"
     return $result
 }
 
