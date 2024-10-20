@@ -4,12 +4,12 @@ exp_internal 0
 
 # Set variables
 set timeout 2
-set host "10.10.48.58"
+set host "192.168.11.110"
 set user "root"
-set passwd "cmb@Dm1n"
+set passwd "ss"
 set prompt "\)# "
-set session_ids {00015}
-set commands {"show system\n"}
+set session_ids {00001}
+set commands {}
 
 # Procedures
 proc merge_lists {list1 list2} {
@@ -67,7 +67,7 @@ spawn ssh -q -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o Conn
 
 # Handle SSH connection
 expect {
-    "Password: " {send "$passwd\n"}
+    "assword: " {send "$passwd\n"}
     timeout {puts stderr "Timeout"; exit 255}
     eof {puts stderr "Timeout"; exit 255}
 }

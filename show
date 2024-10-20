@@ -222,9 +222,9 @@ def running_config():
 
 def main(args):
     if "rtp-stat" in args:
-        if 'session' == args[1]:
+        if 'session' in args[1]:
             rtp_stat_sessions(args[2:])
-        if 'detail' == args[1]:
+        if 'detail' in args[1]:
             rtp_stat_detailed(args[2:])
     elif 'running-config' in args:
         running_config()
