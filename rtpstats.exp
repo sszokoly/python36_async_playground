@@ -4,12 +4,12 @@ exp_internal 0
 
 # Set variables
 set timeout 2
-set host "192.168.11.110"
+set host "10.10.48.58"
 set user "root"
-set passwd "ss"
+set passwd "cmb@Dm1n"
 set prompt "\)# "
-set session_ids {00001}
-set commands {}
+set session_ids {}
+set commands {"show running\n"}
 
 # Procedures
 proc merge_lists {list1 list2} {
@@ -36,6 +36,12 @@ proc cmd {command} {
             set current_output $expect_out(buffer)
             append output $current_output
             send "\n"
+            exp_continue
+        }
+        "*to continue." {
+            set current_output $expect_out(buffer)
+            append output $current_output
+            sleep 3
             exp_continue
         }
         $prompt {  
@@ -67,7 +73,7 @@ spawn ssh -q -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o Conn
 
 # Handle SSH connection
 expect {
-    "assword: " {send "$passwd\n"}
+    "Password: " {send "$passwd\n"}
     timeout {puts stderr "Timeout"; exit 255}
     eof {puts stderr "Timeout"; exit 255}
 }
@@ -80,21 +86,29 @@ expect {
 set active_ids [active_sessions_ids]
 set merged_ids [merge_lists $active_ids $session_ids]
 set rtp_stat_output ""
-foreach id $merged_ids {
-    set command "show rtp-stat detailed $id\n"
-    append rtp_stat_output [cmd $command]
+if {$merged_ids ne {}} {
+    foreach id $merged_ids {
+        set command "show rtp-stat detailed $id\n"
+        append rtp_stat_output [cmd $command]
+    }
 }
-log_user 1
-puts $rtp_stat_output
-log_user 0
+
+if {$rtp_stat_output ne ""} {
+    log_user 1
+    puts $rtp_stat_output
+    log_user 0
+}
 
 # Loop through the other commands
 set cmd_output ""
 foreach command $commands {
     append cmd_output [cmd $command]
 }
-log_user 1
-puts $cmd_output
-log_user 0
+
+if {$cmd_output ne ""} {
+    log_user 1
+    puts $cmd_output
+    log_user 0
+}
 
 send "exit\n"
