@@ -9,7 +9,7 @@ set user "root"
 set passwd "cmb@Dm1n"
 set prompt "\)# "
 set session_ids {}
-set commands {"show running\n"}
+set commands {}
 
 # Procedures
 proc merge_lists {list1 list2} {
