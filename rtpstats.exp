@@ -6,10 +6,10 @@ exp_internal 0
 set timeout 2
 set host "10.10.48.58"
 set user "root"
-set passwd "cmb@Dm1n"
+set passwd "cmb@Dm1n\n"
 set prompt "\)# "
 set session_ids {}
-set commands {}
+set commands {"show interface\n"}
 
 # Procedures
 proc merge_lists {list1 list2} {

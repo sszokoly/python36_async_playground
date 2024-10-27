@@ -1,7 +1,7 @@
 import asyncio
 import _curses, curses
 from abc import ABC, abstractmethod
-from typing import Optional, Callable, Any, TypeVar, Tuple, List
+from utils import asyncio_run
 
 class Display(ABC):
     def __init__(self, stdscr: "_curses._CursesWindow"):
@@ -88,24 +88,7 @@ def main(stdscr) -> None:
         host (str): The host to connect to.
         port (int): The port to connect to.
     """
-    loop: Optional[asyncio.AbstractEventLoop] = asyncio.get_event_loop()
-
-    try:
-        loop.run_until_complete(display_main(stdscr))
-
-    except KeyboardInterrupt:
-        print("Process interrupted by user.")
-
-    finally:
-        # Cancel all tasks
-        tasks = asyncio.Task.all_tasks(loop)
-        for task in tasks:
-            task.cancel()
-
-        # Wait for all tasks to be cancelled
-        group = asyncio.gather(*tasks, return_exceptions=True)
-        loop.run_until_complete(group)
-        loop.close()
+    asyncio_run(display_main(stdscr))
 
 if __name__ == "__main__":
     curses.wrapper(main)
