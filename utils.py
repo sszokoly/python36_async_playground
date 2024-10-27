@@ -1,7 +1,6 @@
 import asyncio
-import sys
 import functools
-from typing import Any, Coroutine, TypeVar, Optional, Set, Callable, Any, TypeVar, Tuple, List
+from typing import Any, Coroutine, TypeVar, Optional, Set, Callable, Any, TypeVar, Tuple
 
 F = TypeVar('F', bound=Callable[..., Any])
 T = TypeVar('T')
@@ -70,7 +69,7 @@ def timeout(seconds: float) -> Callable[[F], F]:
         return wrapper  # type: ignore
     return decorator
 
-timeout(6)
+timeout(1)
 async def async_shell(cmd: str, verbose: bool = False, name: Optional[str] = "") -> Tuple[str, str, int]:
     """Shell command executor with timeout.
 
@@ -89,8 +88,12 @@ async def async_shell(cmd: str, verbose: bool = False, name: Optional[str] = "")
             stderr=asyncio.subprocess.PIPE
         )
         stdout, stderr = await proc.communicate()
+        print(stdout, stderr)
         return stdout.decode(), stderr.decode(), proc.returncode
     except asyncio.CancelledError:
         if verbose:
             print(f"Coro {name} canceled.")
         return "", "canceled", 1
+
+if __name__ == "__main__":
+    asyncio_run(async_shell("sleep 3;echo 'test'", verbose=True))
