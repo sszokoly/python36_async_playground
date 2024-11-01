@@ -1,16 +1,52 @@
 import asyncio
 import functools
 from typing import Any, Coroutine, TypeVar, Optional, Set, Callable, Any, TypeVar, Tuple
+import traceback
 
 F = TypeVar('F', bound=Callable[..., Any])
 T = TypeVar('T')
 
-def asyncio_run(coro: Coroutine[Any, Any, T]) -> T:
+def await_time_limit(seconds: float) -> Callable[[F], F]:
+    """Decorator to wrap an async function with a timeout."""
+    def decorator(func: F) -> F:
+        @functools.wraps(func)
+        async def wrapper(*args: Any, **kwargs: Any) -> Any:
+            return await asyncio.wait_for(func(*args, **kwargs), timeout=seconds)
+        return wrapper  # type: ignore
+    return decorator
+
+@await_time_limit(2)
+async def async_shell(cmd: str, name: Optional[str] = "", verbose: bool = False) -> Tuple[str, str, int]:
+    """Shell command executor with timeout.
+
+    Args:
+        cmd (str): The shell command to execute.
+        verbose (bool): Flag to enable verbose output.
+        name (Optional[str]): Optional name for the coroutine.
+
+    Returns:
+        Tuple[str, str, int]: A tuple containing the standard output, standard error, and return code.
+    """
+    try:
+        proc = await asyncio.create_subprocess_shell(
+            cmd,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE
+        )
+        stdout, stderr = await proc.communicate()
+        return stdout.decode(), stderr.decode(), proc.returncode
+    except Exception as e:
+        if verbose:
+            print(f"{repr(e)} in {name}")
+        return "", repr(e), 1
+
+def asyncio_run(coro: Coroutine[Any, Any, T], name: Optional[str] = "", verbose: bool = False) -> T:
     """
     Run a coroutine in an asyncio event loop.
     This function can be used to run a coroutine from a synchronous context.
 
     :param coro: The coroutine to be run
+    :param name: The coroutine's name
     :return: The result of the coroutine
     """
     # Check if we're already running in an event loop
@@ -55,45 +91,10 @@ def _cancel_all_tasks(loop: asyncio.AbstractEventLoop) -> None:
             continue
         if task.exception() is not None:
             loop.call_exception_handler({
-                'message': 'Unhandled exception during asyncio.run() shutdown',
+                'message': 'Unhandled exception during shutdown',
                 'exception': task.exception(),
                 'task': task,
             })
 
-def timeout(seconds: float) -> Callable[[F], F]:
-    """Decorator to wrap an async function with a timeout."""
-    def decorator(func: F) -> F:
-        @functools.wraps(func)
-        async def wrapper(*args: Any, **kwargs: Any) -> Any:
-            return await asyncio.wait_for(func(*args, **kwargs), timeout=seconds)
-        return wrapper  # type: ignore
-    return decorator
-
-timeout(1)
-async def async_shell(cmd: str, verbose: bool = False, name: Optional[str] = "") -> Tuple[str, str, int]:
-    """Shell command executor with timeout.
-
-    Args:
-        cmd (str): The shell command to execute.
-        verbose (bool): Flag to enable verbose output.
-        name (Optional[str]): Optional name for the coroutine.
-
-    Returns:
-        Tuple[str, str, int]: A tuple containing the standard output, standard error, and return code.
-    """
-    try:
-        proc = await asyncio.create_subprocess_shell(
-            cmd,
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE
-        )
-        stdout, stderr = await proc.communicate()
-        print(stdout, stderr)
-        return stdout.decode(), stderr.decode(), proc.returncode
-    except asyncio.CancelledError:
-        if verbose:
-            print(f"Coro {name} canceled.")
-        return "", "canceled", 1
-
 if __name__ == "__main__":
-    asyncio_run(async_shell("sleep 3;echo 'test'", verbose=True))
+    print(asyncio_run(async_shell("sleep 1;echo `date`", verbose=True, name='main')))
