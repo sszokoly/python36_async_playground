@@ -15,7 +15,7 @@ def await_time_limit(seconds: float) -> Callable[[F], F]:
         return wrapper  # type: ignore
     return decorator
 
-@await_time_limit(2)
+@await_time_limit(20)
 async def async_shell(cmd: str, name: Optional[str] = "", verbose: bool = False) -> Tuple[str, str, int]:
     """Shell command executor with timeout.
 

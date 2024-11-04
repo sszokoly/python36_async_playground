@@ -1,25 +1,22 @@
-import asyncio
+#!/usr/bin/env python
+# -*- encoding: utf-8 -*-
 from utils import asyncio_run, async_shell
-
-async def bgw_rtp_stat(ip, name=None):
-    c = 0
-    while True:
-        c += 1
-        data, err, rc = await async_shell(f"sleep 1;echo `date` {ip}", verbose=True, name=name)
-        if not rc:
-            print(data.strip())
-        else:
-            print(err.strip())
-        await asyncio.sleep(3)
+from scripts import expect_cmd_script
 
 async def main():
-    rs = await asyncio.gather(
-        asyncio.Task(bgw_rtp_stat('10.10.48.58')),
-        asyncio.Task(bgw_rtp_stat('10.44.244.51')),
-        loop=asyncio.get_event_loop(),
-        return_exceptions=True
-    )
-    print(rs)
+    script = expect_cmd_script(**{
+        'host': '10.10.48.58',
+        'user': 'root',
+        'passwd': 'cmb@Dm1n',
+        'session_ids': ['00001', '00002'],
+        'commands': ['show system'],
+        'timeout': 3,
+        'log_user': 0,
+        'exp_internal': 0
+    })
+    cmd = f"/usr/bin/env expect -c '{script}'"
+    stdout, stderr, rc = await async_shell(cmd)
+    print(stdout, stderr, rc)
 
 if __name__ == "__main__":
     asyncio_run(main())

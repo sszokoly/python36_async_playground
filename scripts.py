@@ -1,8 +1,10 @@
+#!/usr/bin/env python
+# -*- encoding: utf-8 -*-
+from typing import Optional, List
 
 cmd_template = '''
-#!/usr/bin/expect
-log_user 0
-exp_internal 0
+log_user {log_user}
+exp_internal {exp_internal}
 
 # Set variables
 set timeout {timeout}
@@ -26,7 +28,7 @@ proc clean_output {{output}} {{
     set type_removed [regsub "\\r\\n--type q to quit or space key to continue-- \\r\\[^ \\]*K" $output ""]
     set note_removed [regsub "Note that field.*" $type_removed ""]
     set done_removed [regsub "Done!.*" $note_removed ""]
-    set prompt_removed [regsub "\\r\\n\\[^ \\]*\\\\)# " $done_removed ""]
+    set prompt_removed [regsub "\\r\\n\\[^ \\]*\\[)\\]# " $done_removed ""]
     set result [string trimright $prompt_removed]
     return $result
 }}
@@ -86,7 +88,7 @@ expect {{
     $prompt {{}}
 }}
 
-"# Loop through session ids and run 'show rtp-stats detailed id' on it"
+# Loop through session ids and run "show rtp-stats detailed" id on it
 set active_ids [active_sessions_ids]
 set merged_ids [merge_lists $active_ids $session_ids]
 set rtp_stat_output ""
@@ -118,24 +120,53 @@ if {{$cmd_output ne ""}} {{
 send "exit\\n"
 '''
 
-def expect_cmd_script(host, user, passwd, session_ids=None, commands=None, timeout=2):
+def expect_cmd_script(
+    host: str,
+    user: str,
+    passwd: str,
+    session_ids: Optional[List[str]] = None,
+    commands: Optional[List[str]] = None,
+    timeout: Optional[int] = 2,
+    log_user: Optional[int] = 0,
+    exp_internal: Optional[int] = 0,
+    ) -> str:
+    """Interpolates and formats the 'cmd_template' Expect script.
+
+    Args:
+        host (str): Host (BGW) IP address
+        user (str): Host (BGW) SSH username
+        passwd (str): Host (BGW) SSH password
+        session_ids (Optional[List[str]], optional): BGW RTP session IDs. Defaults to None.
+        commands (Optional[List[str]], optional): BGW Shell commands. Defaults to None.
+        timeout (Optional[int], optional): Expect script timeout in secs. Defaults to 2.
+        log_user (Optional[int], optional): Expect logging to stdout. Defaults to 0.
+        exp_internal (Optional[int], optional): Expect diagnostic info to stderr. Defaults to 0.
+
+    Returns:
+        str: interpolated/formated Expect script
+    """
     session_ids = ' '.join(session_ids) if session_ids else ''
-    commands = '\n'.join(f'    "{c}\\n"' for c in commands) if commands else ''
+    commands = '\n'.join(f'  "{c}\\n"' for c in commands) if commands else ''
     script = cmd_template.format(**{
         'host': host,
         'user': user,
         'passwd': passwd,
         'session_ids': session_ids,
         'commands': commands,
-        'timeout': timeout
+        'timeout': timeout,
+        'log_user': log_user,
+        'exp_internal': exp_internal,
     })
     return script
 
 if __name__ == "__main__":
-    host = '10.10.48.58',
-    user = 'root',
-    passwd = 'cmb@Dm1n'
-    session_ids = ['00015', '00016']
-    commands = ['show system', 'show running-config']
-    timeout = 3
-    print(expect_cmd_script(host, user, passwd, session_ids, commands, timeout))
+    print(expect_cmd_script(**{
+        'host': '10.10.48.58',
+        'user': 'root',
+        'passwd': 'cmb@Dm1n',
+        'session_ids': ['00001', '00002'],
+        'commands': ['show system', 'show running-config'],
+        'timeout': 3,
+        'log_user': 0,
+        'exp_internal': 0
+    }))
