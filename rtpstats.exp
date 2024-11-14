@@ -3,13 +3,13 @@ log_user 0
 exp_internal 0
 
 # Set variables
-set timeout 2
+set timeout 8
 set host "10.10.48.58"
 set user "root"
-set passwd "cmb@Dm1n\n"
+set passwd "cmb@Dm1n"
 set prompt "\)# "
-set session_ids {}
-set commands {"show interface\n"}
+set session_ids {"00001" "00111"}
+set commands {"show system" "show running"}
 
 # Procedures
 proc merge_lists {list1 list2} {
@@ -22,15 +22,15 @@ proc clean_output {output} {
     set type_removed [regsub "\r\n--type q to quit or space key to continue-- \r\[^ \]*K" $output ""]
     set note_removed [regsub "Note that field.*" $type_removed ""]
     set done_removed [regsub "Done!.*" $note_removed ""]
-    set prompt_removed [regsub "\r\n\[^ \]*\[)\]# " $done_removed ""]
+    set prompt_removed [regsub "\r?\n\[^ \]*\[)\]# " $done_removed ""]
     set result [string trimright $prompt_removed]
     return $result
 }
 
 proc cmd {command} {
     global prompt
-    set output "#BEGIN\n"
-    send $command
+    set output "\n#BEGIN\n"
+    send "$command"
     expect {
         "*continue-- " {
             set current_output $expect_out(buffer)
@@ -44,7 +44,11 @@ proc cmd {command} {
             sleep 3
             exp_continue
         }
-        $prompt {  
+        -re "(Non-existant.*)\n" {
+            append output "$command\n"
+            exp_continue
+        }
+        $prompt {
             set current_output $expect_out(buffer)
             append output $current_output
         }
@@ -102,7 +106,7 @@ if {$rtp_stat_output ne ""} {
 # Loop through the other commands
 set cmd_output ""
 foreach command $commands {
-    append cmd_output [cmd $command]
+    append cmd_output [cmd "$command\n"]
 }
 
 if {$cmd_output ne ""} {

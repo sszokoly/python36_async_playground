@@ -28,14 +28,14 @@ proc clean_output {{output}} {{
     set type_removed [regsub "\\r\\n--type q to quit or space key to continue-- \\r\\[^ \\]*K" $output ""]
     set note_removed [regsub "Note that field.*" $type_removed ""]
     set done_removed [regsub "Done!.*" $note_removed ""]
-    set prompt_removed [regsub "\\r\\n\\[^ \\]*\\[)\\]# " $done_removed ""]
+    set prompt_removed [regsub "\\r?\\n\\[^ \\]*\\[)\\]# " $done_removed ""]
     set result [string trimright $prompt_removed]
     return $result
 }}
 
 proc cmd {{command}} {{
     global prompt
-    set output "#BEGIN\\n"
+    set output "\\n#BEGIN\\n"
     send $command
     expect {{
         "*continue-- " {{
@@ -48,6 +48,10 @@ proc cmd {{command}} {{
             set current_output $expect_out(buffer)
             append output $current_output
             sleep 3
+            exp_continue
+        }}
+        -re "(Non-existant.*)\\n" {{
+            append output "$command\\n"
             exp_continue
         }}
         $prompt {{  
@@ -108,7 +112,7 @@ if {{$rtp_stat_output ne ""}} {{
 # Loop through the other commands
 set cmd_output ""
 foreach command $commands {{
-    append cmd_output [cmd $command]
+    append cmd_output [cmd "$command\\n"]
 }}
 
 if {{$cmd_output ne ""}} {{

@@ -2,15 +2,14 @@
 # -*- encoding: utf-8 -*-
 from utils import asyncio_run, async_shell
 from scripts import expect_cmd_script
-from bgw_regex import reRTP_detailed
 
 async def main():
     script = expect_cmd_script(**{
         'host': '10.10.48.58',
         'user': 'root',
         'passwd': 'cmb@Dm1n',
-        'session_ids': ['00002'],
-        'commands': [],
+        'session_ids': ['00002', '00222'],
+        'commands': ['show running'],
         'timeout': 3,
         'log_user': 0,
         'exp_internal': 0
@@ -19,7 +18,7 @@ async def main():
     stdout, stderr, rc = await async_shell(cmd)
     if not rc and not stderr:
         try:
-            print(reRTP_detailed.match(stdout).groupdict())
+            print(stdout)
         except:
             pass
     else:
