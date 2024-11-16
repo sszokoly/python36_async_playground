@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- encoding: utf-8 -*-
 import re
-from datetime import datetime
 
 RTP_DETAILED = (
         r'.*?Session-ID: (?P<session_id>\d+)',
@@ -58,28 +57,28 @@ RTP_DETAILED = (
 reRTP_detailed = re.compile(r''.join(RTP_DETAILED), re.M|re.S|re.I)
 reFindall = re.compile(r'#BEGIN(.*?)\s+?#END', re.M|re.S|re.I)
 
-def bgw_findall_cmds(stdout):
-    d = {}
+def stdout_to_cmds(stdout):
+    cmds = {}
     commands = [x for x in reFindall.split(stdout) if x.strip()]
     for c in commands:
         command, output = c.split("\r\n", 1)
-        d.update({command.strip(): output.strip()})
-    return d
+        cmds.update({command.strip(): output.strip()})
+    return cmds
 
-def detailed_to_dict(detailed):
-    try:
-        d = reRTP_detailed.match(detailed.strip()).groupdict()
-        #d['start_time'] = datetime.strptime(d['start_time'], '%Y-%m-%d,%H:%M:%S')
-        #d['end_time'] = datetime.strptime(d['end_time'], '%Y-%m-%d,%H:%M:%S')
-        #d['duration'] = d['end_time'] - d['start_time']
-        return {(d['start_time'], d['local_addr'], d['session_id'].zfill(5)) : d}
-    except:
-        return {}
-
+def detailed_to_dict(cmds):
+    stats = {}
+    for cmd, output in cmds.items():
+        if 'show rtp-stat detailed' not in cmd:
+            continue
+        try:
+            d = reRTP_detailed.match(output).groupdict()
+            stats.update({(d['start_time'], d['local_addr'], d['session_id'].zfill(5)): d})
+        except:
+            pass
+    return stats
 
 if __name__ == '__main__':
     stdout = '''#BEGIN\nshow rtp-stat detailed 00001\r\n\r\nSession-ID: 1\r\nStatus: Terminated, QOS: Ok, EngineId: 10\r\nStart-Time: 2024-11-04,10:06:07, End-Time: 2024-11-04,10:07:07\r\nDuration: 00:00:00\r\nCName: gwp@10.10.48.58\r\nPhone: \r\nLocal-Address: 10.10.48.58:2052 SSRC 1653399062\r\nRemote-Address: 10.10.48.192:35000 SSRC 2704961869 (0)\r\nSamples: 0 (5 sec)\r\n\r\nCodec:\r\nG711U 200B 20mS srtpAesCm128HmacSha180, Silence-suppression(Tx/Rx) Disabled/Disabled, Play-Time 4.720sec, Loss 0.8% #0, Avg-Loss 0.8%, RTT 0mS #0, Avg-RTT 0mS, JBuf-under/overruns 0.0%/0.0%, Jbuf-Delay 22mS, Max-Jbuf-Delay 22mS\r\n\r\nReceived-RTP:\r\nPackets 245, Loss 0.3% #0, Avg-Loss 0.3%, RTT 0mS #0, Avg-RTT 0mS, Jitter 2mS #0, Avg-Jitter 2mS, TTL(last/min/max) 56/56/56, Duplicates 0, Seq-Fall 0, DSCP 0, L2Pri 0, RTCP 0, Flow-Label 2\r\n\r\nTransmitted-RTP:\r\nVLAN 0, DSCP 46, L2Pri 0, RTCP 10, Flow-Label 0\r\n\r\nRemote-Statistics:\r\nLoss 0.0% #0, Avg-Loss 0.0%, Jitter 0mS #0, Avg-Jitter 0mS\r\n\r\nEcho-Cancellation:\r\nLoss 0dB #2, Len 0mS\r\n\r\nRSVP:\r\nStatus Unused, Failures 0\n#END'''
     stdout += '''#BEGIN\nshow rtp-stat detailed 00002\r\n\r\nSession-ID: 1\r\nStatus: Terminated, QOS: Ok, EngineId: 10\r\nStart-Time: 2024-11-04,10:06:10, End-Time: 2024-11-04,10:07:10\r\nDuration: 00:00:00\r\nCName: gwp@10.10.48.58\r\nPhone: \r\nLocal-Address: 10.10.48.58:2052 SSRC 1653399062\r\nRemote-Address: 10.10.48.192:35000 SSRC 2704961869 (0)\r\nSamples: 0 (5 sec)\r\n\r\nCodec:\r\nG711U 200B 20mS srtpAesCm128HmacSha180, Silence-suppression(Tx/Rx) Disabled/Disabled, Play-Time 4.720sec, Loss 0.8% #0, Avg-Loss 0.8%, RTT 0mS #0, Avg-RTT 0mS, JBuf-under/overruns 0.0%/0.0%, Jbuf-Delay 22mS, Max-Jbuf-Delay 22mS\r\n\r\nReceived-RTP:\r\nPackets 245, Loss 0.3% #0, Avg-Loss 0.3%, RTT 0mS #0, Avg-RTT 0mS, Jitter 2mS #0, Avg-Jitter 2mS, TTL(last/min/max) 56/56/56, Duplicates 0, Seq-Fall 0, DSCP 0, L2Pri 0, RTCP 0, Flow-Label 2\r\n\r\nTransmitted-RTP:\r\nVLAN 0, DSCP 46, L2Pri 0, RTCP 10, Flow-Label 0\r\n\r\nRemote-Statistics:\r\nLoss 0.0% #0, Avg-Loss 0.0%, Jitter 0mS #0, Avg-Jitter 0mS\r\n\r\nEcho-Cancellation:\r\nLoss 0dB #2, Len 0mS\r\n\r\nRSVP:\r\nStatus Unused, Failures 0\n#END'''
     print(stdout)
-    print(bgw_findall_cmds(stdout))
-    #print(detailed_to_dict(DETAILED))
+    print(detailed_to_dict(stdout_to_cmds(stdout)))

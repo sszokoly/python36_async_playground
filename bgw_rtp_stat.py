@@ -3,7 +3,7 @@
 from utils import asyncio_run, async_shell
 from scripts import expect_cmd_script
 from storage import AsyncMemoryStorage
-from bgw_regex import detailed_to_dict
+from bgw_regex import detailed_to_dict, stdout_to_cmds
 
 async def main():
     storage = AsyncMemoryStorage()
@@ -21,7 +21,7 @@ async def main():
     stdout, stderr, rc = await async_shell(cmd)
     if not rc and not stderr:
         try:
-            await storage.add(detailed_to_dict(stdout))
+            await storage.add(detailed_to_dict(stdout_to_cmds(stdout)))
         except:
             pass
     else:
