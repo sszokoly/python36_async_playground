@@ -257,7 +257,7 @@ class SlicableOrderedDict(MutableMapping):
         The string includes the name of the class, the items currently stored,
         and the maximum length of the storage if applicable.
         """
-        return f"{type(self).__name__}={self._items}, maxlen={self.maxlen})"
+        return f"{type(self).__name__}=({self._items}, maxlen={self.maxlen})"
 
     def __eq__(self, other) -> bool:
         """
