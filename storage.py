@@ -27,6 +27,7 @@ class MemoryStorage(MutableMapping):
         self._items = dict(items) if items else dict()
         self._keys = deque(sorted(self._items.keys()) if items else [])
         self.maxlen = maxlen
+
     def __len__(self) -> int:
         """Return the number of items stored in the MemoryStorage."""
         return len(self._items)
