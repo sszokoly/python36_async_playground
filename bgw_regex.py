@@ -99,10 +99,19 @@ Silence-Sup (Rx): {codec_silence_suppr_rx}
   ECHO CANCELATION
             Loss: {ec_loss} #{ec_loss_events}
              Len: {ec_len}
-''' 
+'''
 
-reRTP_detailed = re.compile(r''.join(SESSION_DETAILED), re.M|re.S|re.I)
-reFindall = re.compile(r'#BEGIN(.*?)\s+?#END', re.M|re.S|re.I)
+class Colour:
+   PURPLE = '\033[95m'
+   CYAN = '\033[96m'
+   DARKCYAN = '\033[36m'
+   BLUE = '\033[94m'
+   GREEN = '\033[92m'
+   YELLOW = '\033[93m'
+   RED = '\033[91m'
+   BOLD = '\033[1m'
+   UNDERLINE = '\033[4m'
+   END = '\033[0m'
 
 class RTPSession:
     def __init__(self, dictionary: Dict[str, str], session_format: str = SESSION_FORMAT) -> None:
@@ -150,6 +159,9 @@ class RTPSession:
         :return: A string representation of the RTPSession object
         """
         return self.session_format.format(**self.__dict__)
+
+reRTP_detailed = re.compile(r''.join(SESSION_DETAILED), re.M|re.S|re.I)
+reFindall = re.compile(r'#BEGIN(.*?)\s+?#END', re.M|re.S|re.I)
 
 def stdout_to_cmds(stdout: str) -> Dict[str, str]:
     """
