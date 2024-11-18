@@ -5,8 +5,7 @@ from typing import Dict
 
 SESSION_DETAILED = (
         r'.*?Session-ID: (?P<session_id>\d+)',
-        r'.*?Status: (?P<status>\w+)',
-        r'.*?EngineId: (?P<engineid>\d+)',
+        r'.*?Status: (?P<status>\w+), QOS: (?P<qos>\w+), EngineId: (?P<engineid>\d+)',
         r'.*?Start-Time: (?P<start_time>\S+),',
         r'.*?End-Time: (?P<end_time>\S+)',
         r'.*?Duration: (?P<duration>\S+)',
@@ -55,11 +54,58 @@ SESSION_DETAILED = (
         r'.*?Failures (?P<rsvp_failures>\d+)',
 )
 
+SESSION_FORMAT = '''
+Session-ID: {session_id}
+    Status: {status}
+       QoS: {qos}
+Start-Time: {start_time}
+  End-Time: {end_time}
+  Duration: {duration}
+   Samples: {samples} {sampling_interval}
+
+  LOCAL-ADDRESS                                REMOTE-ADDRESS
+{local_addr:>15}:{local_port:5} <{codec:-^19}> {remote_port}:{remote_addr}
+SSRC {local_ssrc:38}  SSRC {remote_ssrc} {ssrc_change}
+
+        RTP  Packets (Rx/Tx): {rx_rtp_packets:>6} / NA
+        RTCP Packets (Rx/Tx): {rx_rtp_rtcp:>6} / {rtp_tx_rtcp}
+                DSCP (Rx/Tx): {rx_rtp_dscp:>6} / {tx_rtp_dscp}
+               L2Pri (Rx/Tx): {rx_rtp_l2pri:>6} / {tx_rtp_l2pri}
+             Duplicates (Rx): {rx_rtp_duplicates:>6}
+               Seq-Fall (Rx): {rx_rtp_seqfall:>6}
+
+  LOCAL RTP STATISTICS (Rx)       REMOTE RTP STATISTICS (Rx)
+       Loss: {rx_rtp_loss:>6} #{rx_rtp_loss_events:3}               Loss: {rem_loss:>6} #{rem_loss_events}
+   Avg-Loss: {rx_rtp_avg_loss:>6}                Avg-Loss: {rem_avg_loss:>6}
+     Jitter: {rx_rtp_jitter:>6} #{rx_rtp_jitter_events:3}             Jitter: {rem_jitter:>6} #{rem_jitter_events}
+ Avg-Jitter: {rx_rtp_avg_jitter:>6}              Avg-Jitter: {rem_avg_jitter:>6}
+        RTT: {rx_rtp_rtt:>6} #{rx_rtp_rtt_events:3}       
+    Avg-RTT: {rx_rtp_avg_rtt:>6}
+
+  LOCAL CODEC STATISTICS
+      Encryption: {enc}
+       Play-Time: {play_time}
+            Loss: {codec_loss} #{codec_loss_events}
+        Avg-Loss: {codec_avg_loss}
+             RTT: {codec_rtt} #{codec_rtt_events}
+         Avg-RTT: {codec_avg_rtt}
+  Jbuf-underruns: {codec_jbuf_underruns}
+   Jbuf-overruns: {codec_jbuf_overruns}
+      Jbuf-Delay: {codec_jbuf_delay}
+  Max-Jbuf-Delay: {codec_max_jbuf_delay}
+Silence-Sup (Tx): {codec_silence_suppr_tx}
+Silence-Sup (Rx): {codec_silence_suppr_rx}
+
+  ECHO CANCELATION
+            Loss: {ec_loss} #{ec_loss_events}
+             Len: {ec_len}
+''' 
+
 reRTP_detailed = re.compile(r''.join(SESSION_DETAILED), re.M|re.S|re.I)
 reFindall = re.compile(r'#BEGIN(.*?)\s+?#END', re.M|re.S|re.I)
 
 class RTPSession:
-    def __init__(self, dictionary: Dict[str, str]) -> None:
+    def __init__(self, dictionary: Dict[str, str], session_format: str = SESSION_FORMAT) -> None:
         """
         Initialize an RTPSession from a dictionary of key-value pairs.
 
@@ -74,6 +120,7 @@ class RTPSession:
             self.local_addr,
             self.session_id.zfill(5)
         ))
+        self.session_format = session_format
     def __repr__(self) -> str:
         """
         Return a string representation of the RTPSession object.
@@ -81,6 +128,18 @@ class RTPSession:
         :return: A string representation of the RTPSession object.
         """
         return f'RTPSession=({self.__dict__})'
+
+    def __str__(self) -> str:
+        """
+        Return a string representation of the RTPSession object.
+
+        The string is formatted according to the SESSION_FORMAT string,
+        which is a template string that uses the attributes of the RTPSession
+        object as replacement values.
+
+        :return: A string representation of the RTPSession object
+        """
+        return self.session_format.format(**self.__dict__)
 
 def stdout_to_cmds(stdout: str) -> Dict[str, str]:
     """
@@ -122,7 +181,9 @@ def cmds_to_rtpsessions(cmds: Dict[str, str]) -> Dict[str, RTPSession]:
     return rtpsessions
 
 if __name__ == '__main__':
-    stdout = '''#BEGIN\nshow rtp-stat detailed 00001\r\n\r\nSession-ID: 1\r\nStatus: Terminated, QOS: Ok, EngineId: 10\r\nStart-Time: 2024-11-04,10:06:07, End-Time: 2024-11-04,10:07:07\r\nDuration: 00:00:00\r\nCName: gwp@10.10.48.58\r\nPhone: \r\nLocal-Address: 10.10.48.58:2052 SSRC 1653399062\r\nRemote-Address: 10.10.48.192:35000 SSRC 2704961869 (0)\r\nSamples: 0 (5 sec)\r\n\r\nCodec:\r\nG711U 200B 20mS srtpAesCm128HmacSha180, Silence-suppression(Tx/Rx) Disabled/Disabled, Play-Time 4.720sec, Loss 0.8% #0, Avg-Loss 0.8%, RTT 0mS #0, Avg-RTT 0mS, JBuf-under/overruns 0.0%/0.0%, Jbuf-Delay 22mS, Max-Jbuf-Delay 22mS\r\n\r\nReceived-RTP:\r\nPackets 245, Loss 0.3% #0, Avg-Loss 0.3%, RTT 0mS #0, Avg-RTT 0mS, Jitter 2mS #0, Avg-Jitter 2mS, TTL(last/min/max) 56/56/56, Duplicates 0, Seq-Fall 0, DSCP 0, L2Pri 0, RTCP 0, Flow-Label 2\r\n\r\nTransmitted-RTP:\r\nVLAN 0, DSCP 46, L2Pri 0, RTCP 10, Flow-Label 0\r\n\r\nRemote-Statistics:\r\nLoss 0.0% #0, Avg-Loss 0.0%, Jitter 0mS #0, Avg-Jitter 0mS\r\n\r\nEcho-Cancellation:\r\nLoss 0dB #2, Len 0mS\r\n\r\nRSVP:\r\nStatus Unused, Failures 0\n#END'''
-    stdout += '''#BEGIN\nshow rtp-stat detailed 00002\r\n\r\nSession-ID: 1\r\nStatus: Terminated, QOS: Ok, EngineId: 10\r\nStart-Time: 2024-11-04,10:06:10, End-Time: 2024-11-04,10:07:10\r\nDuration: 00:00:00\r\nCName: gwp@10.10.48.58\r\nPhone: \r\nLocal-Address: 10.10.48.58:2052 SSRC 1653399062\r\nRemote-Address: 10.10.48.192:35000 SSRC 2704961869 (0)\r\nSamples: 0 (5 sec)\r\n\r\nCodec:\r\nG711U 200B 20mS srtpAesCm128HmacSha180, Silence-suppression(Tx/Rx) Disabled/Disabled, Play-Time 4.720sec, Loss 0.8% #0, Avg-Loss 0.8%, RTT 0mS #0, Avg-RTT 0mS, JBuf-under/overruns 0.0%/0.0%, Jbuf-Delay 22mS, Max-Jbuf-Delay 22mS\r\n\r\nReceived-RTP:\r\nPackets 245, Loss 0.3% #0, Avg-Loss 0.3%, RTT 0mS #0, Avg-RTT 0mS, Jitter 2mS #0, Avg-Jitter 2mS, TTL(last/min/max) 56/56/56, Duplicates 0, Seq-Fall 0, DSCP 0, L2Pri 0, RTCP 0, Flow-Label 2\r\n\r\nTransmitted-RTP:\r\nVLAN 0, DSCP 46, L2Pri 0, RTCP 10, Flow-Label 0\r\n\r\nRemote-Statistics:\r\nLoss 0.0% #0, Avg-Loss 0.0%, Jitter 0mS #0, Avg-Jitter 0mS\r\n\r\nEcho-Cancellation:\r\nLoss 0dB #2, Len 0mS\r\n\r\nRSVP:\r\nStatus Unused, Failures 0\n#END'''
+    stdout = '''#BEGIN\nshow rtp-stat detailed 00001\r\n\r\nSession-ID: 1\r\nStatus: Terminated, QOS: Ok, EngineId: 10\r\nStart-Time: 2024-11-04,10:06:07, End-Time: 2024-11-04,10:07:07\r\nDuration: 00:00:00\r\nCName: gwp@10.10.48.58\r\nPhone: \r\nLocal-Address: 192.168.110.110:2052 SSRC 1653399062\r\nRemote-Address: 10.10.48.192:35000 SSRC 2704961869 (0)\r\nSamples: 0 (5 sec)\r\n\r\nCodec:\r\nG711U 200B 20mS srtpAesCm128HmacSha180, Silence-suppression(Tx/Rx) Disabled/Disabled, Play-Time 4.720sec, Loss 0.8% #0, Avg-Loss 0.8%, RTT 0mS #0, Avg-RTT 0mS, JBuf-under/overruns 0.0%/0.0%, Jbuf-Delay 22mS, Max-Jbuf-Delay 22mS\r\n\r\nReceived-RTP:\r\nPackets 245, Loss 0.3% #0, Avg-Loss 0.3%, RTT 0mS #0, Avg-RTT 0mS, Jitter 2mS #0, Avg-Jitter 2mS, TTL(last/min/max) 56/56/56, Duplicates 0, Seq-Fall 0, DSCP 0, L2Pri 0, RTCP 0, Flow-Label 2\r\n\r\nTransmitted-RTP:\r\nVLAN 0, DSCP 46, L2Pri 0, RTCP 10, Flow-Label 0\r\n\r\nRemote-Statistics:\r\nLoss 0.0% #0, Avg-Loss 0.0%, Jitter 0mS #0, Avg-Jitter 0mS\r\n\r\nEcho-Cancellation:\r\nLoss 0dB #2, Len 0mS\r\n\r\nRSVP:\r\nStatus Unused, Failures 0\n#END'''
+    stdout += '''#BEGIN\nshow rtp-stat detailed 00002\r\n\r\nSession-ID: 1\r\nStatus: Terminated, QOS: Ok, EngineId: 10\r\nStart-Time: 2024-11-04,10:06:10, End-Time: 2024-11-04,10:07:10\r\nDuration: 00:00:00\r\nCName: gwp@10.10.48.58\r\nPhone: \r\nLocal-Address: 192.168.110.111:2052 SSRC 1653399062\r\nRemote-Address: 192.168.110.112:35000 SSRC 2704961869 (0)\r\nSamples: 0 (5 sec)\r\n\r\nCodec:\r\nG711U 200B 20mS Off, Silence-suppression(Tx/Rx) Disabled/Disabled, Play-Time 4.720sec, Loss 0.8% #0, Avg-Loss 0.8%, RTT 0mS #0, Avg-RTT 0mS, JBuf-under/overruns 0.0%/0.0%, Jbuf-Delay 22mS, Max-Jbuf-Delay 22mS\r\n\r\nReceived-RTP:\r\nPackets 245, Loss 0.3% #0, Avg-Loss 0.3%, RTT 0mS #0, Avg-RTT 0mS, Jitter 2mS #0, Avg-Jitter 2mS, TTL(last/min/max) 56/56/56, Duplicates 0, Seq-Fall 0, DSCP 0, L2Pri 0, RTCP 0, Flow-Label 2\r\n\r\nTransmitted-RTP:\r\nVLAN 0, DSCP 46, L2Pri 0, RTCP 10, Flow-Label 0\r\n\r\nRemote-Statistics:\r\nLoss 0.0% #0, Avg-Loss 0.0%, Jitter 0mS #0, Avg-Jitter 0mS\r\n\r\nEcho-Cancellation:\r\nLoss 0dB #2, Len 0mS\r\n\r\nRSVP:\r\nStatus Unused, Failures 0\n#END'''
     print(stdout)
-    print(cmds_to_rtpsessions(stdout_to_cmds(stdout)))
+    rtpsessions = cmds_to_rtpsessions(stdout_to_cmds(stdout))
+    for id, rtpsession in rtpsessions.items():
+        print(str(rtpsession))
