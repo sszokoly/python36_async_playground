@@ -55,16 +55,16 @@ SESSION_DETAILED = (
 )
 
 SESSION_FORMAT = '''
-Session-ID: {session_id}
-    Status: {status}
-       QoS: {qos}
-Start-Time: {start_time}
-  End-Time: {end_time}
-  Duration: {duration}
-   Samples: {samples} {sampling_interval}
+Session-ID: {WHITE}{session_id}{END}
+    Status: {WHITE}{status}{END}
+       QoS: {WHITE}{qos}{END}
+Start-Time: {WHITE}{start_time}{END}
+  End-Time: {WHITE}{end_time}{END}
+  Duration: {WHITE}{duration}{END}
+   Samples: {WHITE}{samples} {sampling_interval}{END}
 
   LOCAL-ADDRESS                                REMOTE-ADDRESS
-{local_addr:>15}:{local_port:5} <{codec:-^19}> {remote_port}:{remote_addr}
+{YELLOW}{local_addr:>15}{END}:{BLUE}{local_port:5}{END} <{codec:-^19}> {BLUE}{remote_port}{END}:{YELLOW}{remote_addr}{END}
 SSRC {local_ssrc:38}  SSRC {remote_ssrc} {ssrc_change}
 
         RTP  Packets (Rx/Tx): {rx_rtp_packets:>6} / NA
@@ -101,33 +101,34 @@ Silence-Sup (Rx): {codec_silence_suppr_rx}
              Len: {ec_len}
 '''
 
-class Colour:
-   PURPLE = '\033[95m'
-   CYAN = '\033[96m'
-   DARKCYAN = '\033[36m'
-   BLUE = '\033[94m'
-   GREEN = '\033[92m'
-   YELLOW = '\033[93m'
-   RED = '\033[91m'
-   BOLD = '\033[1m'
-   UNDERLINE = '\033[4m'
-   END = '\033[0m'
-
 class RTPSession:
-    def __init__(self, dictionary: Dict[str, str], session_format: str = SESSION_FORMAT) -> None:
+    color = {
+        'RED': '\033[91m',
+        'GREEN': '\033[92m',
+        'YELLOW': '\033[93m',
+        'BLUE': '\033[94m',
+        'PURPLE': '\033[95m',
+        'CYAN': '\033[96m',
+        'WHITE': '\033[1;97m',
+        'BOLD': '\033[1m',
+        'UNDERLINE': '\033[4m',
+        'END': '\033[0m',
+    }
+
+    def __init__(self, params: Dict[str, str], session_format: str = SESSION_FORMAT) -> None:
         """
         Initialize an RTPSession from a dictionary of key-value pairs.
 
-        :param dictionary: A dictionary of key-value pairs where the keys are the
+        :param params: A dictionary of key-value pairs where the keys are the
             names of the attributes of the RTPSession object and the values are the
             values of those attributes.
         """
-        for k, v in dictionary.items():
+        for k, v in params.items():
             setattr(self, k, v)
         self.id = '_'.join((
-            self.start_time,
-            self.local_addr,
-            self.session_id.zfill(5)
+            params['start_time'],
+            params['local_addr'],
+            params['session_id'].zfill(5)
         ))
         self.session_format = session_format
 
@@ -158,7 +159,10 @@ class RTPSession:
 
         :return: A string representation of the RTPSession object
         """
-        return self.session_format.format(**self.__dict__)
+        return self.session_format.format(**{
+            **self.__dict__,
+            **self.__class__.__dict__['color']
+        })
 
 reRTP_detailed = re.compile(r''.join(SESSION_DETAILED), re.M|re.S|re.I)
 reFindall = re.compile(r'#BEGIN(.*?)\s+?#END', re.M|re.S|re.I)
