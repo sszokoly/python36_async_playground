@@ -54,6 +54,31 @@ SESSION_DETAILED = (
         r'.*?Failures (?P<rsvp_failures>\d+)',
 )
 
+LAYOUT = '''
+Session-ID: 35    Status: Terminated     QOS: Faulted    Samples: 54 (5 sec)
+Start: 2004-10-20,11:09:07   End: 2004-10-20,11:13:40   Duration: 00:04:33
+
+     LOCAL ADDRESS                                         REMOTE ADDRESS
+   192.168.111.111:20544 <----------G711U----------> 20544:192.168.111.112
+   SSRC 2704961869	     Enc:srtpAesCm128HmacSha180		 SSRC 2704961869 (0)
+	    
+			RTP/RTCP							              CODEC
+	RTP Packets (Rx/Tx): 180000 /    NA             Psize/Ptime: 200B/30ms
+   RTCP Packets (Rx/Tx):    120 /   134               Play-Time: 272.610sec
+           DSCP (Rx/Tx):     46 /    46                Avg-Loss: 0.1%
+          L2Pri (Rx/Tx):      6 /     6                 Avg-RTT: 570mS
+        Duplicates (Rx):      0                  Max-Jbuf-Delay: 60mS
+          Seq-Fall (Rx):      6             JBuf-under/overruns: 66.1%/43.0%
+
+   LOCAL RTP STATISTICS                             REMOTE RTP STATISTICS
+		Loss: 0.0% #0							          Loss: 0.0% #0
+    Avg-Loss: 0.1%			                  		  Avg-Loss: 0.0%
+	  Jitter: 0mS #0									Jitter: 0mS #0
+  Avg-Jitter: 0mS									Avg-Jitter: 0mS
+		 RTT: 604mS      
+	 Avg-RTT: 376mS
+'''
+
 SESSION_FORMAT = '''
 Session-ID: {WHITE}{session_id}{END}
     Status: {WHITE}{status}{END}
