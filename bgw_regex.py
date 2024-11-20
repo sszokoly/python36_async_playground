@@ -66,7 +66,7 @@ SESSION_DETAILED = (
         r'.*?Loss (?P<rem_loss>\S+)',
         r'.*#(?P<rem_loss_events>\S+),',
         r'.*?Avg-Loss (?P<rem_avg_loss>\S+),',
-        r'.*?Jitter (?P<rem_jitter>\S+)'
+        r'.*?Jitter (?P<rem_jitter>\S+)',
         r'.*?#(?P<rem_jitter_events>\S+),',
         r'.*?Avg-Jitter (?P<rem_avg_jitter>\S+)',
         r'.*?Loss (?P<ec_loss>\S+)',

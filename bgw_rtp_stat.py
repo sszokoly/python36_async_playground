@@ -11,7 +11,7 @@ async def main():
         'host': '10.10.48.58',
         'user': 'root',
         'passwd': 'cmb@Dm1n',
-        'session_ids': ['00001', '00002', '00003', '00004'],
+        'session_ids': [],
         'commands': [],
         'timeout': 3,
         'log_user': 0,
