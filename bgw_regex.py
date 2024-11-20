@@ -5,34 +5,53 @@ from typing import Dict
 
 SESSION_DETAILED = (
         r'.*?Session-ID: (?P<session_id>\d+)',
-        r'.*?Status: (?P<status>\S+), QOS: (?P<qos>\S+), EngineId: (?P<engineid>\d+)',
+        r'.*?Status: (?P<status>\S+),',
+        r'.*?QOS: (?P<qos>\S+),',
+        r'.*?EngineId: (?P<engineid>\d+)',
         r'.*?Start-Time: (?P<start_time>\S+),',
         r'.*?End-Time: (?P<end_time>\S+)',
         r'.*?Duration: (?P<duration>\S+)',
         r'.*?CName: (?P<cname>\S+)',
         r'.*?Phone: (?P<phone>.*?)\s+',
-        r'.*?Local-Address: (?P<local_addr>\S+):(?P<local_port>\d+) SSRC (?P<local_ssrc>\d+)',
-        r'.*?Remote-Address: (?P<remote_addr>\S+):(?P<remote_port>\d+) SSRC (?P<remote_ssrc>\d+) (?P<ssrc_change>\S+)',
-        r'.*?Samples: (?P<samples>\d+) (?P<sampling_interval>\(.*?\))',
-        r'.*?Codec:\s+(?P<codec>\S+) (?P<pkt_size>\S+) (?P<ptime>\S+)',
-        r'.*?(?P<enc>\S+),',
-        r'.*?Silence-suppression\(Tx/Rx\) (?P<codec_silence_suppr_tx>\S+)/(?P<codec_silence_suppr_rx>\S+),',
-        r'.*?Play-Time (?P<play_time>\S+),',
-        r'.*?Loss (?P<codec_loss>\S+) #(?P<codec_loss_events>\d+),',
+        r'.*?Local-Address: (?P<local_addr>\S+):',
+        r'.*?(?P<local_port>\d+)',
+        r'.*?SSRC (?P<local_ssrc>\d+)',
+        r'.*?Remote-Address: (?P<remote_addr>\S+):',
+        r'.*?(?P<remote_port>\d+)',
+        r'.*?SSRC (?P<remote_ssrc>\d+)',
+        r'.*?(?P<remote_ssrc_change>\S+)',
+        r'.*?Samples: (?P<samples>\d+)',
+        r'.*?(?P<sampling_interval>\(.*?\))',
+        r'.*?Codec:\s+(?P<codec>\S+)',
+        r'.*?(?P<codec_psize>\S+)',
+        r'.*?(?P<codec_ptime>\S+)',
+        r'.*?(?P<codec_enc>\S+),',
+        r'.*?Silence-suppression\(Tx/Rx\) (?P<codec_silence_suppr_tx>\S+)/',
+        r'.*?(?P<codec_silence_suppr_rx>\S+),',
+        r'.*?Play-Time (?P<codec_play_time>\S+),',
+        r'.*?Loss (?P<codec_loss>\S+)',
+        r'.*?#(?P<codec_loss_events>\d+),',
         r'.*?Avg-Loss (?P<codec_avg_loss>\S+),',
-        r'.*?RTT (?P<codec_rtt>\S+) #(?P<codec_rtt_events>\d+),'
-        r'.*?Avg-RTT (?P<codec_avg_rtt>\S+),'
-        r'.*?JBuf-under/overruns (?P<codec_jbuf_underruns>\S+)/(?P<codec_jbuf_overruns>\S+),',
+        r'.*?RTT (?P<codec_rtt>\S+)',
+        r'.*?#(?P<codec_rtt_events>\d+),',
+        r'.*?Avg-RTT (?P<codec_avg_rtt>\S+),',
+        r'.*?JBuf-under/overruns (?P<codec_jbuf_underruns>\S+)/',
+        r'.*?(?P<codec_jbuf_overruns>\S+),',
         r'.*?Jbuf-Delay (?P<codec_jbuf_delay>\S+),',
         r'.*?Max-Jbuf-Delay (?P<codec_max_jbuf_delay>\S+)',
         r'.*?Packets (?P<rx_rtp_packets>\d+),',
-        r'.*?Loss (?P<rx_rtp_loss>\S+) #(?P<rx_rtp_loss_events>\d+),',
+        r'.*?Loss (?P<rx_rtp_loss>\S+)',
+        r'.*?#(?P<rx_rtp_loss_events>\d+),',
         r'.*?Avg-Loss (?P<rx_rtp_avg_loss>\S+),',
-        r'.*?RTT (?P<rx_rtp_rtt>\S+) #(?P<rx_rtp_rtt_events>\d+),'
-        r'.*?Avg-RTT (?P<rx_rtp_avg_rtt>\S+),'
-        r'.*?Jitter (?P<rx_rtp_jitter>\S+) #(?P<rx_rtp_jitter_events>\d+),'
-        r'.*?Avg-Jitter (?P<rx_rtp_avg_jitter>\S+),'
-        r'.*?TTL\(last/min/max\) (?P<rx_rtp_ttl_last>\d+)/(?P<rx_rtp_ttl_min>\d+)/(?P<rx_rtp_ttl_max>\d+),'
+        r'.*?RTT (?P<rx_rtp_rtt>\S+)',
+        r'.*?#(?P<rx_rtp_rtt_events>\d+),',
+        r'.*?Avg-RTT (?P<rx_rtp_avg_rtt>\S+),',
+        r'.*?Jitter (?P<rx_rtp_jitter>\S+)',
+        r'.*?#(?P<rx_rtp_jitter_events>\d+),',
+        r'.*?Avg-Jitter (?P<rx_rtp_avg_jitter>\S+),',
+        r'.*?TTL\(last/min/max\) (?P<rx_rtp_ttl_last>\d+)/',
+        r'.*?(?P<rx_rtp_ttl_min>\d+)/',
+        r'.*?(?P<rx_rtp_ttl_max>\d+),',
         r'.*?Duplicates (?P<rx_rtp_duplicates>\d+),',
         r'.*?Seq-Fall (?P<rx_rtp_seqfall>\d+),',
         r'.*?DSCP (?P<rx_rtp_dscp>\d+),',
@@ -44,16 +63,20 @@ SESSION_DETAILED = (
         r'.*?L2Pri (?P<tx_rtp_l2pri>\d+),',
         r'.*?RTCP (?P<rtp_tx_rtcp>\d+),',
         r'.*?Flow-Label (?P<tx_rtp_flow_label>\d+)',
-        r'.*?Loss (?P<rem_loss>\S+) #(?P<rem_loss_events>\S+),',
+        r'.*?Loss (?P<rem_loss>\S+)',
+        r'.*#(?P<rem_loss_events>\S+),',
         r'.*?Avg-Loss (?P<rem_avg_loss>\S+),',
-        r'.*?Jitter (?P<rem_jitter>\S+) #(?P<rem_jitter_events>\S+),',
+        r'.*?Jitter (?P<rem_jitter>\S+)'
+        r'.*?#(?P<rem_jitter_events>\S+),',
         r'.*?Avg-Jitter (?P<rem_avg_jitter>\S+)',
-        r'.*?Loss (?P<ec_loss>\S+) #(?P<ec_loss_events>\S+),',
+        r'.*?Loss (?P<ec_loss>\S+)',
+        r'.*?#(?P<ec_loss_events>\S+),',
         r'.*?Len (?P<ec_len>\S+)',
         r'.*?Status (?P<rsvp_status>\S+),',
         r'.*?Failures (?P<rsvp_failures>\d+)',
 )
 
+<<<<<<< HEAD
 LAYOUT = '''
 Session-ID: 35    Status: Terminated     QOS: Faulted    Samples: 54 (5 sec)
 Start: 2004-10-20,11:09:07   End: 2004-10-20,11:13:40   Duration: 00:04:33
@@ -126,21 +149,10 @@ Silence-Sup (Rx): {codec_silence_suppr_rx}
              Len: {ec_len}
 '''
 
+=======
+>>>>>>> ec195d8 (update)
 class RTPSession:
-    color = {
-        'RED': '\033[91m',
-        'GREEN': '\033[92m',
-        'YELLOW': '\033[93m',
-        'BLUE': '\033[94m',
-        'PURPLE': '\033[95m',
-        'CYAN': '\033[96m',
-        'WHITE': '\033[1;97m',
-        'BOLD': '\033[1m',
-        'UNDERLINE': '\033[4m',
-        'END': '\033[0m',
-    }
-
-    def __init__(self, params: Dict[str, str], session_format: str = SESSION_FORMAT) -> None:
+    def __init__(self, params: Dict[str, str]) -> None:
         """
         Initialize an RTPSession from a dictionary of key-value pairs.
 
@@ -155,7 +167,6 @@ class RTPSession:
             params['local_addr'],
             params['session_id'].zfill(5)
         ))
-        self.session_format = session_format
 
     @property
     def is_ok(self) -> bool:
@@ -184,10 +195,7 @@ class RTPSession:
 
         :return: A string representation of the RTPSession object
         """
-        return self.session_format.format(**{
-            **self.__dict__,
-            **self.__class__.__dict__['color']
-        })
+        return str(self.__dict__)
 
 reRTP_detailed = re.compile(r''.join(SESSION_DETAILED), re.M|re.S|re.I)
 reFindall = re.compile(r'#BEGIN(.*?)\s+?#END', re.M|re.S|re.I)
@@ -219,6 +227,7 @@ def cmds_to_rtpsessions(cmds: Dict[str, str]) -> Dict[str, RTPSession]:
             continue
         try:
             d = reRTP_detailed.match(output).groupdict()
+            print(d)
         except:
             continue
         id = '_'.join((
