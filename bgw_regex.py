@@ -76,7 +76,364 @@ SESSION_DETAILED = (
         r'.*?Failures (?P<rsvp_failures>\d+)',
 )
 
-<<<<<<< HEAD
+SESSION = {
+    'session_id': {
+        'regex': r'.*?Session-ID: (?P<session_id>\d+)',
+        'title:': 'Session-ID',
+        'title_color': Color.WHITE,
+        'value_attr': 'session_id',
+        'value_color': Color.WHITE,
+        'value_format_spec': '>2',
+        'ypos': 0,
+        'xpos': 3,
+    },
+    'status': {
+        'regex': r'.*?Status: (?P<status>\S+),',
+        'title:': 'Status',
+        'title_color': Color.WHITE,
+        'value_attr': 'status',
+        'value_color': Color.WHITE,
+        'value_format_spec': '>6',
+        'ypos': 0,
+        'xpos': 10,
+
+    },
+    'qos': {
+        'regex': r'.*?QOS: (?P<qos>\S+),',
+        'title:': 'QoS',
+        'title_color': Color.WHITE,
+        'value_attr': 'qos',
+        'value_color': Color.WHITE,
+        'value_format_spec': '>2',
+        'ypos': 0,
+        'xpos': 13,
+    },
+    'engineid': {
+        'regex': r'.*?EngineId: (?P<engineid>\d+)',
+        'title:': 'EngineId',
+        'title_color': Color.WHITE,
+        'value_attr': 'engineid',
+        'value_color': Color.WHITE,
+        'value_format_spec': '>2',
+        'ypos': None,
+        'xpos': None,
+    },
+    'start_time': {
+        'regex': r'.*?Start-Time: (?P<start_time>\S+),',
+        'title:': 'Start',
+        'title_color': Color.WHITE,
+        'value_attr': 'start_time',
+        'value_color': Color.WHITE,
+        'value_format_spec': '>10',
+        'ypos': 1,
+        'xpos': 1,
+    },
+    'end_time': {
+        'regex': r'.*?End-Time: (?P<end_time>\S+)',
+        'title:': 'End',
+        'title_color': Color.WHITE,
+        'value_attr': 'end_time',
+        'value_color': Color.WHITE,
+        'value_format_spec': '>10',
+        'ypos': 1,
+        'xpos': 11,
+    },
+    'duration': {
+        'regex': r'.*?Duration: (?P<duration>\S+)',
+        'title:': 'Duration',
+        'title_color': Color.WHITE,
+        'value_attr': 'duration',
+        'value_color': Color.WHITE,
+        'value_format_spec': '>10',
+        'ypos': 1,
+        'xpos': 22,
+
+    },
+    'cname': {
+        'regex': r'.*?CName: (?P<cname>\S+)',
+        'title:': 'CName',
+        'title_color': Color.WHITE,
+        'value_attr': 'cname',
+        'value_color': Color.WHITE,
+        'value_format_spec': '>10',
+        'ypos': None,
+        'xpos': None,
+    },
+    'phone': {
+        'regex': r'.*?Phone: (?P<phone>.*?)\s+',
+        'title:': 'Phone',
+        'title_color': Color.WHITE,
+        'value_attr': 'phone',
+        'value_color': Color.WHITE,
+        'value_format_spec': '>10',
+        'ypos': None,
+        'xpos': None,
+    },
+    'local_addr': {
+        'regex': r'.*?Local-Address: (?P<local_addr>\S+):',
+        'title:': 'Local-Address',
+        'title_color': Color.WHITE,
+        'value_attr': 'local_addr',
+        'value_color': Color.WHITE,
+        'value_format_spec': '>15',
+        'ypos': 2,
+        'xpos': 1,
+    },
+    'local_port': {
+        'regex': r'.*?(?P<local_port>\d+)',
+        'title:': '',
+        'title_color': None,
+        'value_attr': 'local_port',
+        'value_color': Color.WHITE,
+        'value_format_spec': '>5',
+        'ypos': 2,
+        'xpos': 16,
+    },
+    'local_ssrc': {
+        'regex': r'.*?SSRC (?P<local_ssrc>\d+)',
+        'title:': 'Local SSRC',
+        'title_color': Color.WHITE,
+        'value_attr': 'local_ssrc',
+        'value_color': Color.WHITE,
+        'value_format_spec': '>8',
+        'ypos': 2,
+        'xpos': 16,
+    },
+    'remote_addr': {
+        'regex': r'.*?Remote-Address: (?P<remote_addr>\S+):',
+
+    },
+    'remote_port': {
+        'regex': r'.*?(?P<remote_port>\d+)',
+
+    },
+    'remote_ssrc': {
+        'regex': r'.*?SSRC (?P<remote_ssrc>\d+)',
+
+    },
+    'remote_ssrc_change': {
+        'regex': r'.*?(?P<remote_ssrc_change>\S+)',
+
+    },
+    'samples': {
+        'regex': r'.*?Samples: (?P<samples>\d+)',
+
+    },
+    'sampling_interval': {
+        'regex': r'.*?(?P<sampling_interval>\(.*?\))',
+
+    },
+    'codec': {
+        'regex': r'.*?Codec:\s+(?P<codec>\S+)',
+
+    },
+    'codec_psize': {
+        'regex': r'.*?(?P<codec_psize>\S+)',
+
+    },
+    'codec_ptime': {
+        'regex': r'.*?(?P<codec_ptime>\S+)',
+
+    },
+    'codec_enc': {
+        'regex': r'.*?(?P<codec_enc>\S+),',
+
+    },
+    'codec_silence_suppr_tx': {
+        'regex': r'.*?Silence-suppression\(Tx/Rx\) (?P<codec_silence_suppr_tx>\S+)/',
+
+    },
+    'codec_silence_suppr_rx': {
+        'regex': r'.*?(?P<codec_silence_suppr_rx>\S+),',
+
+    },
+    'codec_play_time': {
+        'regex': r'.*?Play-Time (?P<codec_play_time>\S+),',
+
+    },
+    'codec_loss': {
+        'regex': r'.*?Loss (?P<codec_loss>\S+)',
+
+    },
+    'codec_loss_events': {
+        'regex': r'.*?#(?P<codec_loss_events>\d+),',
+
+    },
+    'codec_avg_loss': {
+        'regex': r'.*?Avg-Loss (?P<codec_avg_loss>\S+),',
+
+    },
+    'codec_rtt': {
+        'regex': r'.*?RTT (?P<codec_rtt>\S+)',
+
+    },
+    'codec_rtt_events': {
+        'regex': r'.*?#(?P<codec_rtt_events>\d+),',
+
+    },
+    'codec_avg_rtt': {
+        'regex': r'.*?Avg-RTT (?P<codec_avg_rtt>\S+),',
+
+    },
+    'codec_jbuf_underruns': {
+        'regex': r'.*?JBuf-under/overruns (?P<codec_jbuf_underruns>\S+)/',
+
+    },
+    'codec_jbuf_overruns': {
+        'regex': r'.*?(?P<codec_jbuf_overruns>\S+),',
+
+    },
+    'codec_jbuf_delay': {
+        'regex': r'.*?Jbuf-Delay (?P<codec_jbuf_delay>\S+),',
+
+    },
+    'codec_max_jbuf_delay': {
+        'regex': r'.*?Max-Jbuf-Delay (?P<codec_max_jbuf_delay>\S+)',
+
+    },
+    'rx_rtp_packets': {
+        'regex': r'.*?Packets (?P<rx_rtp_packets>\d+),',
+
+    },
+    'rx_rtp_loss': {
+        'regex': r'.*?Loss (?P<rx_rtp_loss>\S+)',
+
+    },
+    'rx_rtp_loss_events': {
+        'regex': r'.*?#(?P<rx_rtp_loss_events>\d+),',
+
+    },
+    'rx_rtp_avg_loss': {
+        'regex': r'.*?Avg-Loss (?P<rx_rtp_avg_loss>\S+),',
+
+    },
+    'rx_rtp_rtt': {
+        'regex': r'.*?RTT (?P<rx_rtp_rtt>\S+)',
+
+    },
+    'rx_rtp_rtt_events': {
+        'regex': r'.*?#(?P<rx_rtp_rtt_events>\d+),',
+
+    },
+    'rx_rtp_avg_rtt': {
+        'regex': r'.*?Avg-RTT (?P<rx_rtp_avg_rtt>\S+),',
+
+    },
+    'rx_rtp_jitter': {
+        'regex': r'.*?Jitter (?P<rx_rtp_jitter>\S+)',
+
+    },
+    'rx_rtp_jitter_events': {
+        'regex': r'.*?#(?P<rx_rtp_jitter_events>\d+),',
+
+    },
+    'rx_rtp_avg_jitter': {
+        'regex': r'.*?Avg-Jitter (?P<rx_rtp_avg_jitter>\S+),',
+
+    },
+    'rx_rtp_ttl_last': {
+        'regex': r'.*?TTL\(last/min/max\) (?P<rx_rtp_ttl_last>\d+)/',
+
+    },
+    'rx_rtp_ttl_min': {
+        'regex': r'.*?(?P<rx_rtp_ttl_min>\d+)/',
+
+    },
+    'rx_rtp_ttl_max': {
+        'regex': r'.*?(?P<rx_rtp_ttl_max>\d+),',
+
+    },
+    'rx_rtp_duplicates': {
+        'regex': r'.*?Duplicates (?P<rx_rtp_duplicates>\d+),',
+
+    },
+    'rx_rtp_seqfall': {
+        'regex': r'.*?Seq-Fall (?P<rx_rtp_seqfall>\d+),',
+
+    },
+    'rx_rtp_dscp': {
+        'regex': r'.*?DSCP (?P<rx_rtp_dscp>\d+),',
+
+    },
+    'rx_rtp_l2pri': {
+        'regex': r'.*?L2Pri (?P<rx_rtp_l2pri>\d+),',
+
+    },
+    'rx_rtp_rtcp': {
+        'regex': r'.*?RTCP (?P<rx_rtp_rtcp>\d+),',
+
+    },
+    'rx_rtp_flow_label': {
+        'regex': r'.*?Flow-Label (?P<rx_rtp_flow_label>\d+)',
+
+    },
+    'tx_rtp_vlan': {
+        'regex': r'.*?VLAN (?P<tx_rtp_vlan>\d+),',
+
+    },
+    'tx_rtp_dscp': {
+        'regex': r'.*?DSCP (?P<tx_rtp_dscp>\d+),',
+
+    },
+    'tx_rtp_l2pri': {
+        'regex': r'.*?L2Pri (?P<tx_rtp_l2pri>\d+),',
+
+    },
+    'rtp_tx_rtcp': {
+        'regex': r'.*?RTCP (?P<rtp_tx_rtcp>\d+),',
+
+    },
+    'tx_rtp_flow_label': {
+        'regex': r'.*?Flow-Label (?P<tx_rtp_flow_label>\d+)',
+
+    },
+    'rem_loss': {
+        'regex': r'.*?Loss (?P<rem_loss>\S+)',
+
+    },
+    'rem_loss_events': {
+        'regex': r'.*#(?P<rem_loss_events>\S+),',
+
+    },
+    'rem_avg_loss': {
+        'regex': r'.*?Avg-Loss (?P<rem_avg_loss>\S+),',
+
+    },
+    'rem_jitter': {
+        'regex': r'.*?Jitter (?P<rem_jitter>\S+)',
+
+    },
+    'rem_jitter_events': {
+        'regex': r'.*?#(?P<rem_jitter_events>\S+),',
+
+    },
+    'rem_avg_jitter': {
+        'regex': r'.*?Avg-Jitter (?P<rem_avg_jitter>\S+)',
+
+    },
+    'ec_loss': {
+        'regex': r'.*?Loss (?P<ec_loss>\S+)',
+
+    },
+    'ec_loss_events': {
+        'regex': r'.*?#(?P<ec_loss_events>\S+),',
+
+    },
+
+    'ec_len': {
+        'regex': r'.*?Len (?P<ec_len>\S+)',
+
+    },
+    'rsvp_status': {
+        'regex': r'.*?Status (?P<rsvp_status>\S+),',
+
+    },
+    'rsvp_failures': {
+        'regex': r'.*?Failures (?P<rsvp_failures>\d+)',
+
+    },
+}
+
 LAYOUT = '''
 Session-ID: 35    Status: Terminated     QOS: Faulted    Samples: 54 (5 sec)
 Start: 2004-10-20,11:09:07   End: 2004-10-20,11:13:40   Duration: 00:04:33
@@ -149,8 +506,6 @@ Silence-Sup (Rx): {codec_silence_suppr_rx}
              Len: {ec_len}
 '''
 
-=======
->>>>>>> ec195d8 (update)
 class RTPSession:
     def __init__(self, params: Dict[str, str]) -> None:
         """
