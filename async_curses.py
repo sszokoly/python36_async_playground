@@ -46,10 +46,12 @@ class MyDisplay(Display):
 
         self.stdscr.box()
         self.stdscr.addstr(
-            int(self.maxy / 2) - 1, int((self.maxx - len(msg1)) / 2), msg1
+            int(self.maxy / 2) - 1, int((self.maxx - len(msg1)) / 2), msg1, 
+            curses.COLOR_RED
         )
         self.stdscr.addstr(
-            int(self.maxy / 2) + 1, int((self.maxx - len(msg2)) / 2), msg2
+            int(self.maxy / 2) + 1, int((self.maxx - len(msg2)) / 2), msg2,
+            curses.COLOR_BLUE
         )
 
         self.stdscr.addstr(
