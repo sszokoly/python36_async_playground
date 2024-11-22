@@ -842,7 +842,7 @@ def cmds_to_rtpsessions(cmds: Dict[str, str]) -> Dict[str, RTPSession]:
 def iter_session_attrs(
     session_dict: Dict[str, str],
     detailed_attrs: List[Dict[str, str]] = DETAILED_ATTRS
-    ) -> Iterator[Tuple[int, int, str, int]]:
+    ) -> Iterator[Tuple[int, int, str, str]]:
     """
     Iterate over the attributes of a session dictionary and yield a tuple of 4 values:
     - The y position of the attribute
