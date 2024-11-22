@@ -200,540 +200,540 @@ DETAILED_ATTRS = [
         'text': 'local_addr',
         'color': 'yellow',
         'format_spec': '>15',
-        'ypos': 4,
+        'ypos': 5,
         'xpos': 3
+    },
+    {
+        'text': ':',
+        'color': 'cyan',
+        'format_spec': '',
+        'ypos': 5,
+        'xpos': 18
     },
     {
         'text': 'local_port',
         'color': 'cyan',
-        'format_spec': '',
-        'ypos': 4,
+        'format_spec': '<5',
+        'ypos': 5,
         'xpos': 19
     },
     {
         'text': '-',
         'color': 'white',
         'format_spec': '-^27',
-        'ypos': 4,
+        'ypos': 5,
         'xpos': 25
     },
     {
         'text': 'codec',
         'color': 'green',
         'format_spec': '^7',
-        'ypos': 4,
+        'ypos': 5,
         'xpos': 36
     },
     {
         'text': 'remote_port',
         'color': 'cyan',
         'format_spec': '>5',
-        'ypos': 4,
+        'ypos': 5,
         'xpos': 53
+    },
+    {
+        'text': ':',
+        'color': 'cyan',
+        'format_spec': '',
+        'ypos': 5,
+        'xpos': 58
     },
     {
         'text': 'remote_addr',
         'color': 'yellow',
-        'format_spec': '',
-        'ypos': 4,
+        'format_spec': '<15',
+        'ypos': 5,
         'xpos': 59
     },
     {
         'text': 'SSRC',
         'color': 'white',
         'format_spec': '',
-        'ypos': 5,
+        'ypos': 6,
         'xpos': 3
     },
     {
         'text': 'local_ssrc',
         'color': 'white_standout',
         'format_spec': '',
-        'ypos': 5,
-        'xpos': 7
+        'ypos': 6,
+        'xpos': 8
     },
     {
         'text': 'Enc:',
         'color': 'white',
         'format_spec': '',
-        'ypos': 5,
+        'ypos': 6,
         'xpos': 25
     },
     {
         'text': 'codec_enc',
         'color': 'white_standout',
         'format_spec': '^22',
-        'ypos': 5,
+        'ypos': 6,
         'xpos': 30
     },
     {
         'text': 'SSRC',
         'color': 'white',
         'format_spec': '',
-        'ypos': 5,
+        'ypos': 6,
         'xpos': 58
     },
     {
         'text': 'local_ssrc',
         'color': 'white_standout',
         'format_spec': '',
-        'ypos': 5,
+        'ypos': 6,
         'xpos': 63
     },
     {
         'text': 'remote_ssrc_change',
         'color': 'white_standout',
         'format_spec': '',
-        'ypos': 5,
+        'ypos': 6,
         'xpos': 74
     },
     {
         'text': 'RTP/RTCP',
         'color': 'white',
         'format_spec': '',
-        'ypos': 7,
+        'ypos': 8,
         'xpos': 12
     },
     {
         'text': 'CODEC',
         'color': 'white',
         'format_spec': '',
-        'ypos': 7,
+        'ypos': 8,
         'xpos': 62
     },
     {
         'text': 'RTP Packets (Rx/Tx):',
         'color': 'white',
         'format_spec': '',
-        'ypos': 8,
+        'ypos': 9,
         'xpos': 4
     },
     {
         'text': 'rx_rtp_packets',
         'color': 'white_standout',
         'format_spec': '>7',
-        'ypos': 8,
+        'ypos': 9,
         'xpos': 25
     },
     {
         'text': '/',
         'color': 'white',
         'format_spec': '',
-        'ypos': 8,
+        'ypos': 9,
         'xpos': 33
     },
     {
         'text': 'NA',
         'color': 'white',
         'format_spec': '',
-        'ypos': 8,
+        'ypos': 9,
         'xpos': 38
     },
     {
         'text': 'Psize/',
         'color': 'white',
         'format_spec': '',
-        'ypos': 8,
+        'ypos': 9,
         'xpos': 50
     },
     {
         'text': 'Ptime:',
         'color': 'white',
         'format_spec': '',
-        'ypos': 8,
+        'ypos': 9,
         'xpos': 56
     },
     {
         'text': 'codec_psize',
         'color': 'white_standout',
-        'format_spec': '>4',
-        'ypos': 8,
+        'format_spec': '>5',
+        'ypos': 9,
         'xpos': 63
     },
     {
         'text': '/',
         'color': 'white',
         'format_spec': '',
-        'ypos': 8,
-        'xpos': 67
+        'ypos': 9,
+        'xpos': 68
     },
     {
         'text': 'codec_ptime',
         'color': 'white_standout',
         'format_spec': '',
-        'ypos': 8,
-        'xpos': 68
+        'ypos': 9,
+        'xpos': 69
     },
     {
         'text': 'RTCP Packets (Rx/Tx):',
         'color': 'white',
         'format_spec': '',
-        'ypos': 9,
+        'ypos': 10,
         'xpos': 3
     },
     {
         'text': 'rx_rtp_rtcp',
         'color': 'white_standout',
         'format_spec': '>7',
-        'ypos': 9,
+        'ypos': 10,
         'xpos': 25
     },
     {
         'text': '/',
         'color': 'white',
         'format_spec': '',
-        'ypos': 9,
+        'ypos': 10,
         'xpos': 33
     },
     {
         'text': 'tx_rtp_rtcp',
         'color': 'white_standout',
         'format_spec': '>5',
-        'ypos': 9,
+        'ypos': 10,
         'xpos': 35
     },
     {
         'text': 'Play-Time:',
         'color': 'white',
         'format_spec': '',
-        'ypos': 9,
+        'ypos': 10,
         'xpos': 52
     },
     {
         'text': 'codec_play_time',
         'color': 'white_standout',
         'format_spec': '',
-        'ypos': 9,
-        'xpos': 63
+        'ypos': 10,
+        'xpos': 64
     },
     {
         'text': 'DSCP (Rx/Tx):',
         'color': 'white',
         'format_spec': '',
-        'ypos': 10,
+        'ypos': 11,
         'xpos': 11
     },
     {
         'text': 'rx_rtp_dscp',
         'color': 'white_standout',
         'format_spec': '>7',
-        'ypos': 10,
+        'ypos': 11,
         'xpos': 25
     },
     {
         'text': '/',
         'color': 'white',
         'format_spec': '',
-        'ypos': 10,
+        'ypos': 11,
         'xpos': 33
     },
     {
         'text': 'tx_rtp_dscp',
         'color': 'white_standout',
         'format_spec': '>5',
-        'ypos': 10,
-        'xpos': 25
+        'ypos': 11,
+        'xpos': 35
     },
     {
         'text': 'Avg-Loss:',
         'color': 'white',
         'format_spec': '',
-        'ypos': 10,
+        'ypos': 11,
         'xpos': 53
     },
     {
         'text': 'codec_avg_loss',
         'color': 'white_standout',
-        'format_spec': '>5',
-        'ypos': 10,
+        'format_spec': '>6',
+        'ypos': 11,
         'xpos': 63
     },
     {
         'text': 'L2Pri (Rx/Tx):',
         'color': 'white',
         'format_spec': '',
-        'ypos': 11,
+        'ypos': 12,
         'xpos': 10
     },
     {
         'text': 'rx_rtp_l2pri',
         'color': 'white_standout',
         'format_spec': '>7',
-        'ypos': 11,
+        'ypos': 12,
         'xpos': 25
     },
     {
         'text': '/',
         'color': 'white',
         'format_spec': '',
-        'ypos': 11,
+        'ypos': 12,
         'xpos': 33
     },
     {
         'text': 'tx_rtp_l2pri',
         'color': 'white_standout',
         'format_spec': '>5',
-        'ypos': 11,
+        'ypos': 12,
         'xpos': 35
     },
     {
         'text': 'Avg-RTT:',
         'color': 'white',
         'format_spec': '',
-        'ypos': 11,
+        'ypos': 12,
         'xpos': 54
     },
     {
         'text': 'codec_avg_rtt',
         'color': 'white_standout',
-        'format_spec': '',
-        'ypos': 11,
+        'format_spec': '>6',
+        'ypos': 12,
         'xpos': 63
     },
     {
         'text': 'Duplicates (Rx):',
         'color': 'white',
         'format_spec': '',
-        'ypos': 12,
+        'ypos': 13,
         'xpos': 8
     },
     {
         'text': 'rx_rtp_duplicates',
         'color': 'white_standout',
-        'format_spec': '',
-        'ypos': 12,
+        'format_spec': '>7',
+        'ypos': 13,
         'xpos': 25
     },
     {
         'text': 'Max-Jbuf-Delay:',
         'color': 'white',
         'format_spec': '',
-        'ypos': 12,
+        'ypos': 13,
         'xpos':47
     },
     {
         'text': 'codec_max_jbuf_delay',
         'color': 'white_standout',
-        'format_spec': '',
-        'ypos': 12,
+        'format_spec': '>6',
+        'ypos': 13,
         'xpos': 63
     },
     {
         'text': 'Seq-Fall (Rx):',
         'color': 'white',
         'format_spec': '',
-        'ypos': 13,
+        'ypos': 14,
         'xpos': 10
     },
     {
         'text': 'rx_rtp_seqfall',
         'color': 'white_standout',
-        'format_spec': '',
-        'ypos': 13,
+        'format_spec': '>7',
+        'ypos': 14,
         'xpos': 25
     },
     {
         'text': 'JBuf-under/overruns:',
         'color': 'white',
         'format_spec': '',
-        'ypos': 13,
+        'ypos': 14,
         'xpos': 42
     },
     {
         'text': 'codec_jbuf_underruns',
         'color': 'white_standout',
         'format_spec': '>5',
-        'ypos': 13,
+        'ypos': 14,
         'xpos': 63
     },
     {
         'text': '/',
         'color': 'white',
         'format_spec': '',
-        'ypos': 13,
+        'ypos': 14,
         'xpos': 68
     },
     {
         'text': 'codec_jbuf_overruns',
         'color': 'white_standout',
         'format_spec': '',
-        'ypos': 13,
+        'ypos': 14,
         'xpos': 69
     },
     {
         'text': 'LOCAL RTP STATISTICS',
         'color': 'white',
         'format_spec': '',
-        'ypos': 15,
+        'ypos': 16,
         'xpos': 3
     },
     {
         'text': 'REMOTE RTP STATISTICS',
         'color': 'white',
         'format_spec': '',
-        'ypos': 15,
+        'ypos': 16,
         'xpos': 52
     },
     {
         'text': 'Loss:',
         'color': 'white',
         'format_spec': '',
-        'ypos': 16,
+        'ypos': 17,
         'xpos': 8
     },
     {
         'text': 'Loss:',
         'color': 'white',
         'format_spec': '',
-        'ypos': 16,
+        'ypos': 17,
         'xpos': 8
     },
     {
         'text': 'rx_rtp_loss',
         'color': 'white_standout',
         'format_spec': '>6',
-        'ypos': 16,
+        'ypos': 17,
         'xpos': 14
     },
     {
         'text': 'rx_rtp_loss_events',
         'color': 'white_standout',
         'format_spec': '',
-        'ypos': 16,
+        'ypos': 17,
         'xpos': 21
     },
     {
         'text': 'Loss:',
         'color': 'white',
         'format_spec': '',
-        'ypos': 16,
+        'ypos': 17,
         'xpos': 57
     },
     {
         'text': 'rem_loss',
         'color': 'white_standout',
         'format_spec': '>6',
-        'ypos': 16,
+        'ypos': 17,
         'xpos': 63
     },
     {
         'text': 'rem_loss_events',
         'color': 'white_standout',
         'format_spec': '',
-        'ypos': 16,
+        'ypos': 17,
         'xpos': 70
     },
     {
         'text': 'Avg-Loss:',
         'color': 'white',
         'format_spec': '',
-        'ypos': 17,
+        'ypos': 18,
         'xpos': 4
     },
     {
         'text': 'rx_rtp_avg_loss',
         'color': 'white_standout',
         'format_spec': '>6',
-        'ypos': 17,
+        'ypos': 18,
         'xpos': 14
     },
     {
-        'text': 'Avg-Loss',
+        'text': 'Avg-Loss:',
         'color': 'white',
         'format_spec': '',
-        'ypos': 17,
-        'xpos': 57
+        'ypos': 18,
+        'xpos': 53
     },
     {
         'text': 'rem_avg_loss',
         'color': 'white_standout',
         'format_spec': '>6',
-        'ypos': 17,
+        'ypos': 18,
         'xpos': 63
     },
     {
         'text': 'Jitter:',
         'color': 'white',
         'format_spec': '',
-        'ypos': 18,
+        'ypos': 19,
         'xpos': 6
     },
     {
         'text': 'rx_rtp_jitter',
         'color': 'white_standout',
         'format_spec': '>6',
-        'ypos': 18,
+        'ypos': 19,
         'xpos': 14
     },
     {
         'text': 'rx_rtp_jitter_events',
         'color': 'white_standout',
         'format_spec': '',
-        'ypos': 18,
+        'ypos': 19,
         'xpos': 21
     },
     {
         'text': 'Jitter:',
         'color': 'white',
         'format_spec': '',
-        'ypos': 18,
+        'ypos': 19,
         'xpos': 55
     },
     {
         'text': 'rem_jitter',
         'color': 'white_standout',
         'format_spec': '>6',
-        'ypos': 18,
-        'xpos': 14
+        'ypos': 19,
+        'xpos': 63
     },
     {
         'text': 'rem_jitter_events',
         'color': 'white_standout',
         'format_spec': '',
-        'ypos': 18,
+        'ypos': 19,
         'xpos': 70
     },
     {
         'text': 'Avg-Jitter:',
         'color': 'white',
         'format_spec': '',
-        'ypos': 19,
-        'xpos': 4
+        'ypos': 20,
+        'xpos': 2
     },
     {
         'text': 'rx_rtp_avg_jitter',
         'color': 'white_standout',
         'format_spec': '>6',
-        'ypos': 19,
+        'ypos': 20,
         'xpos': 14
     },
     {
         'text': 'Avg-Jitter:',
         'color': 'white',
         'format_spec': '',
-        'ypos': 19,
+        'ypos': 20,
         'xpos': 51
     },
     {
         'text': 'rem_avg_jitter',
         'color': 'white_standout',
         'format_spec': '>6',
-        'ypos': 19,
+        'ypos': 20,
         'xpos': 63
-    },
-    {
-        'text': 'RTT:',
-        'color': 'white',
-        'format_spec': '',
-        'ypos': 20,
-        'xpos': 9
-    },
-    {
-        'text': 'rx_rtp_rtt',
-        'color': 'white_standout',
-        'format_spec': '>6',
-        'ypos': 20,
-        'xpos': 14
     },
     {
         'text': 'Avg-RTT:',
