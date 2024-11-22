@@ -836,8 +836,7 @@ def cmds_to_rtpsessions(cmds: Dict[str, str]) -> Dict[str, RTPSession]:
             d['session_id'].zfill(5)
         ))
         d.update({'id': id})
-        rtpsession = RTPSession(d)
-        rtpsessions.update({id: rtpsession})
+        rtpsessions.update({id: d})
     return rtpsessions
 
 def iter_session_attrs(
@@ -867,5 +866,5 @@ if __name__ == '__main__':
     rtpsessions = cmds_to_rtpsessions(stdout_to_cmds(stdout))
     for id, rtpsession in rtpsessions.items():
         print(str(rtpsession))
-        for y, x, text, attrs in iter_session_attrs(rtpsession.__dict__):
+        for y, x, text, attrs in iter_session_attrs(rtpsession):
             print(y, x, text, attrs)
