@@ -184,14 +184,14 @@ DETAILED_ATTRS = [
     },
     {
         'text': 'LOCAL ADDRESS',
-        'color': 'white',
+        'color': 'blue_grey',
         'format_spec': '',
         'ypos': 4,
         'xpos': 5
     },
     {
         'text': 'REMOTE ADDRESS',
-        'color': 'white',
+        'color': 'blue_grey',
         'format_spec': '',
         'ypos': 4,
         'xpos': 59
@@ -218,11 +218,18 @@ DETAILED_ATTRS = [
         'xpos': 19
     },
     {
-        'text': '-',
-        'color': 'white',
-        'format_spec': '-^27',
+        'text': '<',
+        'color': 'orange',
+        'format_spec': '',
         'ypos': 5,
         'xpos': 25
+    },
+    {
+        'text': '-',
+        'color': 'orange',
+        'format_spec': '-^25',
+        'ypos': 5,
+        'xpos': 26
     },
     {
         'text': 'codec',
@@ -230,6 +237,13 @@ DETAILED_ATTRS = [
         'format_spec': '^7',
         'ypos': 5,
         'xpos': 36
+    },
+    {
+        'text': '>',
+        'color': 'orange',
+        'format_spec': '',
+        'ypos': 5,
+        'xpos': 51
     },
     {
         'text': 'remote_port',
@@ -303,14 +317,14 @@ DETAILED_ATTRS = [
     },
     {
         'text': 'RTP/RTCP',
-        'color': 'white',
+        'color': 'blue_grey',
         'format_spec': '',
         'ypos': 8,
         'xpos': 12
     },
     {
         'text': 'CODEC',
-        'color': 'white',
+        'color': 'blue_grey',
         'format_spec': '',
         'ypos': 8,
         'xpos': 62
@@ -576,14 +590,14 @@ DETAILED_ATTRS = [
     },
     {
         'text': 'LOCAL RTP STATISTICS',
-        'color': 'white',
+        'color': 'blue_grey',
         'format_spec': '',
         'ypos': 16,
         'xpos': 3
     },
     {
         'text': 'REMOTE RTP STATISTICS',
-        'color': 'white',
+        'color': 'blue_grey',
         'format_spec': '',
         'ypos': 16,
         'xpos': 52

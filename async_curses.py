@@ -58,6 +58,7 @@ class Display(ABC):
             "red2": curses.color_pair(197),        # red
             "orange": curses.color_pair(209),      # orange
             "cyan": curses.color_pair(124),        # cyan
+            "blue_grey": curses.color_pair(255),   # blue_grey
             "white_standout": curses.color_pair(0)|curses.A_BOLD
         }
 
