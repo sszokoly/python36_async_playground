@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- encoding: utf-8 -*-
 import re
-from typing import Dict, Iterator, List, Tuple
+from typing import Dict, Iterator, List, Tuple, Union
 
 DETAILED_PATTERNS = (
     r'.*?Session-ID: (?P<session_id>\d+)',
@@ -79,689 +79,591 @@ DETAILED_PATTERNS = (
 DETAILED_ATTRS = [
     {
         'text': 'Session-ID:',
-        'color': 'white',
+        'color': 'normal',
         'format_spec': '',
         'ypos': 1,
-        'xpos': 0
+        'xpos': 1
     },
     {
         'text': 'session_id',
-        'color': 'white_standout',
-        'format_spec': '>5',
+        'color': 'standout',
+        'format_spec': '',
         'ypos': 1,
-        'xpos': 12
+        'xpos': 13
     },
     {
         'text': 'Status:',
-        'color': 'white',
+        'color': 'normal',
         'format_spec': '',
         'ypos': 1,
-        'xpos': 20
+        'xpos': 21
     },
         {
         'text': 'status',
-        'color': 'white_standout',
+        'color': 'standout',
         'format_spec': '',
         'ypos': 1,
-        'xpos': 28
-    },
-    {
-        'text': 'QoS:',
-        'color': 'white',
-        'format_spec': '',
-        'ypos': 1,
-        'xpos': 41
-    },
-    {
-        'text': 'qos',
-        'color': 'white_standout',
-        'format_spec': '',
-        'ypos': 1,
-        'xpos': 46
-    },
-    {
-        'text': 'Samples:',
-        'color': 'white',
-        'format_spec': '',
-        'ypos': 1,
-        'xpos': 56
-    },
-    {
-        'text': 'samples',
-        'color': 'white_standout',
-        'format_spec': '>4',
-        'ypos': 1,
-        'xpos': 65
-    },
-    {
-        'text': 'sampling_interval',
-        'color': 'white_standout',
-        'format_spec': '',
-        'ypos': 1,
-        'xpos': 70
-    },
-    {
-        'text': 'Start:',
-        'color': 'white',
-        'format_spec': '',
-        'ypos': 2,
-        'xpos': 0
-    },
-    {
-        'text': 'start_time',
-        'color': 'white_standout',
-        'format_spec': '',
-        'ypos': 2,
-        'xpos': 7
-    },
-    {
-        'text': 'End:',
-        'color': 'white',
-        'format_spec': '',
-        'ypos': 2,
         'xpos': 29
     },
     {
-        'text': 'end_time',
-        'color': 'white_standout',
+        'text': 'QoS:',
+        'color': 'normal',
         'format_spec': '',
-        'ypos': 2,
-        'xpos': 34
+        'ypos': 1,
+        'xpos': 43
     },
     {
-        'text': 'Duration:',
-        'color': 'white',
+        'text': 'qos',
+        'color': 'standout',
         'format_spec': '',
-        'ypos': 2,
-        'xpos': 56
+        'ypos': 1,
+        'xpos': 48
     },
     {
-        'text': 'duration',
-        'color': 'white_standout',
+        'text': 'Samples:',
+        'color': 'normal',
         'format_spec': '',
-        'ypos': 2,
-        'xpos': 66
-    },
-    {
-        'text': 'LOCAL ADDRESS',
-        'color': 'blue_grey',
-        'format_spec': '',
-        'ypos': 4,
-        'xpos': 5
-    },
-    {
-        'text': 'REMOTE ADDRESS',
-        'color': 'blue_grey',
-        'format_spec': '',
-        'ypos': 4,
-        'xpos': 59
-    },
-    {
-        'text': 'local_addr',
-        'color': 'yellow',
-        'format_spec': '>15',
-        'ypos': 5,
-        'xpos': 3
-    },
-    {
-        'text': ':',
-        'color': 'cyan',
-        'format_spec': '',
-        'ypos': 5,
-        'xpos': 18
-    },
-    {
-        'text': 'local_port',
-        'color': 'cyan',
-        'format_spec': '<5',
-        'ypos': 5,
-        'xpos': 19
-    },
-    {
-        'text': '<',
-        'color': 'orange',
-        'format_spec': '',
-        'ypos': 5,
-        'xpos': 25
-    },
-    {
-        'text': '-',
-        'color': 'orange',
-        'format_spec': '-^25',
-        'ypos': 5,
-        'xpos': 26
-    },
-    {
-        'text': 'codec',
-        'color': 'green',
-        'format_spec': '^7',
-        'ypos': 5,
-        'xpos': 36
-    },
-    {
-        'text': '>',
-        'color': 'orange',
-        'format_spec': '',
-        'ypos': 5,
-        'xpos': 51
-    },
-    {
-        'text': 'remote_port',
-        'color': 'cyan',
-        'format_spec': '>5',
-        'ypos': 5,
-        'xpos': 53
-    },
-    {
-        'text': ':',
-        'color': 'cyan',
-        'format_spec': '',
-        'ypos': 5,
+        'ypos': 1,
         'xpos': 58
     },
     {
-        'text': 'remote_addr',
-        'color': 'yellow',
-        'format_spec': '<15',
-        'ypos': 5,
-        'xpos': 59
+        'text': 'samples',
+        'color': 'standout',
+        'format_spec': '',
+        'ypos': 1,
+        'xpos': 67
     },
     {
-        'text': 'SSRC',
-        'color': 'white',
+        'text': 'Start:',
+        'color': 'normal',
         'format_spec': '',
-        'ypos': 6,
-        'xpos': 3
+        'ypos': 2,
+        'xpos': 1
     },
     {
-        'text': 'local_ssrc',
-        'color': 'white_standout',
+        'text': 'start_time',
+        'color': 'standout',
         'format_spec': '',
-        'ypos': 6,
+        'ypos': 2,
         'xpos': 8
     },
     {
+        'text': 'End:',
+        'color': 'normal',
+        'format_spec': '',
+        'ypos': 2,
+        'xpos': 30
+    },
+    {
+        'text': 'end_time',
+        'color': 'standout',
+        'format_spec': '',
+        'ypos': 2,
+        'xpos': 35
+    },
+    {
+        'text': 'Duration:',
+        'color': 'normal',
+        'format_spec': '',
+        'ypos': 2,
+        'xpos': 57
+    },
+    {
+        'text': 'duration',
+        'color': 'standout',
+        'format_spec': '',
+        'ypos': 2,
+        'xpos': 67
+    },
+    {
+        'text': 'LOCAL',
+        'color': 'title',
+        'format_spec': '^36',
+        'ypos': 4,
+        'xpos': 1
+    },
+    {
+        'text': 'REMOTE',
+        'color': 'title',
+        'format_spec': '^36',
+        'ypos': 4,
+        'xpos': 40
+    },
+    {
+        'text': 'local_addr',
+        'color': 'address',
+        'format_spec': '>15',
+        'ypos': 5,
+        'xpos': 5
+    },
+    {
+        'text': ':',
+        'color': 'normal',
+        'format_spec': '',
+        'ypos': 5,
+        'xpos': 20
+    },
+    {
+        'text': 'local_port',
+        'color': 'port',
+        'format_spec': '<5',
+        'ypos': 5,
+        'xpos': 21
+    },
+    {
+        'text': '<',
+        'color': 'normal',
+        'format_spec': '',
+        'ypos': 5,
+        'xpos': 27
+    },
+    {
+        'text': '-',
+        'color': 'normal',
+        'format_spec': '-^20',
+        'ypos': 5,
+        'xpos': 28
+    },
+    {
+        'text': 'codec',
+        'color': 'codec',
+        'format_spec': '^7',
+        'ypos': 5,
+        'xpos': 35
+    },
+    {
+        'text': '>',
+        'color': 'normal',
+        'format_spec': '',
+        'ypos': 5,
+        'xpos': 48
+    },
+    {
+        'text': 'remote_port',
+        'color': 'port',
+        'format_spec': '>5',
+        'ypos': 5,
+        'xpos': 50
+    },
+    {
+        'text': ':',
+        'color': 'normal',
+        'format_spec': '',
+        'ypos': 5,
+        'xpos': 55
+    },
+    {
+        'text': 'remote_addr',
+        'color': 'address',
+        'format_spec': '<15',
+        'ypos': 5,
+        'xpos': 56
+    },
+    {
+        'text': 'SSRC',
+        'color': 'normal',
+        'format_spec': '',
+        'ypos': 6,
+        'xpos': 7
+    },
+    {
+        'text': 'local_ssrc',
+        'color': 'standout',
+        'format_spec': '',
+        'ypos': 6,
+        'xpos': 12
+    },
+    {
         'text': 'Enc:',
-        'color': 'white',
+        'color': 'normal',
         'format_spec': '',
         'ypos': 6,
         'xpos': 25
     },
     {
         'text': 'codec_enc',
-        'color': 'white_standout',
+        'color': 'standout',
         'format_spec': '^22',
         'ypos': 6,
-        'xpos': 30
+        'xpos': 29
     },
     {
         'text': 'SSRC',
-        'color': 'white',
+        'color': 'normal',
         'format_spec': '',
         'ypos': 6,
-        'xpos': 58
-    },
-    {
-        'text': 'local_ssrc',
-        'color': 'white_standout',
-        'format_spec': '',
-        'ypos': 6,
-        'xpos': 63
-    },
-    {
-        'text': 'remote_ssrc_change',
-        'color': 'white_standout',
-        'format_spec': '',
-        'ypos': 6,
-        'xpos': 74
-    },
-    {
-        'text': 'RTP/RTCP',
-        'color': 'blue_grey',
-        'format_spec': '',
-        'ypos': 8,
-        'xpos': 12
-    },
-    {
-        'text': 'CODEC',
-        'color': 'blue_grey',
-        'format_spec': '',
-        'ypos': 8,
-        'xpos': 62
-    },
-    {
-        'text': 'RTP Packets (Rx/Tx):',
-        'color': 'white',
-        'format_spec': '',
-        'ypos': 9,
-        'xpos': 4
-    },
-    {
-        'text': 'rx_rtp_packets',
-        'color': 'white_standout',
-        'format_spec': '>7',
-        'ypos': 9,
-        'xpos': 25
-    },
-    {
-        'text': '/',
-        'color': 'white',
-        'format_spec': '',
-        'ypos': 9,
-        'xpos': 33
-    },
-    {
-        'text': 'NA',
-        'color': 'white',
-        'format_spec': '',
-        'ypos': 9,
-        'xpos': 38
-    },
-    {
-        'text': 'Psize/',
-        'color': 'white',
-        'format_spec': '',
-        'ypos': 9,
-        'xpos': 50
-    },
-    {
-        'text': 'Ptime:',
-        'color': 'white',
-        'format_spec': '',
-        'ypos': 9,
-        'xpos': 56
-    },
-    {
-        'text': 'codec_psize',
-        'color': 'white_standout',
-        'format_spec': '>5',
-        'ypos': 9,
-        'xpos': 63
-    },
-    {
-        'text': '/',
-        'color': 'white',
-        'format_spec': '',
-        'ypos': 9,
-        'xpos': 68
-    },
-    {
-        'text': 'codec_ptime',
-        'color': 'white_standout',
-        'format_spec': '',
-        'ypos': 9,
-        'xpos': 69
-    },
-    {
-        'text': 'RTCP Packets (Rx/Tx):',
-        'color': 'white',
-        'format_spec': '',
-        'ypos': 10,
-        'xpos': 3
-    },
-    {
-        'text': 'rx_rtp_rtcp',
-        'color': 'white_standout',
-        'format_spec': '>7',
-        'ypos': 10,
-        'xpos': 25
-    },
-    {
-        'text': '/',
-        'color': 'white',
-        'format_spec': '',
-        'ypos': 10,
-        'xpos': 33
-    },
-    {
-        'text': 'tx_rtp_rtcp',
-        'color': 'white_standout',
-        'format_spec': '>5',
-        'ypos': 10,
-        'xpos': 35
-    },
-    {
-        'text': 'Play-Time:',
-        'color': 'white',
-        'format_spec': '',
-        'ypos': 10,
-        'xpos': 52
-    },
-    {
-        'text': 'codec_play_time',
-        'color': 'white_standout',
-        'format_spec': '',
-        'ypos': 10,
-        'xpos': 64
-    },
-    {
-        'text': 'DSCP (Rx/Tx):',
-        'color': 'white',
-        'format_spec': '',
-        'ypos': 11,
-        'xpos': 11
-    },
-    {
-        'text': 'rx_rtp_dscp',
-        'color': 'white_standout',
-        'format_spec': '>7',
-        'ypos': 11,
-        'xpos': 25
-    },
-    {
-        'text': '/',
-        'color': 'white',
-        'format_spec': '',
-        'ypos': 11,
-        'xpos': 33
-    },
-    {
-        'text': 'tx_rtp_dscp',
-        'color': 'white_standout',
-        'format_spec': '>5',
-        'ypos': 11,
-        'xpos': 35
-    },
-    {
-        'text': 'Avg-Loss:',
-        'color': 'white',
-        'format_spec': '',
-        'ypos': 11,
-        'xpos': 53
-    },
-    {
-        'text': 'codec_avg_loss',
-        'color': 'white_standout',
-        'format_spec': '>6',
-        'ypos': 11,
-        'xpos': 63
-    },
-    {
-        'text': 'L2Pri (Rx/Tx):',
-        'color': 'white',
-        'format_spec': '',
-        'ypos': 12,
-        'xpos': 10
-    },
-    {
-        'text': 'rx_rtp_l2pri',
-        'color': 'white_standout',
-        'format_spec': '>7',
-        'ypos': 12,
-        'xpos': 25
-    },
-    {
-        'text': '/',
-        'color': 'white',
-        'format_spec': '',
-        'ypos': 12,
-        'xpos': 33
-    },
-    {
-        'text': 'tx_rtp_l2pri',
-        'color': 'white_standout',
-        'format_spec': '>5',
-        'ypos': 12,
-        'xpos': 35
-    },
-    {
-        'text': 'Avg-RTT:',
-        'color': 'white',
-        'format_spec': '',
-        'ypos': 12,
         'xpos': 54
     },
     {
-        'text': 'codec_avg_rtt',
-        'color': 'white_standout',
-        'format_spec': '>6',
-        'ypos': 12,
-        'xpos': 63
-    },
-    {
-        'text': 'Duplicates (Rx):',
-        'color': 'white',
+        'text': 'local_ssrc',
+        'color': 'standout',
         'format_spec': '',
-        'ypos': 13,
-        'xpos': 8
+        'ypos': 6,
+        'xpos': 59
     },
     {
-        'text': 'rx_rtp_duplicates',
-        'color': 'white_standout',
-        'format_spec': '>7',
-        'ypos': 13,
-        'xpos': 25
-    },
-    {
-        'text': 'Max-Jbuf-Delay:',
-        'color': 'white',
+        'text': 'remote_ssrc_change',
+        'color': 'standout',
         'format_spec': '',
-        'ypos': 13,
-        'xpos':47
-    },
-    {
-        'text': 'codec_max_jbuf_delay',
-        'color': 'white_standout',
-        'format_spec': '>6',
-        'ypos': 13,
-        'xpos': 63
-    },
-    {
-        'text': 'Seq-Fall (Rx):',
-        'color': 'white',
-        'format_spec': '',
-        'ypos': 14,
-        'xpos': 10
-    },
-    {
-        'text': 'rx_rtp_seqfall',
-        'color': 'white_standout',
-        'format_spec': '>7',
-        'ypos': 14,
-        'xpos': 25
-    },
-    {
-        'text': 'JBuf-under/overruns:',
-        'color': 'white',
-        'format_spec': '',
-        'ypos': 14,
-        'xpos': 42
-    },
-    {
-        'text': 'codec_jbuf_underruns',
-        'color': 'white_standout',
-        'format_spec': '>5',
-        'ypos': 14,
-        'xpos': 63
-    },
-    {
-        'text': '/',
-        'color': 'white',
-        'format_spec': '',
-        'ypos': 14,
-        'xpos': 68
-    },
-    {
-        'text': 'codec_jbuf_overruns',
-        'color': 'white_standout',
-        'format_spec': '',
-        'ypos': 14,
-        'xpos': 69
-    },
-    {
-        'text': 'LOCAL RTP STATISTICS',
-        'color': 'blue_grey',
-        'format_spec': '',
-        'ypos': 16,
-        'xpos': 3
-    },
-    {
-        'text': 'REMOTE RTP STATISTICS',
-        'color': 'blue_grey',
-        'format_spec': '',
-        'ypos': 16,
-        'xpos': 52
-    },
-    {
-        'text': 'Loss:',
-        'color': 'white',
-        'format_spec': '',
-        'ypos': 17,
-        'xpos': 8
-    },
-    {
-        'text': 'Loss:',
-        'color': 'white',
-        'format_spec': '',
-        'ypos': 17,
-        'xpos': 8
-    },
-    {
-        'text': 'rx_rtp_loss',
-        'color': 'white_standout',
-        'format_spec': '>6',
-        'ypos': 17,
-        'xpos': 14
-    },
-    {
-        'text': 'rx_rtp_loss_events',
-        'color': 'white_standout',
-        'format_spec': '',
-        'ypos': 17,
-        'xpos': 21
-    },
-    {
-        'text': 'Loss:',
-        'color': 'white',
-        'format_spec': '',
-        'ypos': 17,
-        'xpos': 57
-    },
-    {
-        'text': 'rem_loss',
-        'color': 'white_standout',
-        'format_spec': '>6',
-        'ypos': 17,
-        'xpos': 63
-    },
-    {
-        'text': 'rem_loss_events',
-        'color': 'white_standout',
-        'format_spec': '',
-        'ypos': 17,
+        'ypos': 6,
         'xpos': 70
     },
     {
-        'text': 'Avg-Loss:',
-        'color': 'white',
+        'text': 'RTP/RTCP',
+        'color': 'title',
+        'format_spec': '^36',
+        'ypos': 8,
+        'xpos': 1
+    },
+    {
+        'text': 'CODEC',
+        'color': 'title',
+        'format_spec': '^36',
+        'ypos': 8,
+        'xpos': 40
+    },
+    {
+        'text': 'RTP Packets (Rx/Tx):',
+        'color': 'normal',
         'format_spec': '',
-        'ypos': 18,
-        'xpos': 4
-    },
-    {
-        'text': 'rx_rtp_avg_loss',
-        'color': 'white_standout',
-        'format_spec': '>6',
-        'ypos': 18,
-        'xpos': 14
-    },
-    {
-        'text': 'Avg-Loss:',
-        'color': 'white',
-        'format_spec': '',
-        'ypos': 18,
-        'xpos': 53
-    },
-    {
-        'text': 'rem_avg_loss',
-        'color': 'white_standout',
-        'format_spec': '>6',
-        'ypos': 18,
-        'xpos': 63
-    },
-    {
-        'text': 'Jitter:',
-        'color': 'white',
-        'format_spec': '',
-        'ypos': 19,
-        'xpos': 6
-    },
-    {
-        'text': 'rx_rtp_jitter',
-        'color': 'white_standout',
-        'format_spec': '>6',
-        'ypos': 19,
-        'xpos': 14
-    },
-    {
-        'text': 'rx_rtp_jitter_events',
-        'color': 'white_standout',
-        'format_spec': '',
-        'ypos': 19,
-        'xpos': 21
-    },
-    {
-        'text': 'Jitter:',
-        'color': 'white',
-        'format_spec': '',
-        'ypos': 19,
-        'xpos': 55
-    },
-    {
-        'text': 'rem_jitter',
-        'color': 'white_standout',
-        'format_spec': '>6',
-        'ypos': 19,
-        'xpos': 63
-    },
-    {
-        'text': 'rem_jitter_events',
-        'color': 'white_standout',
-        'format_spec': '',
-        'ypos': 19,
-        'xpos': 70
-    },
-    {
-        'text': 'Avg-Jitter:',
-        'color': 'white',
-        'format_spec': '',
-        'ypos': 20,
+        'ypos': 9,
         'xpos': 2
     },
     {
-        'text': 'rx_rtp_avg_jitter',
-        'color': 'white_standout',
-        'format_spec': '>6',
-        'ypos': 20,
-        'xpos': 14
+        'text': 'rx_rtp_packets',
+        'color': 'standout',
+        'format_spec': '>7',
+        'ypos': 9,
+        'xpos': 22
     },
     {
-        'text': 'Avg-Jitter:',
-        'color': 'white',
+        'text': '/',
+        'color': 'normal',
         'format_spec': '',
-        'ypos': 20,
-        'xpos': 51
+        'ypos': 9,
+        'xpos': 30
     },
     {
-        'text': 'rem_avg_jitter',
-        'color': 'white_standout',
+        'text': 'NA',
+        'color': 'dimmmed',
+        'format_spec': '>5',
+        'ypos': 9,
+        'xpos': 32
+    },
+    {
+        'text': 'Psize/',
+        'color': 'normal',
+        'format_spec': '',
+        'ypos': 9,
+        'xpos': 46
+    },
+    {
+        'text': 'Ptime:',
+        'color': 'normal',
+        'format_spec': '',
+        'ypos': 9,
+        'xpos': 52
+    },
+    {
+        'text': 'codec_psize',
+        'color': 'standout',
+        'format_spec': '>5',
+        'ypos': 9,
+        'xpos': 59
+    },
+    {
+        'text': '/',
+        'color': 'normal',
+        'format_spec': '',
+        'ypos': 9,
+        'xpos': 64
+    },
+    {
+        'text': 'codec_ptime',
+        'color': 'standout',
+        'format_spec': '',
+        'ypos': 9,
+        'xpos': 65
+    },
+    {
+        'text': 'RTCP Packets (Rx/Tx):',
+        'color': 'normal',
+        'format_spec': '',
+        'ypos': 10,
+        'xpos': 1
+    },
+    {
+        'text': 'rx_rtp_rtcp',
+        'color': 'standout',
+        'format_spec': '>7',
+        'ypos': 10,
+        'xpos': 22
+    },
+    {
+        'text': '/',
+        'color': 'normal',
+        'format_spec': '',
+        'ypos': 10,
+        'xpos': 30
+    },
+    {
+        'text': 'tx_rtp_rtcp',
+        'color': 'standout',
+        'format_spec': '>5',
+        'ypos': 10,
+        'xpos': 32
+    },
+    {
+        'text': 'Play-Time:',
+        'color': 'normal',
+        'format_spec': '',
+        'ypos': 10,
+        'xpos': 48
+    },
+    {
+        'text': 'codec_play_time',
+        'color': 'standout',
+        'format_spec': '',
+        'ypos': 10,
+        'xpos': 60
+    },
+    {
+        'text': 'DSCP (Rx/Tx):',
+        'color': 'normal',
+        'format_spec': '',
+        'ypos': 11,
+        'xpos': 9
+    },
+    {
+        'text': 'rx_rtp_dscp',
+        'color': 'standout',
+        'format_spec': '>7',
+        'ypos': 11,
+        'xpos': 22
+    },
+    {
+        'text': '/',
+        'color': 'normal',
+        'format_spec': '',
+        'ypos': 11,
+        'xpos': 30
+    },
+    {
+        'text': 'tx_rtp_dscp',
+        'color': 'standout',
+        'format_spec': '>5',
+        'ypos': 11,
+        'xpos': 32
+    },
+    {
+        'text': 'Avg-Loss:',
+        'color': 'normal',
+        'format_spec': '',
+        'ypos': 11,
+        'xpos': 49
+    },
+    {
+        'text': 'codec_avg_loss',
+        'color': 'standout',
         'format_spec': '>6',
-        'ypos': 20,
-        'xpos': 63
+        'ypos': 11,
+        'xpos': 59
+    },
+    {
+        'text': 'L2Pri (Rx/Tx):',
+        'color': 'normal',
+        'format_spec': '',
+        'ypos': 12,
+        'xpos': 8
+    },
+    {
+        'text': 'rx_rtp_l2pri',
+        'color': 'standout',
+        'format_spec': '>7',
+        'ypos': 12,
+        'xpos': 22
+    },
+    {
+        'text': '/',
+        'color': 'normal',
+        'format_spec': '',
+        'ypos': 12,
+        'xpos': 30
+    },
+    {
+        'text': 'tx_rtp_l2pri',
+        'color': 'standout',
+        'format_spec': '>5',
+        'ypos': 12,
+        'xpos': 32
     },
     {
         'text': 'Avg-RTT:',
-        'color': 'white',
+        'color': 'normal',
         'format_spec': '',
-        'ypos': 21,
-        'xpos': 5
+        'ypos': 12,
+        'xpos': 50
+    },
+    {
+        'text': 'codec_avg_rtt',
+        'color': 'standout',
+        'format_spec': '>7',
+        'ypos': 12,
+        'xpos': 58
+    },
+    {
+        'text': 'Duplicates (Rx):',
+        'color': 'normal',
+        'format_spec': '',
+        'ypos': 13,
+        'xpos': 6
+    },
+    {
+        'text': 'rx_rtp_duplicates',
+        'color': 'standout',
+        'format_spec': '>7',
+        'ypos': 13,
+        'xpos': 22
+    },
+    {
+        'text': 'Max-Jbuf-Delay:',
+        'color': 'normal',
+        'format_spec': '',
+        'ypos': 13,
+        'xpos': 43
+    },
+    {
+        'text': 'codec_max_jbuf_delay',
+        'color': 'standout',
+        'format_spec': '>7',
+        'ypos': 13,
+        'xpos': 58
+    },
+    {
+        'text': 'Seq-Fall (Rx):',
+        'color': 'normal',
+        'format_spec': '',
+        'ypos': 14,
+        'xpos': 8
+    },
+    {
+        'text': 'rx_rtp_seqfall',
+        'color': 'standout',
+        'format_spec': '>7',
+        'ypos': 14,
+        'xpos': 22
+    },
+    {
+        'text': 'JBuf-und/overruns:',
+        'color': 'normal',
+        'format_spec': '',
+        'ypos': 14,
+        'xpos': 40
+    },
+    {
+        'text': 'codec_jbuf_underruns',
+        'color': 'standout',
+        'format_spec': '>6',
+        'ypos': 14,
+        'xpos': 59
+    },
+    {
+        'text': '/',
+        'color': 'normal',
+        'format_spec': '',
+        'ypos': 14,
+        'xpos': 65
+    },
+    {
+        'text': 'codec_jbuf_overruns',
+        'color': 'standout',
+        'format_spec': '',
+        'ypos': 14,
+        'xpos': 66
+    },
+    {
+        'text': 'LOCAL RTP STATISTICS',
+        'color': 'title',
+        'format_spec': '^36',
+        'ypos': 16,
+        'xpos': 1
+    },
+    {
+        'text': 'REMOTE RTP STATISTICS',
+        'color': 'title',
+        'format_spec': '^36',
+        'ypos': 16,
+        'xpos': 40
+    },
+    {
+        'text': 'Avg-Loss:',
+        'color': 'normal',
+        'format_spec': '',
+        'ypos': 17,
+        'xpos': 13
+    },
+    {
+        'text': 'rx_rtp_avg_loss',
+        'color': 'standout',
+        'format_spec': '>7',
+        'ypos': 17,
+        'xpos': 22
+    },
+    {
+        'text': 'Avg-Loss:',
+        'color': 'normal',
+        'format_spec': '',
+        'ypos': 17,
+        'xpos': 49
+    },
+    {
+        'text': 'rem_avg_loss',
+        'color': 'standout',
+        'format_spec': '>6',
+        'ypos': 17,
+        'xpos': 59
+    },
+    {
+        'text': 'Avg-Jitter:',
+        'color': 'normal',
+        'format_spec': '',
+        'ypos': 18,
+        'xpos': 11
+    },
+    {
+        'text': 'rx_rtp_avg_jitter',
+        'color': 'standout',
+        'format_spec': '>7',
+        'ypos': 18,
+        'xpos': 22
+    },
+    {
+        'text': 'Avg-Jitter:',
+        'color': 'normal',
+        'format_spec': '',
+        'ypos': 18,
+        'xpos': 47
+    },
+    {
+        'text': 'rem_avg_jitter',
+        'color': 'standout',
+        'format_spec': '>7',
+        'ypos': 18,
+        'xpos': 58
+    },
+    {
+        'text': 'Avg-RTT:',
+        'color': 'normal',
+        'format_spec': '',
+        'ypos': 19,
+        'xpos': 14
     },
     {
         'text': 'rx_rtp_avg_rtt',
-        'color': 'white_standout',
-        'format_spec': '>6',
-        'ypos': 21,
-        'xpos': 14
+        'color': 'standout',
+        'format_spec': '>7',
+        'ypos': 19,
+        'xpos': 22
     },
 ]
 
@@ -852,25 +754,30 @@ def cmds_to_session_dicts(cmds: Dict[str, str]) -> Dict[str, Dict[str, str]]:
         session_dicts.update({id: session_dict})
     return session_dicts
 
-def iter_session_attrs(
+def iter_session_detailed_attrs(
     session_dict: Dict[str, str],
-    detailed_attrs: List[Dict[str, str]] = DETAILED_ATTRS
+    detailed_attrs: List[Dict[str, Union[int, str]]] = DETAILED_ATTRS,
+    yoffset: int = 0,
+    xoffset: int = 1
     ) -> Iterator[Tuple[int, int, str, str]]:
     """
     Iterate over the attributes of a session dictionary and yield a tuple of 4 values:
-    - The y position of the attribute
-    - The x position of the attribute
-    - The text of the attribute, formatted according to the format_spec
-    - The color of the attribute
+
+    - `ypos`: The y position of the attribute
+    - `xpos`: The x position of the attribute
+    - `text`: The text of the attribute, formatted according to the `format_spec`
+    - `color`: The color of the attribute
 
     :param session_dict: A dictionary of key-value pairs of the attributes of the session
     :param detailed_attrs: A list of dictionaries of the detailed attributes of the session
+    :param yoffset: The offset of ypos
+    :param xoffset: The offset of xpos
     :return: An iterator of tuples of 4 values
     """
     for attrs in detailed_attrs:
         text = session_dict.get(attrs['text'], attrs['text'])
         text = f'{text:{attrs["format_spec"]}}'
-        yield attrs['ypos'], attrs['xpos'], text, attrs['color']
+        yield attrs['ypos'] + yoffset, attrs['xpos'] + xoffset, text, attrs['color']
 
 if __name__ == '__main__':
     stdout = '''#BEGIN\nshow rtp-stat detailed 00001\r\n\r\nSession-ID: 1\r\nStatus: Terminated, QOS: Ok, EngineId: 10\r\nStart-Time: 2024-11-04,10:06:07, End-Time: 2024-11-04,10:07:07\r\nDuration: 00:00:00\r\nCName: gwp@10.10.48.58\r\nPhone: \r\nLocal-Address: 192.168.110.110:2052 SSRC 1653399062\r\nRemote-Address: 10.10.48.192:35000 SSRC 2704961869 (0)\r\nSamples: 0 (5 sec)\r\n\r\nCodec:\r\nG711U 200B 20mS srtpAesCm128HmacSha180, Silence-suppression(Tx/Rx) Disabled/Disabled, Play-Time 4.720sec, Loss 0.8% #0, Avg-Loss 0.8%, RTT 0mS #0, Avg-RTT 0mS, JBuf-under/overruns 0.0%/0.0%, Jbuf-Delay 22mS, Max-Jbuf-Delay 22mS\r\n\r\nReceived-RTP:\r\nPackets 245, Loss 0.3% #0, Avg-Loss 0.3%, RTT 0mS #0, Avg-RTT 0mS, Jitter 2mS #0, Avg-Jitter 2mS, TTL(last/min/max) 56/56/56, Duplicates 0, Seq-Fall 0, DSCP 0, L2Pri 0, RTCP 0, Flow-Label 2\r\n\r\nTransmitted-RTP:\r\nVLAN 0, DSCP 46, L2Pri 0, RTCP 10, Flow-Label 0\r\n\r\nRemote-Statistics:\r\nLoss 0.0% #0, Avg-Loss 0.0%, Jitter 0mS #0, Avg-Jitter 0mS\r\n\r\nEcho-Cancellation:\r\nLoss 0dB #2, Len 0mS\r\n\r\nRSVP:\r\nStatus Unused, Failures 0\n#END'''
@@ -879,5 +786,5 @@ if __name__ == '__main__':
     session_dicts = cmds_to_session_dicts(stdout_to_cmds(stdout))
     for id, session_dict in session_dicts.items():
         print(session_dict)
-        for y, x, text, attrs in iter_session_attrs(session_dict):
+        for y, x, text, attrs in iter_session_detailed_attrs(session_dict):
             print(y, x, text, attrs)

@@ -1,5 +1,6 @@
 import asyncio
 from typing import Optional, Callable, Any, TypeVar, Tuple, List
+import get_certificates_pem
 
 SCRIPT = '''
 #!/usr/bin/expect
