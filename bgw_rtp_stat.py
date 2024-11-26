@@ -3,7 +3,7 @@
 from utils import asyncio_run, async_shell
 from scripts import expect_cmd_script
 from storage import AsyncMemoryStorage
-from bgw_regex import stdout_to_cmds, cmds_to_rtpsessions
+from session import stdout_to_cmds, cmds_to_session_dicts
 
 async def main():
     storage = AsyncMemoryStorage()
@@ -12,15 +12,17 @@ async def main():
         'user': 'root',
         'passwd': 'cmb@Dm1n',
         'session_ids': [],
-        'commands': [],
+        'commands': ['show capture'],
         'timeout': 3,
         'log_user': 0,
         'exp_internal': 0
     })
     cmd = f"/usr/bin/env expect -c '{script}'"
     stdout, stderr, rc = await async_shell(cmd)
+    cmds = stdout_to_cmds(stdout)
+    print(cmds)
     if not rc and not stderr:
-        rtpsessions = cmds_to_rtpsessions(stdout_to_cmds(stdout))
+        rtpsessions = cmds_to_session_dicts(cmds)
         await storage.add(rtpsessions)
     else:
         print(stderr, rc)

@@ -85,6 +85,9 @@ expect {
     "*Permission denied*" {puts stderr "Permission denied"; exit 254}
     $prompt {}
 }
+# Extract BGW number
+regexp {([^\s]+)-(\d+)[\(]} $expect_out(buffer) "" _ bgw_number
+puts "#BEGIN\nbgw_number\n$bgw_number\n#END\n"
 
 # Loop through session ids and run "show rtp-stats detailed id" on it
 set active_ids [active_sessions_ids]
