@@ -14,8 +14,8 @@ async def main():
         'session_ids': [],
         'commands': ['show capture'],
         'timeout': 3,
-        'log_user': 0,
-        'exp_internal': 0
+        'log_file': "expect_debug.log",
+        #'log_file': "/dev/null"
     })
     cmd = f"/usr/bin/env expect -c '{script}'"
     stdout, stderr, rc = await async_shell(cmd)

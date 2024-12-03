@@ -34,7 +34,7 @@ async def async_shell(cmd: str, name: Optional[str] = "", verbose: bool = False)
             stderr=asyncio.subprocess.PIPE
         )
         stdout, stderr = await proc.communicate()
-        return stdout.decode(), stderr.decode(), proc.returncode
+        return stdout.decode().strip(), stderr.decode().strip(), proc.returncode
     except Exception as e:
         if verbose:
             print(f"{repr(e)} in {name}")

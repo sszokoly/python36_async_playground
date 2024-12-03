@@ -9,9 +9,23 @@ set user "root"
 set passwd "cmb@Dm1n"
 set prompt "\)# "
 set session_ids {"00001" "00111"}
-set commands {"show system" "show running"}
+set commands {"show system" "show rtp-stats"}
+
+# Initialize final array
+array set final {}
 
 # Procedures
+proc arrayToJson {arrayName} {
+    upvar $arrayName arr
+    set json "{"
+    foreach {key value} [array get arr] {
+        append json "\"$key\":\"$value\","
+    }
+    set json [string trimright $json ","]
+    append json "}"
+    return $json
+}
+
 proc merge_lists {list1 list2} {
     set combined [concat $list1 $list2]
     set result [lsort -unique $combined]
@@ -29,7 +43,7 @@ proc clean_output {output} {
 
 proc cmd {command} {
     global prompt
-    set output "\n#BEGIN\n"
+    #set output "\n#BEGIN\n"
     send "$command"
     expect {
         "*continue-- " {
@@ -55,7 +69,7 @@ proc cmd {command} {
         timeout {puts stderr "Timeout"; exit 255}
     }
     set result [clean_output $output]
-    append result "\n#END"
+    #append result "\n#END"
     return $result
 }
 
@@ -87,7 +101,7 @@ expect {
 }
 # Extract BGW number
 regexp {([^\s]+)-(\d+)[\(]} $expect_out(buffer) "" _ bgw_number
-puts "#BEGIN\nbgw_number\n$bgw_number\n#END\n"
+set final(number) $bgw_number
 
 # Loop through session ids and run "show rtp-stats detailed id" on it
 set active_ids [active_sessions_ids]
@@ -95,8 +109,8 @@ set merged_ids [merge_lists $active_ids $session_ids]
 set rtp_stat_output ""
 if {$merged_ids ne {}} {
     foreach id $merged_ids {
-        set command "show rtp-stat detailed $id\n"
-        append rtp_stat_output [cmd $command]
+        set command "show rtp-stat detailed $id"
+        append rtp_stat_output [cmd "$command\n"]
     }
 }
 

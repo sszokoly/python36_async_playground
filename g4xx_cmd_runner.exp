@@ -1,0 +1,162 @@
+#!/usr/bin/expect
+# Obtains command output from Avaya gateway
+# Usage: expect g4xx_cmd_runner.exp "host=10.10.48.58,user=root,passwd=cmb@Dm1n,commands=show system|show running"
+log_user 0
+set log_file "expect_debug.log"
+
+if {[info exists log_file] && $log_file ne "/dev/null"} {
+    if {[file exists $log_file]} {
+        file delete $log_file
+    }
+}
+
+exp_internal -f $log_file 0
+
+################################# Variables #################################
+
+array set input_array {}
+array set commands_array {}
+set prompt "\)# "
+
+################################# Procedures #################################
+
+proc to_json {} {
+    global host gw_number commands_array
+    set json "{"
+    append json "\"host\": \"$host\", "
+    append json "\"gw_number\": \"$gw_number\", "  
+    if {[llength [array names commands_array]] > 0} {
+        append json "\"commands\": {"
+        foreach {key value} [array get commands_array] {
+            append json "\"$key\": \"$value\", "
+        }
+        set json [string trimright $json ", "]
+        append json "}"
+    }
+    set json [string trimright $json ", "]
+    append json "}"
+    return $json
+}
+
+
+proc clean_output {output} {
+    #set type_removed [string map {"\r\n--type q to quit or space key to continue-- \r\u\001b[K" ""} $output]
+    set type_removed [regsub "\r\n--type q to quit or space key to continue-- \r\[^ \]*K" $output ""]
+    set note_removed [regsub "Note that field.*" $type_removed ""]
+    set done_removed [regsub "Done!.*" $note_removed ""]
+    set prompt_removed [regsub "\r?\n\[^ \]*\[)\]# " $done_removed ""]
+    set result [string trimright $prompt_removed "\r\n"]
+    return $result
+}
+
+proc cmd {command} {
+    global prompt
+    set output ""
+    send "$command"
+    expect {
+        "*continue-- " {
+            set current_output $expect_out(buffer)
+            append output $current_output
+            send "\n"
+            exp_continue
+        }
+        "*to continue." {
+            set current_output $expect_out(buffer)
+            append output $current_output
+            sleep 3
+            exp_continue
+        }
+        "*." {
+            set current_output $expect_out(buffer)
+            append output $current_output
+            sleep 3
+            exp_continue
+        }
+        $prompt {
+            set current_output $expect_out(buffer)
+            append output $current_output
+        }
+        timeout {
+            puts stderr "Timeout";
+            return ""
+        }
+    }
+    set result [clean_output $output]
+    return [string trimleft $result $command]
+}
+
+#################################### Main ####################################
+
+#Parses input arguments
+set input_string [lindex $argv 0]
+set kv_pairs [split $input_string ","]
+foreach pair $kv_pairs {
+    set key [lindex [split $pair "="] 0]
+    set value [lindex [split $pair "="] 1]
+    set input_array($key) $value
+}
+
+#Verifies if all mandatory arguments exist
+foreach key [list host user passwd] {
+    if {![info exists input_array($key)]} {
+        puts stderr "Argument $key not found";
+        puts stderr "Required arguments: host, user, passwd"
+        exit 1;
+    } else {
+        eval set $key $input_array($key)
+    }
+}
+
+#Verify if "commands" arguments exist and builds a list out of it
+if {[info exists input_array(commands)]} {
+    set commands [split $input_array(commands) "|"]
+}
+
+#Verify if "timeout" arguments exist and updates current timeout
+if {[info exists input_array(timeout)]} {
+    set timeout $input_array(timeout)
+}
+
+#Spawn SSH connection
+spawn ssh -q -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null $user@$host
+
+#Handle SSH connection
+expect {
+    "Password: " {send "$passwd\n"}
+    timeout {
+        puts stderr "Timeout";
+        exit 255
+    }
+    eof {
+        puts stderr "Timeout";
+        exit 255
+    }
+}
+expect {
+    "*Permission denied*" {
+        puts stderr "Permission denied";
+        exit 254
+    }
+    $prompt {}
+}
+
+#Extract gateway number from prompt
+regexp {([^\s]+)-(\d+)[\(]} $expect_out(buffer) "" _ gw_number
+if {$gw_number ne ""} {
+    set gw_number $gw_number
+} else {
+    set gw_number ""
+}
+
+#Iterate through "commands" and run each
+foreach command $commands {
+    set output [cmd "$command\n"]
+    if {$output ne ""} {
+        set commands_array($command) $output
+    }
+}
+
+send "exit\n"
+
+#Output results in JSON format
+puts [to_json]

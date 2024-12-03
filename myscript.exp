@@ -1,0 +1,66 @@
+#!/usr/bin/expect
+log_user 1
+exp_internal 1
+
+#Initializes arrays
+array set input_args {}
+array set results {}
+
+#Parses input arguments
+set input_string [lindex $argv 0]
+set kv_pairs [split $input_string ","]
+foreach pair $kv_pairs {
+    # Split each pair into key and value
+    set key [lindex [split $pair "="] 0]
+    set value [lindex [split $pair "="] 1]
+    set input_args($key) $value
+}
+
+#Verifies if mandatory keys exists
+foreach key [host ]
+
+}
+
+#Procedures
+proc is_date1_gt_date2 {date1 date2} {
+    # Convert the date strings into epoch timestamps
+    set timestamp1 [clock scan $date1 -format "%Y-%m-%d,%H:%M:%S"]
+    set timestamp2 [clock scan $date2 -format "%Y-%m-%d,%H:%M:%S"]
+    # Compare the timestamps
+    if {$timestamp1 > $timestamp2} {
+        return 1
+    } else { 
+        return 0 
+    }
+}
+
+proc parse_session_summary_line {input} {
+    # Use a regular expression to extract the date and times
+    set pattern {^(\S+)\s+(\S+),(\S+)\s+(\S+)\s+.*$}
+    if {[regexp $pattern $input _ id start_date start_time end_time]} {
+        # if end time rolled over to the next day
+        if { $end_time < $start_time } {
+            set end_date [exec date "+%Y-%m-%d" -d "$start_date + 1 day"]
+        } else {
+            set end_date $start_date
+        }
+        return [list $id "$start_date,$start_time" "$end_date,$end_time"]
+    } else {
+        return "Error: Input format does not match"
+    }
+}
+
+
+#set my_string $kv_array(cmds)
+#set my_list [split $my_string "|"]
+
+#foreach item $my_list {
+#    puts "Item: $item"
+#}
+
+set line "00001     2024-11-04,23:59:07 02:08:17           G711U                            10.10.48.192"
+set result [parse_session_summary_line $line]
+lassign $result id start_datetime end_datetime
+
+set result [is_date1_gt_date2 $end_datetime $start_datetime]
+puts $result
