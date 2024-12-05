@@ -1,6 +1,6 @@
 #!/usr/bin/expect
 # Obtains command output from Avaya gateway
-# Usage: expect g4xx_cmd_runner.exp "host=10.10.48.58,user=root,passwd=cmb@Dm1n,commands=show system|show running"
+# Usage: expect g4xx_cmd_runner.exp "host=10.10.48.58,user=root,passwd=cmb@Dm1n,commands=show rtp-stat session last 20"
 log_user 0
 set log_file "expect_debug.log"
 
@@ -28,7 +28,7 @@ proc to_json {} {
     if {[llength [array names commands_array]] > 0} {
         append json "\"commands\": {"
         foreach {key value} [array get commands_array] {
-            append json "\"$key\": \"$value\", "
+            append json "\"$key\": \'$value\', "
         }
         set json [string trimright $json ", "]
         append json "}"
@@ -40,12 +40,13 @@ proc to_json {} {
 
 
 proc clean_output {output} {
-    #set type_removed [string map {"\r\n--type q to quit or space key to continue-- \r\u\001b[K" ""} $output]
-    set type_removed [regsub "\r\n--type q to quit or space key to continue-- \r\[^ \]*K" $output ""]
-    set note_removed [regsub "Note that field.*" $type_removed ""]
-    set done_removed [regsub "Done!.*" $note_removed ""]
-    set prompt_removed [regsub "\r?\n\[^ \]*\[)\]# " $done_removed ""]
-    set result [string trimright $prompt_removed "\r\n"]
+    set pattern {\r\n\-\-type q to quit or space key to continue\-\- .+?K}
+    regsub -all $pattern $output "" output
+    set lines [split $output "\n"]
+    set prompt_removed [lrange $lines 0 end-1]
+    set output [join $prompt_removed "\n"]
+    regsub -all {"} $output {\"} output_escaped_quotes
+    set result [string trimright $output_escaped_quotes "\r\n"]
     return $result
 }
 

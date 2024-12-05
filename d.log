@@ -1,0 +1,306 @@
+spawn ssh -q -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null root@10.10.48.58
+Password: 
+
+
+
+
+Last login: 4-Dec-2024 13:26:01
+
+Survivable-call-engine is disabled
+
+AvayaG450A-001(super)# show system
+System Name             : 
+System Location         : 
+System Contact          : 
+Uptime (d,h:m:s)        : 40,22:37:46
+Call Controller Time    : 13:26:14 04 DEC 2024 
+Serial No               : 13TG01116522
+Model                   : G450
+Chassis HW Vintage      : 1
+Chassis HW Suffix       : A
+Mainboard HW Vintage    : 2
+Mainboard HW Suffix     : B
+Mainboard HW CS         : 2.1.7
+Mainboard FW Vintage    : 42.24.0
+LAN MAC Address         : 00:1b:4f:3f:73:e0
+WAN1 MAC Address        : 00:1b:4f:3f:73:e1
+WAN2 MAC Address        : 00:1b:4f:3f:73:e2
+SERVICES MAC address    : 00:1b:4f:3f:73:e3
+Memory #1               : 256MB
+Memory #2               : Not present
+Compact Flash Memory    : No CompactFlash card is installed
+PSU #1                  : AC 400W
+PSU #2                  : Not present
+Media Socket #1         : MP160 VoIP DSP Module
+
+--type q to quit or space key to continue-- [KMedia Socket #2         : Not present
+Media Socket #3         : Not present
+Media Socket #4         : Not present
+FAN Tray                : Present
+AvayaG450A-001(super)# OUTOUT
+{show system
+System Name             : 
+System Location         : 
+System Contact          : 
+Uptime (d,h:m:s)        : 40,22:37:46
+Call Controller Time    : 13:26:14 04 DEC 2024 
+Serial No               : 13TG01116522
+Model                   : G450
+Chassis HW Vintage      : 1
+Chassis HW Suffix       : A
+Mainboard HW Vintage    : 2
+Mainboard HW Suffix     : B
+Mainboard HW CS         : 2.1.7
+Mainboard FW Vintage    : 42.24.0
+LAN MAC Address         : 00:1b:4f:3f:73:e0
+WAN1 MAC Address        : 00:1b:4f:3f:73:e1
+WAN2 MAC Address        : 00:1b:4f:3f:73:e2
+SERVICES MAC address    : 00:1b:4f:3f:73:e3
+Memory #1               : 256MB
+Memory #2               : Not present
+Compact Flash Memory    : No CompactFlash card is installed
+PSU #1                  : AC 400W
+PSU #2                  : Not present
+Media Socket #1         : MP160 VoIP DSP Module
+
+--type q to quit or space key to continue-- [KMedia Socket #2         : Not present
+Media Socket #3         : Not present
+Media Socket #4         : Not present
+FAN Tray                : Present
+AvayaG450A-001(super)# }
+show running
+
+! version 42.24.0
+Config info release 42.24.0 time "13:26:15 04 DEC 2024 " serial_number 10IS41452851
+ !
+encrypted-username wNafNsxI3mdSB3RZN3Bp8A== password NrDEtUhykPT4Bag73C+8/huxaplgvxV8Q8WbEOtYB08= access-type SFe64jjMtTxjaWJRwTF7Rw==
+!
+encrypted-username 2OSSOLnTyOuFJ2eru6ofhQ== password y2Pn/BeN+qsox30UFyq31xcgKrDOGcDbUddr5+2hmyA= access-type 6PO3rT/N7MOrmOUgP1h9qQ==
+hostname "AvayaG450A"
+no ip telnet 
+ip tftp-server file-system-size 2288
+set port mirror source-port 10/5 mirror-port 10/6 sampling always direction both
+!
+ds-mode t1
+!
+interface Vlan 1
+ icc-vlan
+ server-blade-vlan 5
+ ip address 10.10.48.58     255.255.255.0  
+ pmi
+ exit
+!
+interface FastEthernet 10/3
+ exit
+!
+interface FastEthernet 10/4
+ exit
+!
+interface Console
+ speed 9600
+ exit
+!
+interface USB-Modem
+ description "Default Modem Setup"
+ timeout absolute 10
+ ppp authentication ras
+ no shutdown
+ ip address 10.3.248.253    255.255.255.252
+ exit
+!
+capture max-frame-size 1500
+login authentication min-password-length 8
+!
+login authentication lockout 0 attempt 0
+! Avaya Login Confirmation Received.
+EASGManage enableEASG
+product-id 8c2ae2eead3e6cca800be892bb6e3411
+!
+set logging file enable 
+set logging file condition all Error 
+set logging file condition BOOT Debug 
+!
+encrypted-snmp-server community read-only dVl8pYMlmRdfjeowVoU9aw== read-write G71WE9hJnHbowPVUcjZEExFvRvRWTfUArl99jcX25nY=
+!
+ip default-gateway 10.10.48.254    1 low  
+!
+rtp-stat-service
+rtp-stat qos-trap
+no rtp-stat fault
+analog-test
+exit
+!
+set sla-monitor enable
+set sla-server-ip-address 10.10.48.198
+set mgc list 10.10.48.240
+set mediaserver 10.10.48.240 10.10.48.240 23 telnet
+set mediaserver 10.10.48.240 10.10.48.240 5023 sat
+!#
+!# End of configuration file. Press Enter to continue.
+AvayaG450A-001(super)# OUTOUT
+{show running
+
+! version 42.24.0
+Config info release 42.24.0 time "13:26:15 04 DEC 2024 " serial_number 10IS41452851
+ !
+encrypted-username wNafNsxI3mdSB3RZN3Bp8A== password NrDEtUhykPT4Bag73C+8/huxaplgvxV8Q8WbEOtYB08= access-type SFe64jjMtTxjaWJRwTF7Rw==
+!
+encrypted-username 2OSSOLnTyOuFJ2eru6ofhQ== password y2Pn/BeN+qsox30UFyq31xcgKrDOGcDbUddr5+2hmyA= access-type 6PO3rT/N7MOrmOUgP1h9qQ==
+hostname "AvayaG450A"
+no ip telnet 
+ip tftp-server file-system-size 2288
+set port mirror source-port 10/5 mirror-port 10/6 sampling always direction both
+!
+ds-mode t1
+!
+interface Vlan 1
+ icc-vlan
+ server-blade-vlan 5
+ ip address 10.10.48.58     255.255.255.0  
+ pmi
+ exit
+!
+interface FastEthernet 10/3
+ exit
+!
+interface FastEthernet 10/4
+ exit
+!
+interface Console
+ speed 9600
+ exit
+!
+interface USB-Modem
+ description "Default Modem Setup"
+ timeout absolute 10
+ ppp authentication ras
+ no shutdown
+ ip address 10.3.248.253    255.255.255.252
+ exit
+!
+capture max-frame-size 1500
+login authentication min-password-length 8
+!
+login authentication lockout 0 attempt 0
+! Avaya Login Confirmation Received.
+EASGManage enableEASG
+product-id 8c2ae2eead3e6cca800be892bb6e3411
+!
+set logging file enable 
+set logging file condition all Error 
+set logging file condition BOOT Debug 
+!
+encrypted-snmp-server community read-only dVl8pYMlmRdfjeowVoU9aw== read-write G71WE9hJnHbowPVUcjZEExFvRvRWTfUArl99jcX25nY=
+!
+ip default-gateway 10.10.48.254    1 low  
+!
+rtp-stat-service
+rtp-stat qos-trap
+no rtp-stat fault
+analog-test
+exit
+!
+set sla-monitor enable
+set sla-server-ip-address 10.10.48.198
+set mgc list 10.10.48.240
+set mediaserver 10.10.48.240 10.10.48.240 23 telnet
+set mediaserver 10.10.48.240 10.10.48.240 5023 sat
+!#
+!# End of configuration file. Press Enter to continue.
+AvayaG450A-001(super)# }
+{"host": "10.10.48.58", "gw_number": "001", "commands": {"show running": "
+
+! version 42.24.0
+Config info release 42.24.0 time "13:26:15 04 DEC 2024 " serial_number 10IS41452851
+ !
+encrypted-username wNafNsxI3mdSB3RZN3Bp8A== password NrDEtUhykPT4Bag73C+8/huxaplgvxV8Q8WbEOtYB08= access-type SFe64jjMtTxjaWJRwTF7Rw==
+!
+encrypted-username 2OSSOLnTyOuFJ2eru6ofhQ== password y2Pn/BeN+qsox30UFyq31xcgKrDOGcDbUddr5+2hmyA= access-type 6PO3rT/N7MOrmOUgP1h9qQ==
+hostname "AvayaG450A"
+no ip telnet 
+ip tftp-server file-system-size 2288
+set port mirror source-port 10/5 mirror-port 10/6 sampling always direction both
+!
+ds-mode t1
+!
+interface Vlan 1
+ icc-vlan
+ server-blade-vlan 5
+ ip address 10.10.48.58     255.255.255.0  
+ pmi
+ exit
+!
+interface FastEthernet 10/3
+ exit
+!
+interface FastEthernet 10/4
+ exit
+!
+interface Console
+ speed 9600
+ exit
+!
+interface USB-Modem
+ description "Default Modem Setup"
+ timeout absolute 10
+ ppp authentication ras
+ no shutdown
+ ip address 10.3.248.253    255.255.255.252
+ exit
+!
+capture max-frame-size 1500
+login authentication min-password-length 8
+!
+login authentication lockout 0 attempt 0
+! Avaya Login Confirmation Received.
+EASGManage enableEASG
+product-id 8c2ae2eead3e6cca800be892bb6e3411
+!
+set logging file enable 
+set logging file condition all Error 
+set logging file condition BOOT Debug 
+!
+encrypted-snmp-server community read-only dVl8pYMlmRdfjeowVoU9aw== read-write G71WE9hJnHbowPVUcjZEExFvRvRWTfUArl99jcX25nY=
+!
+ip default-gateway 10.10.48.254    1 low  
+!
+rtp-stat-service
+rtp-stat qos-trap
+no rtp-stat fault
+analog-test
+exit
+!
+set sla-monitor enable
+set sla-server-ip-address 10.10.48.198
+set mgc list 10.10.48.240
+set mediaserver 10.10.48.240 10.10.48.240 23 telnet
+set mediaserver 10.10.48.240 10.10.48.240 5023 sat
+!#
+!# End of configuration file. Press Enter to continue.", "show system": "
+System Name             : 
+System Location         : 
+System Contact          : 
+Uptime (d,h:m:s)        : 40,22:37:46
+Call Controller Time    : 13:26:14 04 DEC 2024 
+Serial No               : 13TG01116522
+Model                   : G450
+Chassis HW Vintage      : 1
+Chassis HW Suffix       : A
+Mainboard HW Vintage    : 2
+Mainboard HW Suffix     : B
+Mainboard HW CS         : 2.1.7
+Mainboard FW Vintage    : 42.24.0
+LAN MAC Address         : 00:1b:4f:3f:73:e0
+WAN1 MAC Address        : 00:1b:4f:3f:73:e1
+WAN2 MAC Address        : 00:1b:4f:3f:73:e2
+SERVICES MAC address    : 00:1b:4f:3f:73:e3
+Memory #1               : 256MB
+Memory #2               : Not present
+Compact Flash Memory    : No CompactFlash card is installed
+PSU #1                  : AC 400W
+PSU #2                  : Not present
+Media Socket #1         : MP160 VoIP DSP Module
+Media Socket #2         : Not present
+Media Socket #3         : Not present
+Media Socket #4         : Not present
+FAN Tray                : Present"}}

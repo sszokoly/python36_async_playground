@@ -1,5 +1,13 @@
 #!/usr/bin/env python
 # -*- encoding: utf-8 -*-
+'''
+#############################################################################
+## Name: g4xx_cmd_runner.py
+## Runs Avaya G4xx gateway commands from CM shell and returns output in JSON
+## Date: 2024-12-05
+## Author: sszokoly@netagen.com
+#############################################################################
+'''
 import argparse
 import json
 import pprint
@@ -51,12 +59,13 @@ proc to_json {{}} {{
 }}
 
 proc clean_output {{output}} {{
-    #set type_removed [string map {{"\\r\\n--type q to quit or space key to continue-- \\r\\u\\001b[K" ""}} $output]
-    set type_removed [regsub "\\r\\n--type q to quit or space key to continue-- \\r\\[^ \\]*K" $output ""]
-    set note_removed [regsub "Note that field.*" $type_removed ""]
-    set done_removed [regsub "Done!.*" $note_removed ""]s
-    set prompt_removed [regsub "\\r?\\n\\[^ \\]*\\[)\\]# " $done_removed ""]
-    set result [string trimright $prompt_removed "\\r\\n"]
+    set pattern {{\\r\\n\\-\\-type q to quit or space key to continue\\-\\- .+?K}}
+    regsub -all $pattern $output "" output
+    set lines [split $output "\\n"]
+    set prompt_removed [lrange $lines 0 end-1]
+    set output [join $prompt_removed "\\n"]
+    regsub -all {{"}} $output {{\\"}} output_escaped_quotes
+    set result [string trimright $output_escaped_quotes "\\r\\n"]
     return $result
 }}
 
@@ -146,7 +155,6 @@ puts [to_json]
 def run_script(cmd):
     proc = Popen(cmd, stdout=PIPE, stderr=PIPE, shell=True)
     stdout, stderr = proc.communicate()
-    print([stdout])
     try:
         if proc.returncode:
             return "", stderr.decode().strip()
@@ -159,24 +167,27 @@ def main(args):
     log_file = f"debug_{kwargs['host']}.log" if kwargs["d"] else "/dev/null"
     kwargs.update({"log_file": log_file})
     if kwargs["commands"]:
-        commands = " ".join(f'"{c}"' for c in kwargs["commands"].split("|"))
+        cmds = []
+        for item in kwargs["commands"]:
+            cmds.extend(item.split("|"))
+        commands = " ".join(f'"{c}"' for c in cmds)
         kwargs["commands"] = commands
     script = cmd_template.format(**kwargs)
     cmd = f"/usr/bin/env expect -c '{script}'"
     stdout, stderr = run_script(cmd)
     if stdout:
-        print([stdout])
         parsed = json.loads(stdout, strict=False)
         pprint.pprint(parsed, compact=True)
     else:
         print(stderr)
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='runs G4xx commands from CM shell')
-    parser.add_argument('-i', dest='host', type=str, help='G4xx IP address')
-    parser.add_argument('-u', dest='user', type=str, default='root', help='username')
-    parser.add_argument('-p', dest='passwd', type=str, help='password')
+    parser = argparse.ArgumentParser(description='Runs Avaya G4xx commands from CM shell and returns JSON')
+    required = parser.add_argument_group('required arguments', '')
+    required.add_argument('-i', dest='host', type=str, required=True, help='G4xx IP address')
+    required.add_argument('-u', dest='user', type=str, required=True, help='username')
+    required.add_argument('-p', dest='passwd', type=str, required=True, help='password')
     parser.add_argument('-d', action='store_true', default=False, help='enable debug logging')
     parser.add_argument('-t', dest='timeout', default=10, help='timeout in secs')
-    parser.add_argument('commands', action='store', default='', nargs='?', help='G4xx commands separated by "|"')
+    parser.add_argument('commands', action='store', default='', nargs='+', help='G4xx commands')
     sys.exit(main(parser.parse_args()))
