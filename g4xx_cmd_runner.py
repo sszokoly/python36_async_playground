@@ -74,6 +74,10 @@ proc cmd {{command}} {{
     set output ""
     send "$command"
     expect {{
+        $prompt {{
+            set current_output $expect_out(buffer)
+            append output $current_output
+        }}
         "*continue-- " {{
             set current_output $expect_out(buffer)
             append output $current_output
@@ -83,18 +87,13 @@ proc cmd {{command}} {{
         "*to continue." {{
             set current_output $expect_out(buffer)
             append output $current_output
-            sleep 3
             exp_continue
         }}
         "*." {{
             set current_output $expect_out(buffer)
             append output $current_output
-            sleep 3
+            sleep 1
             exp_continue
-        }}
-        $prompt {{
-            set current_output $expect_out(buffer)
-            append output $current_output
         }}
         timeout {{
             puts stderr "Timeout";

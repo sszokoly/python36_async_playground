@@ -1,0 +1,223 @@
+parent: waiting for sync byte
+parent: telling child to go ahead
+parent: now unsynchronized from child
+spawn: returns {26870}
+
+expect: does "" (spawn_id exp5) match glob pattern "Password: "? no
+Password: 
+expect: does "\rPassword: " (spawn_id exp5) match glob pattern "Password: "? yes
+expect: set expect_out(0,string) "Password: "
+expect: set expect_out(spawn_id) "exp5"
+expect: set expect_out(buffer) "\rPassword: "
+send: sending "cmb@Dm1n\n" to { exp5 }
+
+expect: does "" (spawn_id exp5) match glob pattern "*Permission denied*"? no
+")# "? no
+
+
+expect: does "\r\n" (spawn_id exp5) match glob pattern "*Permission denied*"? no
+")# "? no
+
+expect: does "\r\n\r" (spawn_id exp5) match glob pattern "*Permission denied*"? no
+")# "? no
+
+
+
+
+Last login: 7-Dec-2024 13:31:32
+
+Survivable-call-engine is disabled
+
+AvayaG450A-001(super)# 
+expect: does "\r\n\r\n\r\n\r\n\r\nLast login: 7-Dec-2024 13:31:32\r\n\r\nSurvivable-call-engine is disabled\r\n\r\nAvayaG450A-001(super)# " (spawn_id exp5) match glob pattern "*Permission denied*"? no
+")# "? yes
+expect: set expect_out(0,string) ")# "
+expect: set expect_out(spawn_id) "exp5"
+expect: set expect_out(buffer) "\r\n\r\n\r\n\r\n\r\nLast login: 7-Dec-2024 13:31:32\r\n\r\nSurvivable-call-engine is disabled\r\n\r\nAvayaG450A-001(super)# "
+send: sending "show image version\n" to { exp5 }
+
+expect: does "" (spawn_id exp5) match glob pattern ")# "? no
+"*continue-- "? no
+"*to continue."? no
+"*."? no
+s
+expect: does "s" (spawn_id exp5) match glob pattern ")# "? no
+"*continue-- "? no
+"*to continue."? no
+"*."? no
+how image version
+Bank         Version
+-----------  -------
+A            42.18.0
+B (current)  42.24.0
+AvayaG450A-001(super)# 
+expect: does "show image version\r\nBank         Version\r\n-----------  -------\r\nA            42.18.0\r\nB (current)  42.24.0\r\nAvayaG450A-001(super)# " (spawn_id exp5) match glob pattern ")# "? yes
+expect: set expect_out(0,string) ")# "
+expect: set expect_out(spawn_id) "exp5"
+expect: set expect_out(buffer) "show image version\r\nBank         Version\r\n-----------  -------\r\nA            42.18.0\r\nB (current)  42.24.0\r\nAvayaG450A-001(super)# "
+send: sending "show voip-dsp\n" to { exp5 }
+
+expect: does "" (spawn_id exp5) match glob pattern ")# "? no
+"*continue-- "? no
+"*to continue."? no
+"*."? no
+s
+expect: does "s" (spawn_id exp5) match glob pattern ")# "? no
+"*continue-- "? no
+"*to continue."? no
+"*."? no
+how voip-dsp
+DSP #1 PARAMETERS
+--------------------------------------------------------------
+Board type     : MP160
+Hw Vintage     : 0 B
+Fw Vintage     : 182
+
+DSP#1 CURRENT STATE
+--------------------------------------------------------------
+In Use         : 0 of 160 channels, 0 of 4800 points (0.0% used)
+State          : Idle
+Admin State    : Release
+
+Core# Channels Admin     State
+      In Use   State
+----- -------- --------- -------
+    1  0 of 40   Release Idle
+    2  0 of 40   Release Idle
+    3  0 of 40   Release Idle
+    4  0 of 40   Release Idle
+
+
+DSP #2 Not Present
+
+
+--type q to quit or space key to continue-- 
+expect: does "show voip-dsp\r\nDSP #1 PARAMETERS\r\n--------------------------------------------------------------\r\nBoard type     : MP160\r\nHw Vintage     : 0 B\r\nFw Vintage     : 182\r\n\r\nDSP#1 CURRENT STATE\r\n--------------------------------------------------------------\r\nIn Use         : 0 of 160 channels, 0 of 4800 points (0.0% used)\r\nState          : Idle\r\nAdmin State    : Release\r\n\r\nCore# Channels Admin     State\r\n      In Use   State\r\n----- -------- --------- -------\r\n    1  0 of 40   Release Idle\r\n    2  0 of 40   Release Idle\r\n    3  0 of 40   Release Idle\r\n    4  0 of 40   Release Idle\r\n\r\n\r\nDSP #2 Not Present\r\n\r\n\r\n--type q to quit or space key to continue-- " (spawn_id exp5) match glob pattern ")# "? no
+"*continue-- "? yes
+expect: set expect_out(0,string) "show voip-dsp\r\nDSP #1 PARAMETERS\r\n--------------------------------------------------------------\r\nBoard type     : MP160\r\nHw Vintage     : 0 B\r\nFw Vintage     : 182\r\n\r\nDSP#1 CURRENT STATE\r\n--------------------------------------------------------------\r\nIn Use         : 0 of 160 channels, 0 of 4800 points (0.0% used)\r\nState          : Idle\r\nAdmin State    : Release\r\n\r\nCore# Channels Admin     State\r\n      In Use   State\r\n----- -------- --------- -------\r\n    1  0 of 40   Release Idle\r\n    2  0 of 40   Release Idle\r\n    3  0 of 40   Release Idle\r\n    4  0 of 40   Release Idle\r\n\r\n\r\nDSP #2 Not Present\r\n\r\n\r\n--type q to quit or space key to continue-- "
+expect: set expect_out(spawn_id) "exp5"
+expect: set expect_out(buffer) "show voip-dsp\r\nDSP #1 PARAMETERS\r\n--------------------------------------------------------------\r\nBoard type     : MP160\r\nHw Vintage     : 0 B\r\nFw Vintage     : 182\r\n\r\nDSP#1 CURRENT STATE\r\n--------------------------------------------------------------\r\nIn Use         : 0 of 160 channels, 0 of 4800 points (0.0% used)\r\nState          : Idle\r\nAdmin State    : Release\r\n\r\nCore# Channels Admin     State\r\n      In Use   State\r\n----- -------- --------- -------\r\n    1  0 of 40   Release Idle\r\n    2  0 of 40   Release Idle\r\n    3  0 of 40   Release Idle\r\n    4  0 of 40   Release Idle\r\n\r\n\r\nDSP #2 Not Present\r\n\r\n\r\n--type q to quit or space key to continue-- "
+send: sending "\n" to { exp5 }
+expect: continuing expect
+
+expect: does "" (spawn_id exp5) match glob pattern ")# "? no
+"*continue-- "? no
+"*to continue."? no
+"*."? no
+
+expect: does "\r" (spawn_id exp5) match glob pattern ")# "? no
+"*continue-- "? no
+"*to continue."? no
+"*."? no
+[K
+DSP #3 Not Present
+
+
+DSP #4 Not Present
+
+Done!
+AvayaG450A-001(super)# 
+expect: does "\r\u001b[K\r\nDSP #3 Not Present\r\n\r\n\r\nDSP #4 Not Present\r\n\r\nDone!\r\nAvayaG450A-001(super)# " (spawn_id exp5) match glob pattern ")# "? yes
+expect: set expect_out(0,string) ")# "
+expect: set expect_out(spawn_id) "exp5"
+expect: set expect_out(buffer) "\r\u001b[K\r\nDSP #3 Not Present\r\n\r\n\r\nDSP #4 Not Present\r\n\r\nDone!\r\nAvayaG450A-001(super)# "
+send: sending "show rtp-stat sessions active\n" to { exp5 }
+
+expect: does "" (spawn_id exp5) match glob pattern ")# "? no
+"*continue-- "? no
+"*to continue."? no
+"*."? no
+s
+expect: does "s" (spawn_id exp5) match glob pattern ")# "? no
+"*continue-- "? no
+"*to continue."? no
+"*."? no
+how rtp-stat sessions active
+
+No sessions to show.
+Done!
+AvayaG450A-001(super)# 
+expect: does "show rtp-stat sessions active\r\n\r\nNo sessions to show.\r\nDone!\r\nAvayaG450A-001(super)# " (spawn_id exp5) match glob pattern ")# "? yes
+expect: set expect_out(0,string) ")# "
+expect: set expect_out(spawn_id) "exp5"
+expect: set expect_out(buffer) "show rtp-stat sessions active\r\n\r\nNo sessions to show.\r\nDone!\r\nAvayaG450A-001(super)# "
+send: sending "show rtp-stat sessions last 20\n" to { exp5 }
+
+expect: does "" (spawn_id exp5) match glob pattern ")# "? no
+"*continue-- "? no
+"*to continue."? no
+"*."? no
+s
+expect: does "s" (spawn_id exp5) match glob pattern ")# "? no
+"*continue-- "? no
+"*to continue."? no
+"*."? no
+how rtp-stat sessions last 20
+
+ID    QoS Start date and time End Time Type            Destination
+----- --- ------------------- -------- --------------- ---------------------------------------
+00062     2024-12-07,10:29:26 10:29:37           G711U                             10.10.48.92
+00063     2024-12-07,10:29:27 10:29:37           G711U                            10.10.48.166
+00064     2024-12-07,10:31:58 10:32:27           G711U                             10.10.48.92
+00065     2024-12-07,10:32:00 10:32:27           G711U                            10.10.48.166
+00066     2024-12-07,10:33:05 10:33:23           G711U                             10.10.48.92
+00067     2024-12-07,10:33:07 10:33:23           G711U                            10.10.48.166
+00068     2024-12-07,10:35:28 10:35:44           G711U                             10.10.48.92
+00069     2024-12-07,10:35:29 10:35:44           G711U                            10.10.48.166
+00070     2024-12-07,10:36:27 10:36:30           G711U                             10.10.48.92
+00071     2024-12-07,10:36:28 10:36:30           G711U                           
+--type q to quit or space key to continue-- 
+expect: does "show rtp-stat sessions last 20\r\n\r\nID    QoS Start date and time End Time Type            Destination\r\n----- --- ------------------- -------- --------------- ---------------------------------------\r\n00062     2024-12-07,10:29:26 10:29:37           G711U                             10.10.48.92\r\n00063     2024-12-07,10:29:27 10:29:37           G711U                            10.10.48.166\r\n00064     2024-12-07,10:31:58 10:32:27           G711U                             10.10.48.92\r\n00065     2024-12-07,10:32:00 10:32:27           G711U                            10.10.48.166\r\n00066     2024-12-07,10:33:05 10:33:23           G711U                             10.10.48.92\r\n00067     2024-12-07,10:33:07 10:33:23           G711U                            10.10.48.166\r\n00068     2024-12-07,10:35:28 10:35:44           G711U                             10.10.48.92\r\n00069     2024-12-07,10:35:29 10:35:44           G711U                            10.10.48.166\r\n00070     2024-12-07,10:36:27 10:36:30           G711U                             10.10.48.92\r\n00071     2024-12-07,10:36:28 10:36:30           G711U                           \r\n--type q to quit or space key to continue-- " (spawn_id exp5) match glob pattern ")# "? no
+"*continue-- "? yes
+expect: set expect_out(0,string) "show rtp-stat sessions last 20\r\n\r\nID    QoS Start date and time End Time Type            Destination\r\n----- --- ------------------- -------- --------------- ---------------------------------------\r\n00062     2024-12-07,10:29:26 10:29:37           G711U                             10.10.48.92\r\n00063     2024-12-07,10:29:27 10:29:37           G711U                            10.10.48.166\r\n00064     2024-12-07,10:31:58 10:32:27           G711U                             10.10.48.92\r\n00065     2024-12-07,10:32:00 10:32:27           G711U                            10.10.48.166\r\n00066     2024-12-07,10:33:05 10:33:23           G711U                             10.10.48.92\r\n00067     2024-12-07,10:33:07 10:33:23           G711U                            10.10.48.166\r\n00068     2024-12-07,10:35:28 10:35:44           G711U                             10.10.48.92\r\n00069     2024-12-07,10:35:29 10:35:44           G711U                            10.10.48.166\r\n00070     2024-12-07,10:36:27 10:36:30           G711U                             10.10.48.92\r\n00071     2024-12-07,10:36:28 10:36:30           G711U                           \r\n--type q to quit or space key to continue-- "
+expect: set expect_out(spawn_id) "exp5"
+expect: set expect_out(buffer) "show rtp-stat sessions last 20\r\n\r\nID    QoS Start date and time End Time Type            Destination\r\n----- --- ------------------- -------- --------------- ---------------------------------------\r\n00062     2024-12-07,10:29:26 10:29:37           G711U                             10.10.48.92\r\n00063     2024-12-07,10:29:27 10:29:37           G711U                            10.10.48.166\r\n00064     2024-12-07,10:31:58 10:32:27           G711U                             10.10.48.92\r\n00065     2024-12-07,10:32:00 10:32:27           G711U                            10.10.48.166\r\n00066     2024-12-07,10:33:05 10:33:23           G711U                             10.10.48.92\r\n00067     2024-12-07,10:33:07 10:33:23           G711U                            10.10.48.166\r\n00068     2024-12-07,10:35:28 10:35:44           G711U                             10.10.48.92\r\n00069     2024-12-07,10:35:29 10:35:44           G711U                            10.10.48.166\r\n00070     2024-12-07,10:36:27 10:36:30           G711U                             10.10.48.92\r\n00071     2024-12-07,10:36:28 10:36:30           G711U                           \r\n--type q to quit or space key to continue-- "
+send: sending "\n" to { exp5 }
+expect: continuing expect
+
+expect: does "" (spawn_id exp5) match glob pattern ")# "? no
+"*continue-- "? no
+"*to continue."? no
+"*."? no
+
+expect: does "\r" (spawn_id exp5) match glob pattern ")# "? no
+"*continue-- "? no
+"*to continue."? no
+"*."? no
+[K 10.10.48.166
+00072     2024-12-07,10:40:36 10:40:45           G711U                             10.10.48.92
+00073     2024-12-07,10:40:37 10:40:45           G711U                            10.10.48.166
+00074     2024-12-07,10:44:25 10:44:37           G711U                             10.10.48.92
+00075     2024-12-07,10:44:27 10:44:37           G711U                            10.10.48.166
+00076     2024-12-07,11:18:04 11:18:09           G711U                             10.10.48.92
+00077     2024-12-07,11:18:06 11:18:09           G711U                            10.10.48.166
+00078     2024-12-07,13:26:23 13:26:52           G711U                             10.10.48.92
+00079     2024-12-07,13:26:25 13:26:52           G711U                            10.10.48.166
+00080     2024-12-07,13:28:21 13:29:10           G711U                             10.10.48.92
+00081     2024-12-07,13:28:22 13:29:10           G711U                            10.10.48.166
+Note that field "Type" indicates the codec in use, which may not match the call manager ip-codec configuration.
+
+--type q to quit or space key to continue-- 
+expect: does "\r\u001b[K 10.10.48.166\r\n00072     2024-12-07,10:40:36 10:40:45           G711U                             10.10.48.92\r\n00073     2024-12-07,10:40:37 10:40:45           G711U                            10.10.48.166\r\n00074     2024-12-07,10:44:25 10:44:37           G711U                             10.10.48.92\r\n00075     2024-12-07,10:44:27 10:44:37           G711U                            10.10.48.166\r\n00076     2024-12-07,11:18:04 11:18:09           G711U                             10.10.48.92\r\n00077     2024-12-07,11:18:06 11:18:09           G711U                            10.10.48.166\r\n00078     2024-12-07,13:26:23 13:26:52           G711U                             10.10.48.92\r\n00079     2024-12-07,13:26:25 13:26:52           G711U                            10.10.48.166\r\n00080     2024-12-07,13:28:21 13:29:10           G711U                             10.10.48.92\r\n00081     2024-12-07,13:28:22 13:29:10           G711U                            10.10.48.166\r\nNote that field "Type" indicates the codec in use, which may not match the call manager ip-codec configuration.\r\n\r\n--type q to quit or space key to continue-- " (spawn_id exp5) match glob pattern ")# "? no
+"*continue-- "? yes
+expect: set expect_out(0,string) "\r\u001b[K 10.10.48.166\r\n00072     2024-12-07,10:40:36 10:40:45           G711U                             10.10.48.92\r\n00073     2024-12-07,10:40:37 10:40:45           G711U                            10.10.48.166\r\n00074     2024-12-07,10:44:25 10:44:37           G711U                             10.10.48.92\r\n00075     2024-12-07,10:44:27 10:44:37           G711U                            10.10.48.166\r\n00076     2024-12-07,11:18:04 11:18:09           G711U                             10.10.48.92\r\n00077     2024-12-07,11:18:06 11:18:09           G711U                            10.10.48.166\r\n00078     2024-12-07,13:26:23 13:26:52           G711U                             10.10.48.92\r\n00079     2024-12-07,13:26:25 13:26:52           G711U                            10.10.48.166\r\n00080     2024-12-07,13:28:21 13:29:10           G711U                             10.10.48.92\r\n00081     2024-12-07,13:28:22 13:29:10           G711U                            10.10.48.166\r\nNote that field "Type" indicates the codec in use, which may not match the call manager ip-codec configuration.\r\n\r\n--type q to quit or space key to continue-- "
+expect: set expect_out(spawn_id) "exp5"
+expect: set expect_out(buffer) "\r\u001b[K 10.10.48.166\r\n00072     2024-12-07,10:40:36 10:40:45           G711U                             10.10.48.92\r\n00073     2024-12-07,10:40:37 10:40:45           G711U                            10.10.48.166\r\n00074     2024-12-07,10:44:25 10:44:37           G711U                             10.10.48.92\r\n00075     2024-12-07,10:44:27 10:44:37           G711U                            10.10.48.166\r\n00076     2024-12-07,11:18:04 11:18:09           G711U                             10.10.48.92\r\n00077     2024-12-07,11:18:06 11:18:09           G711U                            10.10.48.166\r\n00078     2024-12-07,13:26:23 13:26:52           G711U                             10.10.48.92\r\n00079     2024-12-07,13:26:25 13:26:52           G711U                            10.10.48.166\r\n00080     2024-12-07,13:28:21 13:29:10           G711U                             10.10.48.92\r\n00081     2024-12-07,13:28:22 13:29:10           G711U                            10.10.48.166\r\nNote that field "Type" indicates the codec in use, which may not match the call manager ip-codec configuration.\r\n\r\n--type q to quit or space key to continue-- "
+send: sending "\n" to { exp5 }
+expect: continuing expect
+
+expect: does "" (spawn_id exp5) match glob pattern ")# "? no
+"*continue-- "? no
+"*to continue."? no
+"*."? no
+
+expect: does "\r" (spawn_id exp5) match glob pattern ")# "? no
+"*continue-- "? no
+"*to continue."? no
+"*."? no
+[KDone!
+AvayaG450A-001(super)# 
+expect: does "\r\u001b[KDone!\r\nAvayaG450A-001(super)# " (spawn_id exp5) match glob pattern ")# "? yes
+expect: set expect_out(0,string) ")# "
+expect: set expect_out(spawn_id) "exp5"
+expect: set expect_out(buffer) "\r\u001b[KDone!\r\nAvayaG450A-001(super)# "
