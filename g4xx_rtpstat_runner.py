@@ -280,13 +280,11 @@ def main(args):
         print(stderr)
 
 if __name__ == "__main__":
-    sys.argv.extend(['-i', '10.10.48.58', '-u', 'root', '-p', 'cmb@Dm1n', '-r', 'show utilization|show voip-dsp|show capture'])
-    print(sys.argv)
+    #sys.argv.extend(['-i', '10.10.48.58', '-u', 'root', '-p', 'cmb@Dm1n', '-r', 'show utilization|show voip-dsp|show capture'])
     parser = argparse.ArgumentParser(description='Runs Avaya G4xx commands from CM shell and returns JSON')
     required = parser.add_argument_group('required arguments', '')
     required.add_argument('-i', dest='host', type=str, required=True, help='G4xx IP address')
-    required.add_argument('-u', dest='user', type
-    =str, required=True, help='username')
+    required.add_argument('-u', dest='user', type=str, required=True, help='username')
     required.add_argument('-p', dest='passwd', type=str, required=True, help='password')
     parser.add_argument('-d', action='store_true', dest='debug', default=False, help='enable debug logging')
     parser.add_argument('-t', dest='timeout', default=10, help='timeout in secs')
