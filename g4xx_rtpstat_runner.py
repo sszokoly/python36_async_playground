@@ -17,17 +17,6 @@ from typing import Any, Coroutine, TypeVar, Optional, Set, Callable, Any, TypeVa
 
 cmd_template = '''
 #!/usr/bin/expect
-log_user 0
-set log_file {log_file}
-
-if {{[info exists log_file] && $log_file ne "/dev/null"}} {{
-    if {{[file exists $log_file]}} {{
-        file delete $log_file
-    }}
-}}
-
-exp_internal -f $log_file 0
-
 ############################# Template Variables #############################
 
 set timeout {timeout}
@@ -37,6 +26,7 @@ set passwd {passwd}
 set lastn_secs {lastn_secs}
 set rtp_stat {rtp_stat}
 set commands {{ {commands} }}
+set log_file {log_file}
 
 ############################## Expect Variables ##############################
 
@@ -44,6 +34,14 @@ set prompt "\\)# "
 array set commands_array {{}}
 array set rtp_sessions_array {{}}
 set global_ids [list]
+log_user 0
+
+if {{[info exists log_file] && $log_file ne "/dev/null"}} {{
+    if {{[file exists $log_file]}} {{
+        file delete $log_file
+    }}
+}}
+exp_internal -f $log_file 0
 
 ################################# Procedures #################################
 
@@ -179,7 +177,6 @@ proc is_date1_gt_date2 {{date1 date2}} {{
         return 0 
     }}
 }}
-
 
 ################################# Main Script ################################
 
