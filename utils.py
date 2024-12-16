@@ -6,10 +6,8 @@ from typing import Any, Coroutine, TypeVar, Optional, Set, Callable, Any, TypeVa
 F = TypeVar('F', bound=Callable[..., Any])
 T = TypeVar('T')
 
-def handler(sig: Any, verbose: bool = True): 
+def handler(sig: Any) -> None: 
     loop = asyncio.get_event_loop()
-    if verbose:
-        print(f"Got signal: {sig!s}, shutting down.")
     loop.remove_signal_handler(SIGTERM)
     loop.add_signal_handler(SIGINT, lambda: None)
 
