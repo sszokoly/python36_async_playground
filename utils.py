@@ -15,7 +15,7 @@ async def async_shell(
     cmd: str,
     timeout: Optional[float] = None,
     verbose: bool = False,
-    name: Optional[str] = "",
+    name: Optional[str] = "async_shell",
 ) -> Tuple[str, str, int]:
     """Shell command executor with optional timeout.
 
