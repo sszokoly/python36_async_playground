@@ -1,10 +1,259 @@
 
 #!/usr/bin/env python
 # -*- encoding: utf-8 -*-
+import asyncio
+import argparse
+import json
 import os
 import re
+import sys
 from typing import Dict, Iterator, List, Tuple, Union
-from session import cmds_to_session_dicts, stdout_to_cmds
+from utils import asyncio_run, async_shell
+from collections import defaultdict
+
+BGWS = {}
+DEFAULTS = {
+    "user": "root",
+    "passwd": "cmb@Dm1n",
+    "lastn_secs": 30,
+    "timeout": 10,
+    "debug": False,
+    "log_file": "/dev/null"
+}
+
+script_template = '''
+#!/usr/bin/expect
+############################# Template Variables #############################
+
+set host {host}
+set user {user}
+set passwd {passwd}
+set rtp_stat {rtp_stat}
+set lastn_secs {lastn_secs}
+set commands {{ {commands} }}
+set log_file {log_file}
+set timeout {timeout}
+
+############################## Expect Variables ##############################
+
+set prompt "\\)# "
+array set commands_array {{}}
+array set rtp_sessions_array {{}}
+set global_ids [list]
+log_user 0
+
+if {{[info exists log_file] && $log_file ne "/dev/null"}} {{
+    if {{[file exists $log_file]}} {{
+        file delete $log_file
+    }}
+}}
+exp_internal -f $log_file 0
+
+################################# Procedures #################################
+
+proc to_json {{}} {{
+    global host gw_number timestamp commands_array rtp_sessions_array
+    set json "{{"
+    append json "\\"host\\": \\"$host\\", "
+    append json "\\"gw_number\\": \\"$gw_number\\", "
+    append json "\\"timestamp\\": \\"$timestamp\\", "
+    append json "\\"commands\\": {{"
+    foreach {{key value}} [array get commands_array] {{
+        append json "\\"$key\\": \\"$value\\", "
+    }}
+    set json [string trimright $json ", "]
+    append json "}}, "
+    append json "\\"rtp_sessions\\": {{"
+    foreach {{key value}} [array get rtp_sessions_array] {{
+        append json "\\"$key\\": \\"$value\\", "
+    }}
+    set json [string trimright $json ", "]
+    append json "}}}}"
+    return $json
+}}
+
+proc merge_lists {{list1 list2}} {{
+    set combined [concat $list1 $list2]
+    set result [lsort -unique $combined]
+    return $result
+}}
+
+proc clean_output {{output}} {{
+    set pattern {{\\r\\n\\-\\-type q to quit or space key to continue\\-\\- .+?K}}
+    regsub -all $pattern $output "" output
+    set lines [split $output "\\n"]
+    set prompt_removed [lrange $lines 0 end-1]
+    set output [join $prompt_removed "\\n"]
+    regsub -all {{"}} $output {{\\"}} output_escaped_quotes
+    set result [string trimright $output_escaped_quotes "\\r\\n"]
+    return $result
+}}
+
+proc cmd {{command}} {{
+    global prompt
+    set output ""
+    send "$command"
+    expect {{
+        $prompt {{
+            set current_output $expect_out(buffer)
+            append output $current_output
+        }}
+        "*continue-- " {{
+            set current_output $expect_out(buffer)
+            append output $current_output
+            send "\\n"
+            exp_continue
+        }}
+        "*to continue." {{
+            set current_output $expect_out(buffer)
+            append output $current_output
+            exp_continue
+        }}
+        "*." {{
+            set current_output $expect_out(buffer)
+            append output $current_output
+            sleep 1
+            exp_continue
+        }}
+        timeout {{
+            puts stderr "Timeout";
+            return ""
+        }}
+    }}
+    set result [clean_output $output]
+    return [string trimleft $result $command]
+}}
+
+proc get_active_global_ids {{}} {{
+    global host cmd parse_session_summary_line
+    set ids [list]
+    foreach line [split [cmd "show rtp-stat sessions active\\n"] "\\n"] {{
+        if {{[regexp {{^[0-9]+}} $line]}} {{
+            set result [parse_session_summary_line $line]
+            lassign $result session_id start_date start_time end_date end_time
+            lappend ids [format "%s,%s,%s,%s" $start_date $start_time $host $session_id]
+        }}
+    }}
+    return $ids
+}}
+
+proc get_recent_global_ids {{{{lastn_secs {{20}}}}}} {{
+    global host cmd parse_session_summary_line is_date1_gt_date2
+    set ref_datetime [exec date "+%Y-%m-%d,%H:%M:%S" -d "now - $lastn_secs secs"]
+    set ids [list]
+    foreach line [split [cmd "show rtp-stat sessions last 20\\n"] "\\n"] {{
+        if {{[regexp {{^[0-9]+}} $line]}} {{
+            set result [parse_session_summary_line $line]
+            lassign $result session_id start_date start_time end_date end_time
+            if {{$end_time ne "-"}} {{
+                set end_datetime [format "%s,%s" $end_date $end_time]
+                set is_end_datetime_gt_ref_datetime [is_date1_gt_date2 $end_datetime $ref_datetime]
+                if {{$is_end_datetime_gt_ref_datetime}} {{
+                    lappend ids [format "%s,%s,%s,%s" $start_date $start_time $host $session_id]
+                }}
+            }}
+        }}
+    }}
+    return $ids
+}}
+
+proc parse_session_summary_line {{input}} {{
+    set pattern {{^(\\S+)  (\\*|\\s)  (\\S+),(\\S+)\\s+(\\S+)\\s+.*$}}
+    if {{[regexp $pattern $input _ id qos start_date start_time end_time]}} {{
+        # if end time rolled over to the next day
+        if {{$end_time < $start_time}} {{
+            set end_date [exec date "+%Y-%m-%d" -d "$start_date + 1 day"]
+        }} else {{
+            set end_date $start_date
+        }}
+        return [list $id "$start_date" "$start_time" "$end_date" "$end_time"]
+    }} else {{
+        puts stderr "Error: Input format does not match: $input";
+        return ""
+    }}
+}}
+
+proc is_date1_gt_date2 {{date1 date2}} {{
+    # Convert the date strings into epoch timestamps
+    set timestamp1 [clock scan $date1 -format "%Y-%m-%d,%H:%M:%S"]
+    set timestamp2 [clock scan $date2 -format "%Y-%m-%d,%H:%M:%S"]
+    # Compare the timestamps
+    if {{$timestamp1 > $timestamp2}} {{
+        return 1
+    }} else {{
+        return 0 
+    }}
+}}
+
+################################# Main Script ################################
+
+#Spawn SSH connection
+spawn ssh -q -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null $user@$host
+
+#Handle SSH connection
+expect {{
+    "Password: " {{send "$passwd\\n"}}
+    timeout {{
+        puts stderr "Timeout";
+        exit 255
+    }}
+    eof {{
+        puts stderr "Timeout";
+        exit 255
+    }}
+}}
+expect {{
+    "*Permission denied*" {{
+        puts stderr "Permission denied";
+        exit 254
+    }}
+    $prompt {{}}
+}}
+
+#Extract gateway number from prompt
+regexp {{([^\\s]+)-(\\d+)[\\(]}} $expect_out(buffer) "" _ gw_number
+if {{$gw_number ne ""}} {{
+    set gw_number $gw_number
+}} else {{
+    set gw_number ""
+}}
+
+#Capture timestamp
+set timestamp [exec date "+%Y-%m-%d,%H:%M:%S"]
+
+#Collect RTP statistics if requested
+if {{$rtp_stat}} {{
+    #Recent global session ids
+    set recent_global_ids [get_recent_global_ids $lastn_secs]
+    #Active global session ids
+    set active_global_ids [get_active_global_ids]
+    #Merged global session ids
+    set merged_global_ids [merge_lists $recent_global_ids $active_global_ids]
+
+    if {{$merged_global_ids ne {{}}}} {{
+        foreach global_id $merged_global_ids {{
+            lassign [split $global_id ","] start_date start_time host session_id
+            set output [cmd "show rtp-stat detailed $session_id\\n"]
+            if {{$output ne ""}} {{
+                set rtp_sessions_array($global_id) $output
+            }}
+        }}
+    }}
+}}
+
+#Iterate through "commands" and run each
+foreach command $commands {{
+    set output [cmd "$command\\n"]
+    if {{$output ne ""}} {{
+        set commands_array($command) $output
+    }}
+}}
+
+send "exit\\n"
+
+#Output results in JSON format
+puts [to_json]
+'''
 
 MAIN_ATTRS = [
     {'xpos':  1, 'text': 'start_time', 'format_spec': '', 'color': 'normal'},
@@ -30,16 +279,16 @@ BGW_ATTRS = [
     {'xpos': 72, 'text': 'fault', 'format_spec': '>5', 'color': 'normal'},
 ]
 
-def connected_bgws() -> Dict[str, str]:
-    """Return a dictionary of connected branch media-gateways
+def registered_bgws() -> Dict[str, str]:
+    """Return a dictionary of registered media-gateways
 
-    The dictionary has the bgw ip as the key and the protocol
-    'encrypted' or 'unencrypted' as the value.
+    The dictionary has the gateway iIP as the key and the protocol
+    type 'encrypted' or 'unencrypted' as the value.
 
     Returns:
         dict: A dictionary of connected bgws
     """
-    bgws: Dict[str, str] = {}
+    bgws = {}
     output: str = os.popen('netstat -tan | grep ESTABLISHED').read()
     for line in output.splitlines():
         m = re.search(r'([0-9.]+):(1039|2945)\s+([0-9.]+):([0-9]+)', line)
@@ -51,84 +300,94 @@ def connected_bgws() -> Dict[str, str]:
 
 class BGW():
     def __init__(self,
-        ip: str,
-        config: str = '',
-        system: str = '',
-        faults: str = '',
-        capture: str = '',
+        host: str,
+        user: str = '',
+        passwd: str = '',
+        gw_number: str = '',
+        proto: str = '',
+        show_config: str = '',
+        show_system: str = '',
+        show_faults: str = '',
+        show_capture: str = '',
+        show_temp: str = '',
     ) -> None:   
-        self.ip = ip
-        self.config = config
-        self.system = system
-        self.capture = capture
-        self.faults = faults
-        self._fault = None
-        self._capture_service = None
-        self._number = None
+        self.host = host
+        self.user = user
+        self.passwd = passwd
+        self.gw_number = gw_number
+        self.proto = proto
+        self.show_config = show_config
+        self.show_system = show_system
+        self.show_faults = show_faults
+        self.show_capture = show_capture
+        self.show_temp = show_temp
+        self._faults = None
+        self._capture = None
         self._model = None
         self._firmware = None
         self._serial = None
-        self._snmp = None
         self._rtp_stat = None
         self._capture = None
-        self._fault = None
-
-    @property
-    def number(self):
-        if not self._number:
-            m = re.search(r'.*-([0-9]*)\(\S+\)#\s?', self.config)
-            self._number = m.group(1) if m else '???'
-        return self._number
+        self._temp = None
 
     @property
     def model(self):
         if not self._model:
-            m = re.search(r'Model\s+:\s+(\S+)', self.system)
-            self._model = m.group(1) if m else '???'
+            m = re.search(r'Model\s+:\s+(\S+)', self.show_system)
+            self._model = m.group(1) if m else "G???v?"
         return self._model
 
     @property
     def firmware(self):
         if not self._firmware:
-            m = re.search(r'Mainboard FW Vintags\s+:\s+(\S+)', self.system)
-            self._firmware = m.group(1) if m else '??.??.??'
+            m = re.search(r'FW Vintage\s+:\s+(\S+)', self.show_system)
+            self._firmware = m.group(1) if m else "??.??.?"
         return self._firmware
     
     @property
     def serial(self):
         if not self._serial:
-            m = re.search(r'Serial No\s+:\s+(\S+)', self.system)
-            self._serial = m.group(1) if m else '????????????'
+            m = re.search(r'Serial No\s+:\s+(\S+)', self.show_system)
+            self._serial = m.group(1) if m else "??????????"
         return self._serial
-
-    @property
-    def snmp(self):
-        if not self._snmp:
-            m = re.search(r'snmp.*?', self.config)
-            self._snmp = m.group(1) if m else '??'
-        return self._snmp
 
     @property
     def rtp_stat(self):
         if not self._rtp_stat:
-            m = re.search(r'rtp-stat.*?', self.config)
-            self._rtp_stat = m.group(1) if m else '??????'
-        return m.group(1) if m else ''
+            m = re.search(r'rtp-stat-service', self.show_config)
+            self._rtp_stat = "enabled" if m else 'disabled'
+        return self._rtp_stat
 
     @property
-    def capture_service(self):
-        if not self._capture_service:
-            m = re.search(r'capture(.*?)\)# $', self.capture)
-            self._capture_service = m.group(1) if m else 'inactive'
-        return self._capture_service
+    def capture(self):
+        if not self._capture:
+            m = re.search(r'Capture service is (\w+) and (\w+)', self.show_capture)
+            if m:
+                config, state = m.group(1, 2)
+                self._capture = config if config == "disabled" else state
+            else:
+                self._capture = "unknown"
+        return self._capture
 
     @property
-    def fault(self):
-        if not self._fault:
-            m = re.search(r'fault.*?', self.faults)
-            self._faults = m.group(1) if m else '?????'
-        return m.group(1) if m else '????'
+    def temp(self):
+        if not self._temp:
+            m = re.search(r'Temperature\s+:\s+(\S+) \((\S+)\)', self.show_temp)
+            if m:
+                cels, faren = m.group(1, 2)
+                self._temp = f"{cels}/{faren}"
+            else:
+                self._temp = "unknown"
+        return self._temp
 
+    @property
+    def faults(self):
+        if not self._faults:
+            if "No Fault Messages" in self.show_faults:
+                self._faults = "none"
+            else:
+                self._faults = "faulty"
+        return self._faults
 
 def iter_session_main_attrs(
     session_dict: Dict[str, str],
@@ -179,16 +438,92 @@ def iter_bgw_attrs(
         text = f'{text:{attrs["format_spec"]}}'
         yield attrs['xpos'], text, attrs['color']
 
+async def query_bgw(**kwargs):
+    cmd = f"/usr/bin/env expect -c '{script_template.format(**kwargs)}'"
+    data, err, rc = await async_shell(
+        cmd, timeout=kwargs["timeout"], name=f"query_{kwargs['host']}")
+    if rc or err:
+        return {}
+    return json.loads(data, strict=False)
+
+async def query_bgws(bgws=None, kwargs=None, commands=None, rtp_stat=1):
+    bgws = bgws if bgws else BGWS.keys()
+    kwargs = kwargs if kwargs else DEFAULTS
+    commands = " ".join(f'"{c}"' for c in commands) if commands else ""
+    kwargs.update({"commands": commands, "rtp_stat": rtp_stat})
+    loop = asyncio.get_event_loop()
+    tasks = [loop.create_task(query_bgw(host=host, **kwargs)) for host in bgws]
+    results = await asyncio.gather(*tasks, return_exceptions=True)
+    return [r for r in results if r]
+
+async def discover_bgws():
+    kwargs = DEFAULTS
+    commands = [
+            "show running-config",
+            "show system",
+            "show faults",
+            "show capture",
+            "show temp"
+        ]
+    bgws = registered_bgws()
+    results = await query_bgws(bgws.keys(), kwargs=kwargs, commands=commands, rtp_stat=0)
+    for result in results:
+        if not result:
+            continue
+        
+        bgw = BGW(
+            host=result["host"],
+            user=DEFAULTS["user"],
+            passwd=DEFAULTS["passwd"],
+            gw_number=result["gw_number"],
+            proto=bgws[result["host"]],
+            show_config=result["commands"]["show running-config"],
+            show_system=result["commands"]["show system"],
+            show_faults=result["commands"]["show faults"],
+            show_capture=result["commands"]["show capture"],
+            show_temp=result["commands"]["show temp"],
+        )
+        BGWS[result["host"]] = bgw
+
+async def run():
+    print("DISCOVERYING")
+    await discover_bgws()
+    for ip, bgw in BGWS.items():
+        print(ip, bgw.proto, bgw.gw_number, bgw.model, bgw.firmware, bgw.serial, bgw.capture, bgw.rtp_stat, bgw.faults, bgw.temp)
+    print("UPDATING")
+    results = await query_bgws()
+    print(results)
+
+def get_user():
+    while True:
+        user = input("Enter SSH username of BGWs: ")
+        comfirm = input("Is this correct (Y/N)?: ")
+        if comfirm.lower().startswith("y"):
+            break
+    return user.strip()
+
+def get_passwd():
+    while True:
+        passwd = input("Enter SSH passwd of BGWs: ")
+        comfirm = input("Is this correct (Y/N)?: ")
+        if comfirm.lower().startswith("y"):
+            break
+    return passwd.strip()
+
+def main(**kwargs):
+    kwargs["user"] = kwargs["user"] if kwargs["user"] else get_user()
+    kwargs["passwd"] = kwargs["passwd"] if kwargs["passwd"] else get_passwd()
+    if kwargs["debug"]:
+        kwargs["log_file"] = "bgw_debug.log"
+    DEFAULTS.update(kwargs)
+    asyncio_run(run())
 
 if __name__ == '__main__':
-    print(connected_bgws())
-    stdout = '''#BEGIN\nshow rtp-stat detailed 00001\r\n\r\nSession-ID: 1\r\nStatus: Terminated, QOS: Faulted, EngineId: 10\r\nStart-Time: 2024-11-20,16:07:30, End-Time: 2024-11-21,07:17:48\r\nDuration: 15:10:18\r\nCName: gwp@10.10.48.58\r\nPhone: \r\nLocal-Address: 192.168.110.110:2052 SSRC 1653399062\r\nRemote-Address: 10.10.48.192:35000 SSRC 3718873098 (0)\r\nSamples: 10923 (5 sec)\r\n\r\nCodec:\r\nG711U 200B 20mS srtpAesCm128HmacSha180, Silence-suppression(Tx/Rx) Disabled/Disabled, Play-Time 54626.390sec, Loss 0.8% #0, Avg-Loss 0.8%, RTT 0mS #0, Avg-RTT 0mS, JBuf-under/overruns 0.0%/0.0%, Jbuf-Delay 22mS, Max-Jbuf-Delay 22mS\r\n\r\nReceived-RTP:\r\nPackets 2731505, Loss 0.3% #0, Avg-Loss 0.3%, RTT 0mS #0, Avg-RTT 0mS, Jitter 2mS #0, Avg-Jitter 2mS, TTL(last/min/max) 56/56/56, Duplicates 0, Seq-Fall 41, DSCP 0, L2Pri 0, RTCP 10910, Flow-Label 2\r\n\r\nTransmitted-RTP:\r\nVLAN 0, DSCP 46, L2Pri 0, RTCP 10927, Flow-Label 0\r\n\r\nRemote-Statistics:\r\nLoss 0.0% #0, Avg-Loss 0.0%, Jitter 0mS #0, Avg-Jitter 0mS\r\n\r\nEcho-Cancellation:\r\nLoss 0dB #10902, Len 0mS\r\n\r\nRSVP:\r\nStatus Unused, Failures 0\n#END'''
-    session_dicts = cmds_to_session_dicts(stdout_to_cmds(stdout))
-    for id, session_dict in session_dicts.items():
-        print(session_dict)
-        for x, text, attrs in iter_session_main_attrs(session_dict):
-            print(x, text, attrs)
-    
-    bgw = BGW(ip='192.168.111.111', config='blabla\r\n\g430-few2-001(super)#')
-    for x, text, attrs in iter_bgw_attrs(bgw):
-        print(x, text, attrs)
+    parser = argparse.ArgumentParser(description='')
+    parser.add_argument('-u', dest='user', type=str, default=DEFAULTS["user"], help='user')
+    parser.add_argument('-p', dest='passwd', type=str, default=DEFAULTS["passwd"], help='password')
+    parser.add_argument('-t', dest='timeout', default=DEFAULTS["timeout"], help='timeout in secs')
+    parser.add_argument('-n', dest='lastn_secs', default=DEFAULTS["lastn_secs"], help='secs to look back in RTP statistics')
+    parser.add_argument('-d', action='store_true', dest='debug', default=DEFAULTS["debug"], help='debug')
+    parser.add_argument('-l', dest='log_file', default=DEFAULTS["log_file"], help='log file')
+    sys.exit(main(**vars(parser.parse_args())))

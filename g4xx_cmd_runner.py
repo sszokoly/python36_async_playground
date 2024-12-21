@@ -151,8 +151,8 @@ proc get_recent_global_ids {{{{lastn_secs {{20}}}}}} {{
 }}
 
 proc parse_session_summary_line {{input}} {{
-    set pattern {{^(\\S+)\\s+(\\S+),(\\S+)\\s+(\\S+)\\s+.*$}}
-    if {{[regexp $pattern $input _ id start_date start_time end_time]}} {{
+    set pattern {{^(\\S+)  (\\*|\\s)  (\\S+),(\\S+)\\s+(\\S+)\\s+.*$}}
+    if {{[regexp $pattern $input _ id qos start_date start_time end_time]}} {{
         # if end time rolled over to the next day
         if {{$end_time < $start_time}} {{
             set end_date [exec date "+%Y-%m-%d" -d "$start_date + 1 day"]
