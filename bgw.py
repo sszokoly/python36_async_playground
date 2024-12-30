@@ -1,20 +1,19 @@
 
 #!/usr/bin/env python
 # -*- encoding: utf-8 -*-
-import asyncio
-from asyncio.subprocess import Process, PIPE
-from asyncio import Queue, Semaphore
-from datetime import datetime
 import argparse
+import asyncio
 import json
 import logging
 import os
 import re
 import time
 import sys
+from asyncio.subprocess import Process, PIPE
+from asyncio import Queue, Semaphore
+from datetime import datetime
+from utils import asyncio_run
 from typing import Dict, Iterator, List, Tuple, Union
-from utils import asyncio_run, async_shell
-from collections import defaultdict
 
 
 DEFAULTS = {
@@ -72,9 +71,10 @@ exp_internal -f $log_file 0
 ################################# Procedures #################################
 
 proc to_json {{}} {{
-    global host gw_number timestamp commands_array rtp_sessions_array
+    global host gw_name gw_number timestamp commands_array rtp_sessions_array
     set json "{{"
     append json "\\"host\\": \\"$host\\", "
+    append json "\\"gw_name\\": \\"$gw_name\\", "
     append json "\\"gw_number\\": \\"$gw_number\\", "
     append json "\\"timestamp\\": \\"$timestamp\\", "
     append json "\\"commands\\": {{"
@@ -230,8 +230,13 @@ expect {{
     $prompt {{}}
 }}
 
-#Extract gateway number from prompt
-regexp {{([^\\s]+)-(\\d+)[\\(]}} $expect_out(buffer) "" _ gw_number
+#Extract gateway name and number from prompt
+regexp {{([^\\s]+)-(\\d+)[\\(]}} $expect_out(buffer) "" gw_name gw_number
+if {{$gw_name ne ""}} {{
+    set gw_name $gw_name
+}} else {{
+    set gw_name ""
+}}
 if {{$gw_number ne ""}} {{
     set gw_number $gw_number
 }} else {{
@@ -275,7 +280,7 @@ send "exit\\n"
 puts [to_json]
 '''
 
-script_template = '''
+script_template_test = '''
 set host {host}
 set randomInt [expr {{int(rand() * 3)}}]
 
@@ -337,6 +342,7 @@ class BGW():
         host: str,
         proto: str,
         last_seen = None,
+        gw_name: str = '', 
         gw_number: str = '',
         show_running_config: str = '',
         show_system: str = '',
@@ -348,6 +354,7 @@ class BGW():
         self.host = host
         self.proto = proto
         self.last_seen = last_seen
+        self.gw_name = gw_name
         self.gw_number = gw_number
         self.show_running_config = show_running_config
         self.show_system = show_system
@@ -388,7 +395,7 @@ class BGW():
     @property
     def rtp_stat(self):
         if not self._rtp_stat:
-            m = re.search(r'rtp-stat-service', self.show_config)
+            m = re.search(r'rtp-stat-service', self.show_running_config)
             self._rtp_stat = "enabled" if m else 'disabled'
         return self._rtp_stat
 
@@ -560,7 +567,7 @@ class BGWMonitor():
         while True:
             try:
                 item = await self._processing_queue.get()
-                logging.debug(f"{name} Processing {item}")
+                logging.debug(f"{name} got {item}")
                 try:
                     dictitem = json.loads(item, strict=False)
                 except json.JSONDecodeError:
@@ -572,7 +579,7 @@ class BGWMonitor():
                 logging.warning(f"{name} Cancelling task")
                 while not self._processing_queue.empty():
                     item = await self._processing_queue.get_nowait()
-                    logging.debug(f"{name} Processing {item}")
+                    logging.debug(f"{name} got {item}")
                     try:
                         dictitem = json.loads(item, strict=False)
                     except json.JSONDecodeError:
@@ -588,14 +595,24 @@ class BGWMonitor():
         host = dictitem.get("host", None)
         if not host:
             return
+        
         bgw = self.bgws[host]
-        gw_number = dictitem.get("gw_number", "")
-        bgw.gw_number = gw_number if gw_number else bgw.gw_number
-        last_seen = dictitem.get("timestamp", None)
-        bgw.last_seen = last_seen if last_seen else bgw.last_seen
+        logging.debug(f"Update {bgw} with {dictitem}")
+        
+        if not bgw.gw_number and dictitem.get("gw_number"):
+            bgw.gw_number = dictitem.get("gw_number")
+        
+        if not bgw.gw_name and dictitem.get("gw_name"):
+            bgw.gw_name = dictitem.get("gw_name")
+        
+        if dictitem.get("timestamp"):
+            bgw.last_seen = dictitem.get("timestamp")
+
         for cmd, value in dictitem.get("commands", {}).items():
             bgw_attr = cmd.replace(" ", "_").replace("-", "_")
             if value: setattr(bgw, bgw_attr, value)
+        for global_id, attrs in dictitem.get("rtp_sessions", {}).items():
+            self.storage.update({global_id: attrs})
 
     async def _start_processing(self):
         if self._processing_task:
@@ -611,6 +628,7 @@ class BGWMonitor():
     async def _start_query_bgws(self, run_once=False):
         if self._query_bgw_tasks:
             await self._stop_query_bgws()
+        accessible_bgws = [bgw for bgw in self.bgws.values() if bgw.gw_number]
         self._query_bgw_tasks = [self.loop.create_task(self._query_bgw(
             bgw=bgw, run_once=run_once)) for bgw in self.bgws.values()]
     
@@ -677,7 +695,7 @@ class BGWMonitor():
                 continue
             proto: str = 'encrypted' if m.group(2) == '1039' else 'unencrypted'
             bgws_hosts[m.group(3)] = proto
-        return bgws_hosts if bgws_hosts else {"10.10.10.1": "unencrypted", "192.168.111.111": "encrypted"}
+        return bgws_hosts if bgws_hosts else {"10.10.48.58": "unencrypted", "10.44.244.51": "encrypted"}
 
 def get_username():
     while True:
@@ -710,11 +728,26 @@ async def run():
     )
     await bgwmonitor.discover()
     await bgwmonitor.start()
-    await asyncio.sleep(20)
+    count = 0
+    while len(bgwmonitor.storage) == 0:
+        for bgw in bgwmonitor.bgws.values():
+            print("===============================")
+            print(f"host:      {bgw.host}")
+            print(f"gw_name:   {bgw.gw_name}")
+            print(f"gw_number: {bgw.gw_number}")
+            print(f"last_seen: {bgw.last_seen}")
+            print(f"model:     {bgw.model}")
+            print(f"firmare:   {bgw.firmware}")
+            print(f"serial:    {bgw.serial}")
+            print(f"rtp_stat:  {bgw.rtp_stat}")
+            print(f"capture:   {bgw.capture}")
+            print(f"temp:      {bgw.temp}")
+            print(f"faults:    {bgw.faults}")
+            print(f"storage:   {len(bgwmonitor.storage)}")
+            print("===============================")
+            count += 1
+            await asyncio.sleep(5)
     await bgwmonitor.stop()
-    for bgw in bgwmonitor.bgws.values():
-        print(json.dumps(bgw.to_dict()))
-
 
 def main(**kwargs):
     if not kwargs["username"]:
