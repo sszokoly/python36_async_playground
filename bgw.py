@@ -2,23 +2,43 @@
 #!/usr/bin/env python
 # -*- encoding: utf-8 -*-
 import asyncio
+from asyncio.subprocess import Process, PIPE
+from asyncio import Queue, Semaphore
+from datetime import datetime
 import argparse
 import json
+import logging
 import os
 import re
+import time
 import sys
 from typing import Dict, Iterator, List, Tuple, Union
 from utils import asyncio_run, async_shell
 from collections import defaultdict
 
-BGWS = {}
+
 DEFAULTS = {
-    "user": "root",
+    "username": "root",
     "passwd": "cmb@Dm1n",
+    "polling_secs": 5,
+    "max_polling": 20,
     "lastn_secs": 30,
-    "timeout": 10,
     "debug": False,
-    "log_file": "/dev/null"
+    "loglevel": "ERROR",
+    "logfile": "bgw.log",
+    "expect_logging": "/dev/null",
+    "discovery_commands": [
+        "show running-config",
+        "show system",
+        "show faults",
+        "show capture",
+        "show voip-dsp",
+        "show temp",
+    ],
+    "query_commands": [
+        "show voip-dsp",
+        "show capture",
+    ]
 }
 
 script_template = '''
@@ -26,16 +46,16 @@ script_template = '''
 ############################# Template Variables #############################
 
 set host {host}
-set user {user}
+set username {username}
 set passwd {passwd}
 set rtp_stat {rtp_stat}
 set lastn_secs {lastn_secs}
 set commands {{ {commands} }}
-set log_file {log_file}
-set timeout {timeout}
+set log_file {expect_log_file}
 
 ############################## Expect Variables ##############################
 
+set timeout 10
 set prompt "\\)# "
 array set commands_array {{}}
 array set rtp_sessions_array {{}}
@@ -188,24 +208,24 @@ proc is_date1_gt_date2 {{date1 date2}} {{
 ################################# Main Script ################################
 
 #Spawn SSH connection
-spawn ssh -q -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null $user@$host
+spawn ssh -q -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null $username@$host
 
 #Handle SSH connection
 expect {{
     "Password: " {{send "$passwd\\n"}}
     timeout {{
-        puts stderr "Timeout";
+        puts -nonewline stderr "ExpectTimeout";
         exit 255
     }}
     eof {{
-        puts stderr "Timeout";
+        puts -nonewline stderr "ExpectTimeout";
         exit 255
     }}
 }}
 expect {{
     "*Permission denied*" {{
-        puts stderr "Permission denied";
-        exit 254
+        puts -nonewline stderr "PermissionDenied";
+        exit 255
     }}
     $prompt {{}}
 }}
@@ -255,6 +275,20 @@ send "exit\\n"
 puts [to_json]
 '''
 
+script_template = '''
+set host {host}
+set randomInt [expr {{int(rand() * 3)}}]
+
+sleep 2
+
+if {{$randomInt == 4}} {{
+    puts -nonewline stderr "ExpectTimeout"; exit 255
+}}
+sleep 1
+puts "{{\\"gw_number\\": \\"001\\", \\"host\\": \\"$host\\", \\"timestamp\\": \\"2024-12-30,11:06:15\\", \\"commands\\": {{\\"show system\\": \\"location: 1\\", \\"show running-config\\": \\"location: 1\\"}}, \\"rtp_sessions\\": {{\\"2024-12-30,11:06:15,$host,000$randomInt\\": \\"session 000$randomInt\\"}}}}"
+'''
+
+
 MAIN_ATTRS = [
     {'xpos':  1, 'text': 'start_time', 'format_spec': '', 'color': 'normal'},
     {'xpos': 10, 'text': 'end_time', 'format_spec': '', 'color': 'normal'},
@@ -279,7 +313,7 @@ BGW_ATTRS = [
     {'xpos': 72, 'text': 'fault', 'format_spec': '>5', 'color': 'normal'},
 ]
 
-def registered_bgws() -> Dict[str, str]:
+def registered_bgw_ips() -> Dict[str, str]:
     """Return a dictionary of registered media-gateways
 
     The dictionary has the gateway iIP as the key and the protocol
@@ -288,38 +322,38 @@ def registered_bgws() -> Dict[str, str]:
     Returns:
         dict: A dictionary of connected bgws
     """
-    bgws = {}
+    bgws_ips = {}
     output: str = os.popen('netstat -tan | grep ESTABLISHED').read()
     for line in output.splitlines():
         m = re.search(r'([0-9.]+):(1039|2945)\s+([0-9.]+):([0-9]+)', line)
         if not m:
             continue
         proto: str = 'encrypted' if m.group(2) == '1039' else 'unencrypted'
-        bgws[m.group(3)] = proto
-    return bgws
+        bgws_ips[m.group(3)] = proto
+    return bgws_ips
 
 class BGW():
     def __init__(self,
         host: str,
-        user: str = '',
-        passwd: str = '',
+        proto: str,
+        last_seen = None,
         gw_number: str = '',
-        proto: str = '',
-        show_config: str = '',
+        show_running_config: str = '',
         show_system: str = '',
         show_faults: str = '',
         show_capture: str = '',
+        show_voip_dsp: str = '',
         show_temp: str = '',
     ) -> None:   
         self.host = host
-        self.user = user
-        self.passwd = passwd
-        self.gw_number = gw_number
         self.proto = proto
-        self.show_config = show_config
+        self.last_seen = last_seen
+        self.gw_number = gw_number
+        self.show_running_config = show_running_config
         self.show_system = show_system
         self.show_faults = show_faults
         self.show_capture = show_capture
+        self.show_voip_dsp = show_voip_dsp
         self.show_temp = show_temp
         self._faults = None
         self._capture = None
@@ -389,6 +423,12 @@ class BGW():
                 self._faults = "faulty"
         return self._faults
 
+    def __str__(self):
+        return f"BGW({self.host})"
+
+    def to_dict(self):
+        return self.__dict__
+
 def iter_session_main_attrs(
     session_dict: Dict[str, str],
     main_attrs: List[Dict[str, Union[int, str]]] = MAIN_ATTRS,
@@ -438,69 +478,214 @@ def iter_bgw_attrs(
         text = f'{text:{attrs["format_spec"]}}'
         yield attrs['xpos'], text, attrs['color']
 
-async def query_bgw(**kwargs):
-    cmd = f"/usr/bin/env expect -c '{script_template.format(**kwargs)}'"
-    data, err, rc = await async_shell(
-        cmd, timeout=kwargs["timeout"], name=f"query_{kwargs['host']}")
-    if rc or err:
-        return {}
-    return json.loads(data, strict=False)
-
-async def query_bgws(bgws=None, kwargs=None, commands=None, rtp_stat=1):
-    bgws = bgws if bgws else BGWS.keys()
-    kwargs = kwargs if kwargs else DEFAULTS
-    commands = " ".join(f'"{c}"' for c in commands) if commands else ""
-    kwargs.update({"commands": commands, "rtp_stat": rtp_stat})
-    loop = asyncio.get_event_loop()
-    tasks = [loop.create_task(query_bgw(host=host, **kwargs)) for host in bgws]
-    results = await asyncio.gather(*tasks, return_exceptions=True)
-    return [r for r in results if r]
-
-async def discover_bgws():
-    kwargs = DEFAULTS
-    commands = [
+class BGWMonitor():
+    def __init__(
+        self,
+        username,
+        passwd,
+        script_template,
+        polling_secs=10,
+        max_polling=20,
+        lastn_secs=30,
+        storage=None,
+        loop=None,
+        discovery_commands=None,
+        query_commands=None,
+    ):
+        self.username = username
+        self.passwd = passwd
+        self.script_template = script_template
+        self.polling_secs= polling_secs
+        self.max_polling = max_polling
+        self.lastn_secs = lastn_secs
+        self.storage = storage if storage else {}
+        self.loop = loop if loop else asyncio.get_event_loop()
+        self.discovery_commands = discovery_commands if discovery_commands else [
             "show running-config",
             "show system",
             "show faults",
             "show capture",
-            "show temp"
+            "show voip-dsp",
+            "show temp",
         ]
-    bgws = registered_bgws()
-    results = await query_bgws(bgws.keys(), kwargs=kwargs, commands=commands, rtp_stat=0)
-    for result in results:
-        if not result:
-            continue
-        
-        bgw = BGW(
-            host=result["host"],
-            user=DEFAULTS["user"],
-            passwd=DEFAULTS["passwd"],
-            gw_number=result["gw_number"],
-            proto=bgws[result["host"]],
-            show_config=result["commands"]["show running-config"],
-            show_system=result["commands"]["show system"],
-            show_faults=result["commands"]["show faults"],
-            show_capture=result["commands"]["show capture"],
-            show_temp=result["commands"]["show temp"],
-        )
-        BGWS[result["host"]] = bgw
+        self.query_commands = query_commands if query_commands else [
+            "show voip-dsp",
+            "show temp",
+        ]
+        self.timeout = 20
+        self.bgws = {host:BGW(host, proto) for host, proto in
+                      self._registered_bgw_hosts().items()}
+        self._query_bgw_tasks = []
+        self._processing_task = None
+        self._processing_queue = Queue()
+        self._semaphore = Semaphore(max_polling)
 
-async def run():
-    print("DISCOVERYING")
-    await discover_bgws()
-    for ip, bgw in BGWS.items():
-        print(ip, bgw.proto, bgw.gw_number, bgw.model, bgw.firmware, bgw.serial, bgw.capture, bgw.rtp_stat, bgw.faults, bgw.temp)
-    print("UPDATING")
-    results = await query_bgws()
-    print(results)
+    async def _query_bgw(self, bgw, run_once=False):
+        name = f"BGWMonitor._query_bgw({bgw.host})".ljust(38)
+        args = self._generate_query_args(bgw.host, run_once)
+        proc = None
+        while True:
+            try:
+                start = time.perf_counter()
+                async with self._semaphore:
+                    diff = time.perf_counter() - start
+                    proc: Process = await asyncio.create_subprocess_exec(
+                        *args, stdout=PIPE, stderr=PIPE)
+                    logging.debug(f"{name} Created process PID {proc.pid}")
+                    try:
+                        stdout, stderr = await asyncio.wait_for(
+                            proc.communicate(), self.timeout)
+                    except asyncio.TimeoutError:
+                        logging.error(f"{name} TimeoutError")
+                    else:
+                        if proc.returncode:
+                            logging.error(f"{name} {stderr.decode()}")
+                        else:
+                            self._processing_queue.put_nowait(stdout.decode())
+                        if run_once:
+                            break
+                sleep_secs = max(self.polling_secs - diff, 0)
+                logging.debug(f"{name} Sleeping {sleep_secs:.3f}s")
+                await asyncio.sleep(sleep_secs)
+            except asyncio.CancelledError:
+                logging.warning(f"{name} Cancelling task")
+                if proc and proc.returncode == None:
+                    logging.debug(f"{name} Terminating process PID {proc.pid}")
+                    proc.terminate()
+                    await proc.wait()
+                break
 
-def get_user():
+    async def _processing(self):
+        name = "BGWMonitor._processing()"
+        while True:
+            try:
+                item = await self._processing_queue.get()
+                logging.debug(f"{name} Processing {item}")
+                try:
+                    dictitem = json.loads(item, strict=False)
+                except json.JSONDecodeError:
+                    logging.error(f"{name} JSONDecodeError")
+                    continue
+                self._process_dictitem(dictitem)
+                self._processing_queue.task_done()
+            except asyncio.CancelledError:
+                logging.warning(f"{name} Cancelling task")
+                while not self._processing_queue.empty():
+                    item = await self._processing_queue.get_nowait()
+                    logging.debug(f"{name} Processing {item}")
+                    try:
+                        dictitem = json.loads(item, strict=False)
+                    except json.JSONDecodeError:
+                        logging.error(f"{name} JSONDecodeError")
+                        continue
+                    self._process_dictitem(dictitem)
+                    self._processing_queue.task_done()
+                await asyncio.wait_for(self._processing_queue.join(), 1)
+                self._processing_task = None
+                break
+
+    def _process_dictitem(self, dictitem):
+        host = dictitem.get("host", None)
+        if not host:
+            return
+        bgw = self.bgws[host]
+        gw_number = dictitem.get("gw_number", "")
+        bgw.gw_number = gw_number if gw_number else bgw.gw_number
+        last_seen = dictitem.get("timestamp", None)
+        bgw.last_seen = last_seen if last_seen else bgw.last_seen
+        for cmd, value in dictitem.get("commands", {}).items():
+            bgw_attr = cmd.replace(" ", "_").replace("-", "_")
+            if value: setattr(bgw, bgw_attr, value)
+
+    async def _start_processing(self):
+        if self._processing_task:
+            await self._stop_processing()
+        self._processing_task = self.loop.create_task(self._processing())
+    
+    async def _stop_processing(self):
+        if self._processing_task:
+            self._processing_task.cancel()
+            await asyncio.gather(self._processing_task)
+        self._processing_task = None
+
+    async def _start_query_bgws(self, run_once=False):
+        if self._query_bgw_tasks:
+            await self._stop_query_bgws()
+        self._query_bgw_tasks = [self.loop.create_task(self._query_bgw(
+            bgw=bgw, run_once=run_once)) for bgw in self.bgws.values()]
+    
+    async def _stop_query_bgws(self):
+        if self._query_bgw_tasks:
+            for task in self._query_bgw_tasks:
+                task.cancel()
+            await asyncio.gather(*self._query_bgw_tasks)
+        self._query_bgw_tasks = []
+
+    async def start(self, run_once=False):
+        await self._start_processing()
+        await self._start_query_bgws(run_once=run_once)
+
+    async def stop(self):
+        await self._stop_query_bgws()
+        await self._stop_processing()
+
+    async def discover(self):
+        await self.start(run_once=True)
+        await asyncio.gather(*self._query_bgw_tasks)
+        await self.stop()
+
+    def _generate_query_args(self, host, run_once=False):
+        rtp_stat = 0 if run_once else 1
+        commands = self.discovery_commands if run_once else self.query_commands
+        commands = " ".join(f'"{c}"' for c in commands)
+        script = self.script_template.format(**{
+            "host": host,
+            "username": self.username,
+            "passwd": self.passwd,
+            "rtp_stat": rtp_stat,
+            "lastn_secs": self.lastn_secs,
+            "commands": commands,
+            "expect_log_file": "/dev/null",
+        })
+        return ["/usr/bin/env", "expect", "-c", script]
+
+    @staticmethod
+    def timestamp_parser(dictitem):
+        for k, v in dictitem.items():
+            if k == "timestamp" and isinstance(v, str):
+                try:
+                    dictitem[k] = datetime.strptime(v, "%Y-%m-%d,%H:%M:%S")
+                except:
+                    pass
+        return dictitem
+
+    @staticmethod
+    def _registered_bgw_hosts() -> Dict[str, str]:
+        """Return a dictionary of registered media-gateways
+
+        The dictionary has the gateway iIP as the key and the protocol
+        type 'encrypted' or 'unencrypted' as the value.
+
+        Returns:
+            dict: A dictionary of connected bgws
+        """
+        bgws_hosts = {}
+        output: str = os.popen('netstat -tan | grep ESTABLISHED').read()
+        for line in output.splitlines():
+            m = re.search(r'([0-9.]+):(1039|2945)\s+([0-9.]+):([0-9]+)', line)
+            if not m:
+                continue
+            proto: str = 'encrypted' if m.group(2) == '1039' else 'unencrypted'
+            bgws_hosts[m.group(3)] = proto
+        return bgws_hosts if bgws_hosts else {"10.10.10.1": "unencrypted", "192.168.111.111": "encrypted"}
+
+def get_username():
     while True:
-        user = input("Enter SSH username of BGWs: ")
+        username = input("Enter SSH username of BGWs: ")
         comfirm = input("Is this correct (Y/N)?: ")
         if comfirm.lower().startswith("y"):
             break
-    return user.strip()
+    return username.strip()
 
 def get_passwd():
     while True:
@@ -510,20 +695,55 @@ def get_passwd():
             break
     return passwd.strip()
 
+async def run():
+    loop = asyncio.get_event_loop()
+    bgwmonitor = BGWMonitor(
+        username=DEFAULTS["username"],
+        passwd=DEFAULTS["passwd"],
+        script_template=script_template,
+        polling_secs=DEFAULTS["polling_secs"],
+        max_polling=DEFAULTS["max_polling"],
+        lastn_secs=DEFAULTS["lastn_secs"],
+        loop=loop,
+        discovery_commands=DEFAULTS["discovery_commands"],
+        query_commands=DEFAULTS["query_commands"],
+    )
+    await bgwmonitor.discover()
+    await bgwmonitor.start()
+    await asyncio.sleep(20)
+    await bgwmonitor.stop()
+    for bgw in bgwmonitor.bgws.values():
+        print(json.dumps(bgw.to_dict()))
+
+
 def main(**kwargs):
-    kwargs["user"] = kwargs["user"] if kwargs["user"] else get_user()
-    kwargs["passwd"] = kwargs["passwd"] if kwargs["passwd"] else get_passwd()
-    if kwargs["debug"]:
-        kwargs["log_file"] = "bgw_debug.log"
+    if not kwargs["username"]:
+        kwargs["username"] = get_username()
+    if not kwargs["passwd"]:
+        kwargs["passwd"] = get_passwd()
+    if kwargs["loglevel"]:
+        kwargs["loglevel"] = kwargs["loglevel"].upper()
+    if kwargs["logfile"]:
+        kwargs["logfile"] = kwargs["logfile"]
+    if  not kwargs["expect_logging"]:
+        kwargs["expect_logging"] = "/dev/null"
+
+    logger = logging.getLogger('bgw')
+    logging.basicConfig(
+        level=kwargs["loglevel"],
+        format='%(asctime)s %(levelname)-8s %(message)s')
+        #filename=kwargs["logfile"])
+    
     DEFAULTS.update(kwargs)
+    
     asyncio_run(run())
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='')
-    parser.add_argument('-u', dest='user', type=str, default=DEFAULTS["user"], help='user')
+    parser.add_argument('-u', dest='username', type=str, default=DEFAULTS["username"], help='username')
     parser.add_argument('-p', dest='passwd', type=str, default=DEFAULTS["passwd"], help='password')
-    parser.add_argument('-t', dest='timeout', default=DEFAULTS["timeout"], help='timeout in secs')
     parser.add_argument('-n', dest='lastn_secs', default=DEFAULTS["lastn_secs"], help='secs to look back in RTP statistics')
-    parser.add_argument('-d', action='store_true', dest='debug', default=DEFAULTS["debug"], help='debug')
-    parser.add_argument('-l', dest='log_file', default=DEFAULTS["log_file"], help='log file')
+    parser.add_argument('-l', '--loglevel', dest='loglevel', default=DEFAULTS["loglevel"], help='loglevel')
+    parser.add_argument('-f', '--logfile', dest='logfile', default=DEFAULTS["logfile"], help='logfile')
+    parser.add_argument('-e', action='store_true', dest='expect_logging', default=False, help='expect logging')
     sys.exit(main(**vars(parser.parse_args())))
