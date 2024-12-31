@@ -8,6 +8,7 @@ import logging
 import os
 import re
 import time
+import traceback
 import sys
 from asyncio.subprocess import Process, PIPE
 from asyncio import Queue, Semaphore
@@ -23,7 +24,7 @@ DEFAULTS = {
     "max_polling": 20,
     "lastn_secs": 30,
     "debug": False,
-    "loglevel": "DEBUG",
+    "loglevel": "WARNING",
     "logfile": "bgw.log",
     "expect_logging": "/dev/null",
     "discovery_commands": [
@@ -622,13 +623,12 @@ class BGWMonitor():
     async def _stop_processing(self):
         if self._processing_task:
             self._processing_task.cancel()
-            await asyncio.gather(self._processing_task)
+            await asyncio.gather(self._processing_task, return_exceptions=True)
         self._processing_task = None
 
     async def _start_query_bgws(self, run_once=False):
         if self._query_bgw_tasks:
             await self._stop_query_bgws()
-        accessible_bgws = [bgw for bgw in self.bgws.values() if bgw.gw_number]
         self._query_bgw_tasks = [self.loop.create_task(self._query_bgw(
             bgw=bgw, run_once=run_once)) for bgw in self.bgws.values()]
     
@@ -636,7 +636,7 @@ class BGWMonitor():
         if self._query_bgw_tasks:
             for task in self._query_bgw_tasks:
                 task.cancel()
-            await asyncio.gather(*self._query_bgw_tasks)
+            await asyncio.gather(*self._query_bgw_tasks, return_exceptions=True)
         self._query_bgw_tasks = []
 
     async def start(self, run_once=False):
@@ -726,14 +726,28 @@ async def run():
         discovery_commands=DEFAULTS["discovery_commands"],
         query_commands=DEFAULTS["query_commands"],
     )
-    await bgwmonitor.discover()
-    await bgwmonitor.start()
-    while True:
-        print("===============================")
-        for bgw in bgwmonitor.bgws.values():
-            print(f"last_seen:{bgw.last_seen} host:{bgw.host:<15} gw_name:{bgw.gw_name:>8} gw_number:{bgw.gw_number:>3} model:{bgw.model:>5} firmware:{bgw.firmware:>8} serial:{bgw.serial} rtp_stat:{bgw.rtp_stat} capture:{bgw.capture} temp:{bgw.temp} faults:{bgw.faults}")
-        print("===============================")
-        await asyncio.sleep(5)
+    try:
+        await bgwmonitor.discover()
+        await bgwmonitor.start()
+        while True:
+            print("===============================")
+            for bgw in bgwmonitor.bgws.values():
+                print(f"last_seen:{bgw.last_seen} host:{bgw.host:<15} gw_name:{bgw.gw_name:<10} gw_number:{bgw.gw_number:>3} model:{bgw.model:>4} firmware:{bgw.firmware:>8} serial:{bgw.serial} rtp_stat:{bgw.rtp_stat} capture:{bgw.capture} temp:{bgw.temp} faults:{bgw.faults}")
+            print("===============================")
+            await asyncio.sleep(10)
+    except Exception as e:
+        logging.warning(f"run() Exception {e}", exc_info=True, stack_info=True)
+        tbe = traceback.TracebackException.from_exception(e)
+        print(f"Local {''.join(tbe.format())}")
+        f = sys.exc_info()[2].tb_frame
+        f = f.f_back
+        while f is not None:
+            tbe.stack.append(traceback.FrameSummary(
+                f.f_code.co_filename, f.f_lineno, f.f_code.co_name))
+            f = f.f_back
+
+        print()
+        print(f"Full {''.join(tbe.format())}")
         await bgwmonitor.stop()
 
 

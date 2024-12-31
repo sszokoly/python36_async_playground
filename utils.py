@@ -9,16 +9,6 @@ from asyncio import tasks
 F = TypeVar('F', bound=Callable[..., Any])
 T = TypeVar('T')
 
-def handler(sig: Any) -> None: 
-    print(f"Got signal: {sig!s}, shutting down.")
-    loop = asyncio.get_event_loop()
-    for task in asyncio.Task.all_tasks(loop):
-        task.cancel()
-    loop.shutdown_asyncgens()
-    loop.remove_signal_handler(SIGTERM)
-    loop.add_signal_handler(SIGINT, lambda: None)
-
-
 async def async_shell(
     cmd: str,
     timeout: Optional[float] = None,
@@ -109,6 +99,7 @@ def asyncio_run(main, *, debug=None):
         return loop.run_until_complete(main)
     except KeyboardInterrupt:
         print("Got signal: SIGINT, shutting down.")
+        print(f"Is loop running: {loop.is_running()}")
     finally:
         try:
             _cancel_all_tasks(loop)
