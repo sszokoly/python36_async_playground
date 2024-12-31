@@ -23,7 +23,7 @@ DEFAULTS = {
     "max_polling": 20,
     "lastn_secs": 30,
     "debug": False,
-    "loglevel": "ERROR",
+    "loglevel": "DEBUG",
     "logfile": "bgw.log",
     "expect_logging": "/dev/null",
     "discovery_commands": [
@@ -728,26 +728,14 @@ async def run():
     )
     await bgwmonitor.discover()
     await bgwmonitor.start()
-    count = 0
-    while len(bgwmonitor.storage) == 0:
+    while True:
+        print("===============================")
         for bgw in bgwmonitor.bgws.values():
-            print("===============================")
-            print(f"host:      {bgw.host}")
-            print(f"gw_name:   {bgw.gw_name}")
-            print(f"gw_number: {bgw.gw_number}")
-            print(f"last_seen: {bgw.last_seen}")
-            print(f"model:     {bgw.model}")
-            print(f"firmare:   {bgw.firmware}")
-            print(f"serial:    {bgw.serial}")
-            print(f"rtp_stat:  {bgw.rtp_stat}")
-            print(f"capture:   {bgw.capture}")
-            print(f"temp:      {bgw.temp}")
-            print(f"faults:    {bgw.faults}")
-            print(f"storage:   {len(bgwmonitor.storage)}")
-            print("===============================")
-            count += 1
-            await asyncio.sleep(5)
-    await bgwmonitor.stop()
+            print(f"last_seen:{bgw.last_seen} host:{bgw.host:<15} gw_name:{bgw.gw_name:>8} gw_number:{bgw.gw_number:>3} model:{bgw.model:>5} firmware:{bgw.firmware:>8} serial:{bgw.serial} rtp_stat:{bgw.rtp_stat} capture:{bgw.capture} temp:{bgw.temp} faults:{bgw.faults}")
+        print("===============================")
+        await asyncio.sleep(5)
+        await bgwmonitor.stop()
+
 
 def main(**kwargs):
     if not kwargs["username"]:
