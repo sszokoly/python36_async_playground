@@ -511,6 +511,7 @@ class BGWMonitor():
         loop=None,
         discovery_commands=None,
         query_commands=None,
+        bgw_filter=None,
     ):
         self.username = username
         self.passwd = passwd
@@ -534,7 +535,7 @@ class BGWMonitor():
         ]
         self.timeout = 20
         self.bgws = {host:BGW(host, proto) for host, proto in
-                      self._registered_bgw_hosts().items()}
+                      self._registered_bgw_hosts(bgw_filter).items()}
         self.discovered_bgws = {}
         self._query_bgw_tasks = []
         self._processing_task = None
@@ -702,7 +703,7 @@ class BGWMonitor():
         return dictitem
 
     @staticmethod
-    def _registered_bgw_hosts() -> Dict[str, str]:
+    def _registered_bgw_hosts(bgw_filter=None) -> Dict[str, str]:
         """Return a dictionary of registered media-gateways
 
         The dictionary has the gateway iIP as the key and the protocol
@@ -718,7 +719,10 @@ class BGWMonitor():
             if not m:
                 continue
             proto: str = 'encrypted' if m.group(2) == '1039' else 'unencrypted'
-            bgws_hosts[m.group(3)] = proto
+            if bgw_filter and m.group(3) in bgw_filter:
+                bgws_hosts[m.group(3)] = proto
+            else:
+                bgws_hosts[m.group(3)] = proto
         return bgws_hosts if bgws_hosts else {"10.10.48.58": "unencrypted", "10.44.244.51": "encrypted"}
 
 def get_username():
@@ -751,6 +755,7 @@ if __name__ == '__main__':
             loop=asyncio.get_event_loop(),
             discovery_commands=DEFAULTS["discovery_commands"],
             query_commands=DEFAULTS["query_commands"],
+            bgw_filter=[],
         )
         try:
             await bgwmonitor.discover()

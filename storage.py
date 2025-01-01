@@ -1,25 +1,26 @@
 #!/usr/bin/env python
 # -*- encoding: utf-8 -*-
 import asyncio
+from asyncio import Lock
 from abc import ABC, abstractmethod
 from bisect import insort_left
 from collections import deque
 from collections.abc import MutableMapping
 from itertools import islice
-from typing import AsyncIterator, Iterator, Optional, Tuple, Union, TypeVar, Any, Dict, List
+from typing import AsyncIterator, Iterable, Iterator, Optional, Tuple, Union, TypeVar, Any, Dict, List
 
 
 class AbstractRepository(ABC):
 
     # Defining an abstract method called add that takes one argument, 'sessions'
     @abstractmethod
-    def add(self, sessions):
+    async def put(self, sessions):
         # This method will be implemented by the concrete repositories        
         pass
 
-    # Defining an abstract method called get that takes one argument, 'ids'
+    # Defining an abstract method called get that takes one argument, 'ids's
     @abstractmethod
-    def get(self, ids):
+    async def get(self, ids):
         # This method will be implemented by the concrete repositories
         pass
 
@@ -33,7 +34,7 @@ class SlicableOrderedDict(MutableMapping):
     """
     A mutable mapping that stores items in memory and supports a maximum
     length, discarding the oldest items if the maximum length is exceeded.
-    Items are always returned ordered by keys. A key can also be integer or slice.
+    Items are always stored ordered by keys. A key can also be integer or slice.
     """
     def __init__(self, items: Optional[Dict] = None, maxlen: Optional[int] = None) -> None:
         """
@@ -72,7 +73,8 @@ class SlicableOrderedDict(MutableMapping):
 
         Returns
         -------
-        The item associated with the key or a list of items if the key is a slice.
+        item : Any | List[Any]
+            The item associated with the key or a list of items if the key is a slice.
 
         Raises
         ------
@@ -80,20 +82,11 @@ class SlicableOrderedDict(MutableMapping):
             If the key is an integer and out of bounds, or if the key does not exist.
         """
         if isinstance(key, slice):
-            if key.start is None:
-                start = 0
-            elif key.start < 0:
-                start = len(self._items) + key.start
-            else:
-                start = key.start
-            if key.stop is None:
-                stop = len(self._items)
-            elif key.stop < 0:
-                stop = len(self._items) + key.stop
-            else:
-                stop = key.stop
-            return [self._items[key] for key in
-                islice(self._keys, start, stop, key.step)]
+            return [self._items[self._keys[k]] for k in
+                    range(len(self._items)).__getitem__(key)]
+        if isinstance(key, tuple):
+            return [self._items[self._keys[k]] for k in
+                    range(len(self._items)).__getitem__(slice(*key))]
         if isinstance(key, int):
             if self._items and len(self._items) > key:
                 return self._items[self._keys[key]]
@@ -129,7 +122,7 @@ class SlicableOrderedDict(MutableMapping):
         If the key does not exist, it is added to the MemoryStorage. If the
         MemoryStorage has a maximum length and the addition of this item would
         exceed that length, the oldest key is discarded before adding the new
-        key.
+        key. The order of keys is preserved based on the insertion value.
 
         Parameters
         ----------
@@ -137,6 +130,10 @@ class SlicableOrderedDict(MutableMapping):
             The key to associate with the item.
         item : Any
             The item to store in the MemoryStorage.
+
+        Returns
+        -------
+        None
         """
         if key in self._items:
             self._items[key] = item
@@ -271,7 +268,10 @@ class SlicableOrderedDict(MutableMapping):
             return NotImplemented
         return list(self.items()) == list(other.items()) and self.maxlen == other.maxlen
 
-class AsyncMemoryStorage(SlicableOrderedDict):
+    def __len__(self):
+        return len(self._items)
+
+class AsyncMemoryStorage(SlicableOrderedDict, AbstractRepository):
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         """
@@ -286,25 +286,22 @@ class AsyncMemoryStorage(SlicableOrderedDict):
 
         Attributes
         ----------
-        start : int
-            Starting index for iteration or slicing operations, initialized to 0.
-        stop : int
-            Stopping index for iteration or slicing operations, initialized to the current length of the storage.
+        _lock : Lock
+            A lock object used to protect against concurrent access to the storage.
         """
         super().__init__(*args, **kwargs)
-        self.start: int = 0
-        self.stop: int = len(self)
+        self._lock: Lock = Lock()
 
-    async def add(self, sessions: Dict[Any, Any]) -> None:
+    async def put(self, itemdict: Dict[Any, Any]) -> None:
         """
-        Asynchronously add items to the AsyncMemoryStorage.
+        Asynchronously put items into the AsyncMemoryStorage.
 
-        This method adds each item in the given sessions dictionary to the
+        This method puts each item in the given itemdict dictionary to the
         AsyncMemoryStorage, overwriting any existing item with the same key.
 
         Parameters
         ----------
-        sessions : Dict[Any, Any]
+        itemdict : Dict[Any, Any]
             A dictionary of items to add to the AsyncMemoryStorage.
 
         Returns
@@ -316,139 +313,59 @@ class AsyncMemoryStorage(SlicableOrderedDict):
         This coroutine does not block the event loop, it yields control back to the
         event loop after each item is added.
         """
-        for k, v in sessions.items():
-            self[k] = v
-        await asyncio.sleep(0)
+        async with self._lock:
+            for k, v in itemdict.items():
+                self[k] = v
 
-    def get(self, *args: Union[slice, Tuple[int, int], int, Any]) -> AsyncIterator:
+    async def get(self, key: Union[slice, Tuple[int, int], int, Any] = None) -> AsyncIterator[Any]:
         """
         Configure the iteration range in the AsyncMemoryStorage.
 
-        This method sets the `start` and `stop` attributes based on the provided
-        arguments, allowing for iteration over a specified range of items in the
-        storage. The arguments can be a slice, a tuple of two integers, a single
-        integer, or a key present in the storage.
-
         Parameters
         ----------
-        *args : Union[slice, Tuple[int, int], int, Any]
-            - If no arguments are provided, the entire storage is selected for iteration.
-            - If a slice is provided, the `start` and `stop` are set according to the slice.
-            - If a tuple of two integers is provided, it is treated as a range.
-            - If a single integer is provided, it specifies the starting index, and
-            optionally the stopping index if a second integer is given.
-            - If an object in the storage is provided, the `start` and `stop` are set
-            to the index of this object in the storage.
+        key : Union[slice, Tuple[int, int], int, Any], optional
+            The key or slice of keys to iterate over. If None, the entire
+            AsyncMemoryStorage is iterated.
 
-        Returns
-        -------
-        AsyncIterator
-            An asynchronous iterator over the specified range of items in the storage.
-        """
-        if not args:
-            self.start = 0
-            self.stop = len(self)
-        elif isinstance(args[0], slice):
-            if args[0].start is None:
-                self.start = 0
-            elif args[0].start < 0:
-                self.start = len(self) + args[0].start
-            else:
-                self.start = args[0].start
-            if args[0].stop is None:
-                self.stop = len(self)
-            elif args[0].stop < 0:
-                self.stop = len(self) + args[0].stop
-            else:
-                self.stop = args[0].stop
-        elif (isinstance(args[0], tuple) and
-              isinstance(args[0][0], int) and
-              isinstance(args[0][1], int)):
-            self.start = args[0][0]
-            self.stop = args[0][1]
-        elif isinstance(args[0], int):
-            self.start = args[0]
-            if len(args) == 2:
-                self.stop = args[1]
-            else:
-                self.stop = args[0] + 1
-        elif args[0] in self:
-            self.start = self.index(args[0])
-            self.stop = self.start + 1
-        return self.__aiter__()
-
-    def clear(self) -> None:
-        """
-        Clear all items from the MemoryStorage.
-
-        This method clears the storage by removing all key-value pairs and
-        resetting the internal key storage.
-
-        Parameters
-        ----------
-        None
-
-        Returns
-        -------
-        None
-        """
-        super(AsyncMemoryStorage, self).clear()
-
-    def __aiter__(self) -> 'AsyncMemoryStorage':
-        """Return an asynchronous iterator for the AsyncMemoryStorage instance.
-
-        Returns
-        -------
-        AsyncMemoryStorage
-            The instance itself as an asynchronous iterator.
-        """
-        return self
-
-    async def __anext__(self) -> Tuple[Any, Dict[str, Any]]:
-        """
-        Return the next item from the asynchronous iterator.
-
-        This method is a coroutine that returns the next item from the
-        asynchronous iterator. It is intended to be used in an asynchronous
-        for loop.
-
-        Parameters
-        ----------
-        None
-
-        Returns
-        -------
-        Tuple[Any, Dict[str, Any]]
-            A tuple containing the key and value of the next item in the
-            asynchronous iterator.
-
-        Raises
+        Yields
         ------
-        StopAsyncIteration
-            When the end of the asynchronous iterator is reached.
+        item : Any
+            The next item in the iteration.
         """
-        await asyncio.sleep(0)
-        if self.start >= self.stop:
-            raise StopAsyncIteration
-        element = self[self.start]
-        self.start += 1
-        return element
+        async with self._lock:
+            if not key:
+                key = slice(None, None)
+            for item in self[key]:
+                yield item
+
+    async def clear(self) -> None:
+        """
+        Clear all items from the AsyncMemoryStorage.
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        None
+        """
+        async with self._lock:
+            super().clear()
 
 if __name__ == "__main__":
     from utils import asyncio_run
-    from bgw_regex import stdout_to_cmds, cmds_to_rtpsessions
-    from storage import AsyncMemoryStorage
-    stdout = '''#BEGIN\nshow rtp-stat detailed 00002\r\n\r\nSession-ID: 1\r\nStatus: Terminated, QOS: Ok, EngineId: 10\r\nStart-Time: 2024-11-04,10:06:10, End-Time: 2024-11-04,10:07:10\r\nDuration: 00:00:00\r\nCName: gwp@10.10.48.58\r\nPhone: \r\nLocal-Address: 10.10.48.58:2052 SSRC 1653399062\r\nRemote-Address: 10.10.48.192:35000 SSRC 2704961869 (0)\r\nSamples: 0 (5 sec)\r\n\r\nCodec:\r\nG711U 200B 20mS srtpAesCm128HmacSha180, Silence-suppression(Tx/Rx) Disabled/Disabled, Play-Time 4.720sec, Loss 0.8% #0, Avg-Loss 0.8%, RTT 0mS #0, Avg-RTT 0mS, JBuf-under/overruns 0.0%/0.0%, Jbuf-Delay 22mS, Max-Jbuf-Delay 22mS\r\n\r\nReceived-RTP:\r\nPackets 245, Loss 0.3% #0, Avg-Loss 0.3%, RTT 0mS #0, Avg-RTT 0mS, Jitter 2mS #0, Avg-Jitter 2mS, TTL(last/min/max) 56/56/56, Duplicates 0, Seq-Fall 0, DSCP 0, L2Pri 0, RTCP 0, Flow-Label 2\r\n\r\nTransmitted-RTP:\r\nVLAN 0, DSCP 46, L2Pri 0, RTCP 10, Flow-Label 0\r\n\r\nRemote-Statistics:\r\nLoss 0.0% #0, Avg-Loss 0.0%, Jitter 0mS #0, Avg-Jitter 0mS\r\n\r\nEcho-Cancellation:\r\nLoss 0dB #2, Len 0mS\r\n\r\nRSVP:\r\nStatus Unused, Failures 0\n#END'''
-    stdout += '''#BEGIN\nshow rtp-stat detailed 00001\r\n\r\nSession-ID: 1\r\nStatus: Terminated, QOS: Ok, EngineId: 10\r\nStart-Time: 2024-11-04,10:06:07, End-Time: 2024-11-04,10:07:07\r\nDuration: 00:00:00\r\nCName: gwp@10.10.48.58\r\nPhone: \r\nLocal-Address: 10.10.48.58:2052 SSRC 1653399062\r\nRemote-Address: 10.10.48.192:35000 SSRC 2704961869 (0)\r\nSamples: 0 (5 sec)\r\n\r\nCodec:\r\nG711U 200B 20mS srtpAesCm128HmacSha180, Silence-suppression(Tx/Rx) Disabled/Disabled, Play-Time 4.720sec, Loss 0.8% #0, Avg-Loss 0.8%, RTT 0mS #0, Avg-RTT 0mS, JBuf-under/overruns 0.0%/0.0%, Jbuf-Delay 22mS, Max-Jbuf-Delay 22mS\r\n\r\nReceived-RTP:\r\nPackets 245, Loss 0.3% #0, Avg-Loss 0.3%, RTT 0mS #0, Avg-RTT 0mS, Jitter 2mS #0, Avg-Jitter 2mS, TTL(last/min/max) 56/56/56, Duplicates 0, Seq-Fall 0, DSCP 0, L2Pri 0, RTCP 0, Flow-Label 2\r\n\r\nTransmitted-RTP:\r\nVLAN 0, DSCP 46, L2Pri 0, RTCP 10, Flow-Label 0\r\n\r\nRemote-Statistics:\r\nLoss 0.0% #0, Avg-Loss 0.0%, Jitter 0mS #0, Avg-Jitter 0mS\r\n\r\nEcho-Cancellation:\r\nLoss 0dB #2, Len 0mS\r\n\r\nRSVP:\r\nStatus Unused, Failures 0\n#END'''
 
     async def main():
+        loop = asyncio.get_event_loop()
         storage = AsyncMemoryStorage()
-        rtpsessions = cmds_to_rtpsessions(stdout_to_cmds(stdout))
-        await storage.add(rtpsessions)
-        async for rtpsession in storage.get():
-            print(rtpsession)
-            print('----------------------')
-        storage.clear()
-        print(storage)
+        tasks = [loop.create_task(storage.put({'1': 'one', '2': 'two'})),
+                 loop.create_task(storage.put({'3': 'three', '1': 'ONE'}))]
+        results = await asyncio.gather(*tasks)
+        async for value in storage.get():
+            print(value)
+        print(len(storage))
+        await storage.clear()
+        print(len(storage))
 
     asyncio_run(main())
