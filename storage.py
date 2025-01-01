@@ -361,7 +361,7 @@ if __name__ == "__main__":
         storage = AsyncMemoryStorage()
         tasks = [loop.create_task(storage.put({'1': 'one', '2': 'two'})),
                  loop.create_task(storage.put({'3': 'three', '1': 'ONE'}))]
-        results = await asyncio.gather(*tasks)
+        await asyncio.gather(*tasks)
         async for value in storage.get():
             print(value)
         print(len(storage))

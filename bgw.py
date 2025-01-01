@@ -15,6 +15,7 @@ from datetime import datetime
 from utils import asyncio_run
 from typing import Dict, Iterator, List, Tuple, Union
 from storage import AsyncMemoryStorage
+from session import reDetailed
 
 logger = logging.getLogger('__name__')
 logging.basicConfig(
@@ -279,9 +280,9 @@ DEFAULTS = {
     "passwd": "cmb@Dm1n",
     "polling_secs": 5,
     "max_polling": 20,
-    "lastn_secs": 30,
+    "lastn_secs": 3630,
     "debug": False,
-    "loglevel": "WARNING",
+    "loglevel": "ERROR",
     "logfile": "bgw.log",
     "expect_logging": "/dev/null",
     "script_template": script_template,
@@ -520,7 +521,7 @@ class BGWMonitor():
         self.polling_secs= polling_secs
         self.max_polling = max_polling
         self.lastn_secs = lastn_secs
-        self.storage = storage if storage else AsyncMemoryStorage(maxlen=5)
+        self.storage = storage if storage else AsyncMemoryStorage(maxlen=1000)
         self.loop = loop if loop else asyncio.get_event_loop()
         self.discovery_commands = discovery_commands if discovery_commands else [
             "show running-config",
@@ -568,7 +569,7 @@ class BGWMonitor():
                         if run_once:
                             break
                 sleep_secs = max(self.polling_secs - diff, 0)
-                logging.debug(f"{name} Sleeping {sleep_secs:.3f}s")
+                logging.info(f"{name} Sleeping {sleep_secs:.3f}s")
                 await asyncio.sleep(sleep_secs)
             except asyncio.CancelledError:
                 logging.warning(f"{name} Cancelling task")
@@ -589,7 +590,7 @@ class BGWMonitor():
                 except json.JSONDecodeError:
                     logging.error(f"{name} JSONDecodeError")
                     continue
-                self._process_dictitem(dictitem)
+                await self._process_dictitem(dictitem)
                 self._processing_queue.task_done()
             except asyncio.CancelledError:
                 logging.warning(f"{name} Cancelling task")
@@ -601,13 +602,13 @@ class BGWMonitor():
                     except json.JSONDecodeError:
                         logging.error(f"{name} JSONDecodeError")
                         continue
-                    self._process_dictitem(dictitem)
+                    await self._process_dictitem(dictitem)
                     self._processing_queue.task_done()
                 await asyncio.wait_for(self._processing_queue.join(), 1)
                 self._processing_task = None
                 break
 
-    def _process_dictitem(self, dictitem):
+    async def _process_dictitem(self, dictitem):
         host = dictitem.get("host", None)
         if not host:
             return
@@ -630,7 +631,7 @@ class BGWMonitor():
                 setattr(bgw, bgw_attr, value)
         
         for global_id, attrs in dictitem.get("rtp_sessions", {}).items():
-            self.storage.put({global_id: attrs})
+            await self.storage.put({global_id: attrs})
 
     async def _start_processing(self):
         if self._processing_task:
@@ -762,7 +763,7 @@ if __name__ == '__main__':
             await bgwmonitor.discover()
             print("===============BGWS===============")
             for bgw in bgwmonitor.bgws.values():
-                    print(f"last_seen:{bgw.last_seen} host:{bgw.host:<15} gw_name:{bgw.gw_name:<10} gw_number:{bgw.gw_number:>3} model:{bgw.model:>4} firmware:{bgw.firmware:>8} serial:{bgw.serial} rtp_stat:{bgw.rtp_stat} capture:{bgw.capture} temp:{bgw.temp} faults:{bgw.faults}")
+                    print(f"last_seen:{bgw.last_seen} host:{bgw.host:<15} gw_name:{bgw.gw_name:<10} gw_number:{bgw.gw_number:>3} model:{bgw.model:>4} firmware:{bgw.firmware:>8}")
             print("==================================")
             if not bgwmonitor.discovered_bgws:
                 print("No BGWs found. Exiting...")
@@ -771,7 +772,15 @@ if __name__ == '__main__':
             while True:
                 print("=========DISCOVERED BGWS==========")
                 for bgw in bgwmonitor.discovered_bgws.values():
-                    print(f"last_seen:{bgw.last_seen} host:{bgw.host:<15} gw_name:{bgw.gw_name:<10} gw_number:{bgw.gw_number:>3} model:{bgw.model:>4} firmware:{bgw.firmware:>8} serial:{bgw.serial} rtp_stat:{bgw.rtp_stat} capture:{bgw.capture} temp:{bgw.temp} faults:{bgw.faults}")
+                    print(f"last_seen:{bgw.last_seen} host:{bgw.host:<15} gw_name:{bgw.gw_name:<10} gw_number:{bgw.gw_number:>3} model:{bgw.model:>4} firmware:{bgw.firmware:>8}")
+                print(f"No. of RTP Sessions in Storage: {len(bgwmonitor.storage)}")
+                print("Last 6 sessions")
+                async for value in bgwmonitor.storage.get((-6, None)):
+                    try:
+                        session_dict = reDetailed.match(value).groupdict()
+                    except:
+                        continue
+                    print(session_dict["session_id"].zfill(5), session_dict["start_time"], session_dict["end_time"], session_dict["qos"])
                 print("==================================")
                 await asyncio.sleep(10)
         except Exception as e:
