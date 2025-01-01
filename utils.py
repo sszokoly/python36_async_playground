@@ -5,6 +5,12 @@ from typing import Any, Coroutine, TypeVar, Optional, Set, Callable, Any, TypeVa
 from asyncio import coroutines
 from asyncio import events
 from asyncio import tasks
+import logging
+
+logger = logging.getLogger('__name__')
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s %(levelname)-8s %(message)s')
 
 F = TypeVar('F', bound=Callable[..., Any])
 T = TypeVar('T')
@@ -32,14 +38,11 @@ async def async_shell(
     proc = await asyncio.create_subprocess_shell(
             cmd,
             stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE
-        )
-
+            stderr=asyncio.subprocess.PIPE)
     try:
         stdout, stderr = await asyncio.wait_for(
             proc.communicate(),
-            timeout=timeout
-        )
+            timeout=timeout)
         return (
             stdout.decode().strip(),
             stderr.decode().strip(),
@@ -99,7 +102,6 @@ def asyncio_run(main, *, debug=None):
         return loop.run_until_complete(main)
     except KeyboardInterrupt:
         print("Got signal: SIGINT, shutting down.")
-        print(f"Is loop running: {loop.is_running()}")
     finally:
         try:
             _cancel_all_tasks(loop)
@@ -130,10 +132,5 @@ def _cancel_all_tasks(loop):
             })
 
 if __name__ == "__main__":
-    print(asyncio_run(
-        async_shell(
-            "sleep 1;echo `date`",
-            timeout=2,
-            verbose=True,
-            name='main'
-        ), debug=False))
+    coro = async_shell("sleep 3;echo `date`", timeout=2, verbose=True)
+    print(asyncio_run(coro, debug=False))
