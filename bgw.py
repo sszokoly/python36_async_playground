@@ -14,6 +14,7 @@ from asyncio import Queue, Semaphore
 from datetime import datetime
 from utils import asyncio_run
 from typing import Dict, Iterator, List, Tuple, Union
+from storage import AsyncMemoryStorage
 
 logger = logging.getLogger('__name__')
 logging.basicConfig(
@@ -519,7 +520,7 @@ class BGWMonitor():
         self.polling_secs= polling_secs
         self.max_polling = max_polling
         self.lastn_secs = lastn_secs
-        self.storage = storage if storage else {}
+        self.storage = storage if storage else AsyncMemoryStorage(maxlen=5)
         self.loop = loop if loop else asyncio.get_event_loop()
         self.discovery_commands = discovery_commands if discovery_commands else [
             "show running-config",
@@ -629,7 +630,7 @@ class BGWMonitor():
                 setattr(bgw, bgw_attr, value)
         
         for global_id, attrs in dictitem.get("rtp_sessions", {}).items():
-            self.storage.update({global_id: attrs})
+            self.storage.put({global_id: attrs})
 
     async def _start_processing(self):
         if self._processing_task:
