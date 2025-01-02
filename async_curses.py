@@ -2,14 +2,18 @@ import asyncio
 import _curses, curses, curses.ascii
 from abc import ABC, abstractmethod
 from utils import asyncio_run
-from session import iter_session_detailed_attrs, cmds_to_session_dicts, stdout_to_cmds
+import time
+import os
 
 class Display(ABC):
-    def __init__(self, stdscr: "_curses._CursesWindow"):
+    def __init__(self, stdscr: "_curses._CursesWindow", minx: int = 80, miny: int = 24) -> None:
         self.stdscr = stdscr
         self.done: bool = False
         self.posx = 1
         self.posy = 1
+        self.minx = minx
+        self.miny = miny
+        self.maxy, self.maxx = self.stdscr.getmaxyx()
         curses.noecho()
         curses.start_color()
         curses.use_default_colors()
@@ -31,12 +35,23 @@ class Display(ABC):
         curses.curs_set(1)
         self.stdscr.nodelay(True)
 
+        while self.must_resize():
+            char = self.stdscr.getch()
+            if char == curses.ERR:
+                await asyncio.sleep(0.1)
+            elif char == curses.KEY_RESIZE:
+                self.maxy, self.maxx = self.stdscr.getmaxyx()
+                self.stdscr.erase()
+            elif chr(char) == "q":
+                self.set_exit()
+                break
+
         self.make_display()
 
         while not self.done:
             char = self.stdscr.getch()
             if char == curses.ERR:
-                await asyncio.sleep(0.05)
+                await asyncio.sleep(0.1)
             elif char == curses.KEY_RESIZE:
                 self.make_display()
             else:
@@ -61,33 +76,38 @@ class Display(ABC):
             "ended": curses.color_pair(250),
         }
 
+    def must_resize(self):
+        msg1 = f"Resize screen to {self.miny}x{self.minx}"
+        msg2 = f"Current size     {self.maxy}x{self.maxx}"
+        self.stdscr.addstr(int(self.maxy / 2) - 2,
+            int((self.maxx - len(msg1)) / 2), msg1)
+        self.stdscr.addstr(int(self.maxy / 2) - 1,
+            int((self.maxx - len(msg2)) / 2), msg2)
+        
+        msg2 = "Press 'q' to exit"
+        self.stdscr.addstr(int(self.maxy / 2) + 1,
+            int((self.maxx - len(msg2)) / 2), msg2)
+        
+        self.stdscr.box()
+        self.stdscr.refresh()
+        
+        if self.maxy < self.miny or self.maxx < self.minx:
+            return True
+        return False
+
+
 class MyDisplay(Display):
     def make_display(self) -> None:
-        msg1 = "Resize at will"
-        msg2 = "Press 'q' to exit"
 
         self.maxy, self.maxx = self.stdscr.getmaxyx()
         self.stdscr.erase()
-
         self.stdscr.box()
-        #self.stdscr.addstr(q
-        #    int(self.maxy / 2) - 1, int((self.maxx - len(msg1)) / 2), msg1, 
-        #    curses.COLOR_RED
-        #)
-        #self.stdscr.addstr(
-        #    int(self.maxy / 2) + 1, int((self.maxx - len(msg2)) / 2), msg2,
-        #    curses.COLOR_BLUE
-        #)
 
-        #for y, x, text, color in iter_session_detailed_attrs(session_dict):
-        #    self.stdscr.addstr(y, x, text, self.colors[color])
-
-        self.stdscr.addstr(
-            0, 0, f'{self.maxx}x{self.maxy}'
-        )
-
+        self.stdscr.addstr(0, 0, f'{self.maxx}x{self.maxy}')
         curses.setsyx(self.posy, self.posx)
         self.stdscr.refresh()
+        self.menuwin = MenuWindow()
+        self.headerwin = HeaderWindow()
 
     def handle_char(self, char: int) -> None:
         if chr(char) == "q":
@@ -108,6 +128,24 @@ class MyDisplay(Display):
             curses.setsyx(self.posy, self.posx)
         curses.doupdate()
 
+class MenuWindow():
+    def __init__(self, nlines=1, ncols=None):
+        mcols, mlines = os.get_terminal_size()
+        self.win = curses.newwin(nlines, mcols, mlines-nlines, 0)
+        self.maxy, self.maxx = self.win.getmaxyx()
+        self.win.addstr(0, 1, f"{' ':>{self.maxx-2}}", curses.A_REVERSE)
+        self.win.refresh()
+
+
+class HeaderWindow():
+    def __init__(self, nlines=2, ncols=None):
+        mcols, mlines = os.get_terminal_size()
+        self.header = curses.newwin(nlines, mcols, 1, 0)
+        self.maxy, self.maxx = self.header.getmaxyx()
+        self.header.addstr(0, 1, f"{' ':>{self.maxx-2}}", curses.A_REVERSE)
+        self.header.refresh()
+
+
 async def display_main(stdscr):
     display = MyDisplay(stdscr)
     await display.run()
@@ -123,10 +161,4 @@ def main(stdscr) -> None:
     asyncio_run(display_main(stdscr))
 
 if __name__ == "__main__":
-    stdout = '''#BEGIN\nshow rtp-stat detailed 00001\r\n\r\nSession-ID: 1\r\nStatus: Terminated, QOS: Faulted, EngineId: 10\r\nStart-Time: 2024-11-20,16:07:30, End-Time: 2024-11-21,07:17:48\r\nDuration: 15:10:18\r\nCName: gwp@10.10.48.58\r\nPhone: \r\nLocal-Address: 192.168.110.110:2052 SSRC 1653399062\r\nRemote-Address: 10.10.48.192:35000 SSRC 3718873098 (0)\r\nSamples: 10923 (5 sec)\r\n\r\nCodec:\r\nG711U 200B 20mS srtpAesCm128HmacSha180, Silence-suppression(Tx/Rx) Disabled/Disabled, Play-Time 54626.390sec, Loss 0.8% #0, Avg-Loss 0.8%, RTT 0mS #0, Avg-RTT 0mS, JBuf-under/overruns 0.0%/0.0%, Jbuf-Delay 22mS, Max-Jbuf-Delay 22mS\r\n\r\nReceived-RTP:\r\nPackets 2731505, Loss 0.3% #0, Avg-Loss 0.3%, RTT 0mS #0, Avg-RTT 0mS, Jitter 2mS #0, Avg-Jitter 2mS, TTL(last/min/max) 56/56/56, Duplicates 0, Seq-Fall 41, DSCP 0, L2Pri 0, RTCP 10910, Flow-Label 2\r\n\r\nTransmitted-RTP:\r\nVLAN 0, DSCP 46, L2Pri 0, RTCP 10927, Flow-Label 0\r\n\r\nRemote-Statistics:\r\nLoss 0.0% #0, Avg-Loss 0.0%, Jitter 0mS #0, Avg-Jitter 0mS\r\n\r\nEcho-Cancellation:\r\nLoss 0dB #10902, Len 0mS\r\n\r\nRSVP:\r\nStatus Unused, Failures 0\n#END'''
-    print(stdout)
-    session_dicts = cmds_to_session_dicts(stdout_to_cmds(stdout))
-    for id, session_dict in session_dicts.items():
-        print(session_dict)
-        for y, x, text, attrs in iter_session_detailed_attrs(session_dict):
-            print(y, x, text, attrs)
+    curses.wrapper(main)
