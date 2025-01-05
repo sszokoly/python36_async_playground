@@ -45,47 +45,44 @@ class Display(ABC):
             elif chr(char) == "q":
                 self.set_exit()
                 break
-
-        self.make_display()
-
-        while not self.done:
-            char = self.stdscr.getch()
-            if char == curses.ERR:
-                await asyncio.sleep(0.1)
-            elif char == curses.KEY_RESIZE:
-                self.make_display()
             else:
-                self.handle_char(char)
+                self.make_display()
+
+                while not self.done:
+                    char = self.stdscr.getch()
+                    if char == curses.ERR:
+                        await asyncio.sleep(0.1)
+                    elif char == curses.KEY_RESIZE:
+                        #self.make_display()
+                        break
+                    else:
+                        self.handle_char(char)
     
     def initcolors(self):
         for i in range(0, curses.COLORS):
             curses.init_pair(i + 1, i, -1)
         
         self.color_pairs = {
-            "RED": curses.color_pair(197),
-            "RED_LIGHT": curses.color_pair(10),
-            "RED_HARSH": curses.color_pair(197),
-            "GREEN": curses.color_pair(3),
-            "GREEN_LIGHT": curses.color_pair(11),
-            "GREEN_HARSH": curses.color_pair(83),
-            "YELLOW": curses.color_pair(4),
-            "YELLOW_LIGHT": curses.color_pair(12),
-            "YELLOW_HARSH": curses.color_pair(227),
-            "BLUE": curses.color_pair(5),
-            "BLUE_LIGHT": curses.color_pair(13),
-            "BLUE_HARSH": curses.color_pair(40),
+            "RED": curses.color_pair(2),
+            "RED_LIGHT": curses.color_pair(197),
+            "GREEN": curses.color_pair(42),
+            "GREEN_LIGHT": curses.color_pair(156),
+            "YELLOW": curses.color_pair(12),
+            "YELLOW_LIGHT": curses.color_pair(230),
+            "BLUE": curses.color_pair(13),
+            "BLUE_LIGHT": curses.color_pair(34),
             "MAGENTA": curses.color_pair(6),
             "MAGENTA_LIGHT": curses.color_pair(14),
-            "MAGENTA_HARSH": curses.color_pair(202),
-            "CYAN": curses.color_pair(7),
+            "CYAN": curses.color_pair(46),
             "CYAN_LIGHT": curses.color_pair(15),
-            "CYAN_HARSH": curses.color_pair(46),
-            "GREY": curses.color_pair(1),    
-            "GREY_LIGHT": curses.color_pair(9),        
-            "GREY_HARSH": curses.color_pair(252),
-            "ORANGE": curses.color_pair(161),
+            "GREY": curses.color_pair(246),    
+            "GREY_LIGHT": curses.color_pair(252),        
+            "ORANGE": curses.color_pair(203),
             "ORANGE_LIGHT": curses.color_pair(209),
-            "ORANGE_HARSH": curses.color_pair(203),
+            "PINK": curses.color_pair(220),
+            "PINK_LIGHT": curses.color_pair(226),
+            "PURPLE": curses.color_pair(135),
+            "PURPLE_LIGHT": curses.color_pair(148),
         }
 
 
