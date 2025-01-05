@@ -60,9 +60,63 @@ class Display(ABC):
     def initcolors(self):
         for i in range(0, curses.COLORS):
             curses.init_pair(i + 1, i, -1)
-        curses.init_pair(255, 21, 245)
+        
+        self.color_pairs = {
+            "RED": curses.color_pair(197),
+            "RED_LIGHT": curses.color_pair(10),
+            "RED_HARSH": curses.color_pair(197),
+            "GREEN": curses.color_pair(3),
+            "GREEN_LIGHT": curses.color_pair(11),
+            "GREEN_HARSH": curses.color_pair(83),
+            "YELLOW": curses.color_pair(4),
+            "YELLOW_LIGHT": curses.color_pair(12),
+            "YELLOW_HARSH": curses.color_pair(227),
+            "BLUE": curses.color_pair(5),
+            "BLUE_LIGHT": curses.color_pair(13),
+            "BLUE_HARSH": curses.color_pair(40),
+            "MAGENTA": curses.color_pair(6),
+            "MAGENTA_LIGHT": curses.color_pair(14),
+            "MAGENTA_HARSH": curses.color_pair(202),
+            "CYAN": curses.color_pair(7),
+            "CYAN_LIGHT": curses.color_pair(15),
+            "CYAN_HARSH": curses.color_pair(46),
+            "GREY": curses.color_pair(1),    
+            "GREY_LIGHT": curses.color_pair(9),        
+            "GREY_HARSH": curses.color_pair(252),
+            "ORANGE": curses.color_pair(161),
+            "ORANGE_LIGHT": curses.color_pair(209),
+            "ORANGE_HARSH": curses.color_pair(203),
+        }
 
-        self.colors = {
+
+    def must_resize(self):
+        msg1 = f"Resize screen to {self.miny}x{self.minx}"
+        msg2 = f"Current size     {self.maxy}x{self.maxx}"
+        self.stdscr.addstr(int(self.maxy / 2) - 2,
+            int((self.maxx - len(msg1)) / 2), msg1)
+        self.stdscr.addstr(int(self.maxy / 2) - 1,
+            int((self.maxx - len(msg2)) / 2), msg2)
+        
+        msg2 = "Press 'q' to exit"
+        self.stdscr.addstr(
+            int(self.maxy / 2) + 1,
+            int((self.maxx - len(msg2)) / 2),
+            msg2,
+            curses.color_pair(255))
+        
+        self.stdscr.box()
+        self.stdscr.refresh()
+        
+        if self.maxy < self.miny or self.maxx < self.minx:
+            return True
+        return False
+
+
+class MyDisplay(Display):
+
+    def make_display(self) -> None:
+
+        colors = {
             "normal": curses.color_pair(0),
             "standout": curses.color_pair(8),
             "address": curses.color_pair(124),
@@ -76,28 +130,6 @@ class Display(ABC):
             "ended": curses.color_pair(250),
         }
 
-    def must_resize(self):
-        msg1 = f"Resize screen to {self.miny}x{self.minx}"
-        msg2 = f"Current size     {self.maxy}x{self.maxx}"
-        self.stdscr.addstr(int(self.maxy / 2) - 2,
-            int((self.maxx - len(msg1)) / 2), msg1)
-        self.stdscr.addstr(int(self.maxy / 2) - 1,
-            int((self.maxx - len(msg2)) / 2), msg2)
-        
-        msg2 = "Press 'q' to exit"
-        self.stdscr.addstr(int(self.maxy / 2) + 1,
-            int((self.maxx - len(msg2)) / 2), msg2)
-        
-        self.stdscr.box()
-        self.stdscr.refresh()
-        
-        if self.maxy < self.miny or self.maxx < self.minx:
-            return True
-        return False
-
-
-class MyDisplay(Display):
-    def make_display(self) -> None:
 
         self.maxy, self.maxx = self.stdscr.getmaxyx()
         self.stdscr.erase()
@@ -105,9 +137,15 @@ class MyDisplay(Display):
 
         self.stdscr.addstr(0, 0, f'{self.maxx}x{self.maxy}')
         curses.setsyx(self.posy, self.posx)
+
+        ypos = 3
+        for k,v in self.color_pairs.items():
+            self.stdscr.addstr(ypos, 1, f"{k}", v)
+            ypos += 1
         self.stdscr.refresh()
         self.menuwin = MenuWindow()
         self.headerwin = HeaderWindow()
+
 
     def handle_char(self, char: int) -> None:
         if chr(char) == "q":
@@ -151,6 +189,11 @@ async def display_main(stdscr):
     await display.run()
 
 
+def change_terminal(to_type="xterm-256color"):
+    types = os.popen("toe -a").read().splitlines()
+    if any(x for x in types if x.startswith(to_type)):
+        os.environ["TERM"] = to_type
+
 def main(stdscr) -> None:
     """Main entry point to run the asynchronous tasks.
 
@@ -161,4 +204,10 @@ def main(stdscr) -> None:
     asyncio_run(display_main(stdscr))
 
 if __name__ == "__main__":
+    term = os.environ.get("TERM")
+    change_terminal("xterm-256color")   
     curses.wrapper(main)
+    if term:
+        os.environ["TERM"] = term
+    else:
+        del os.environ["TERM"]
