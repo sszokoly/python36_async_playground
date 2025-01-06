@@ -18,7 +18,7 @@ class Display(ABC):
         curses.start_color()
         curses.use_default_colors()
         curses.curs_set(0)
-        self.initcolors()
+        self.init_color_pairs()
 
     @abstractmethod
     def make_display(self) -> None:
@@ -32,33 +32,39 @@ class Display(ABC):
         self.done = True
 
     async def run(self) -> None:
-        curses.curs_set(1)
         self.stdscr.nodelay(True)
+        
+        while not self.done:
 
-        while self.must_resize():
-            char = self.stdscr.getch()
-            if char == curses.ERR:
-                await asyncio.sleep(0.1)
-            elif char == curses.KEY_RESIZE:
-                self.maxy, self.maxx = self.stdscr.getmaxyx()
-                self.stdscr.erase()
-            elif chr(char) == "q":
-                self.set_exit()
-                break
-            else:
+            while self.must_resize():
+                char = self.stdscr.getch()
+                if char == curses.ERR:
+                    await asyncio.sleep(0.1)
+                elif char == curses.KEY_RESIZE:
+                    self.maxy, self.maxx = self.stdscr.getmaxyx()
+                    self.stdscr.erase()
+                elif chr(char) == "q":
+                    self.set_exit()
+                    break
+        
+            if not self.done:
                 self.make_display()
-
-                while not self.done:
-                    char = self.stdscr.getch()
-                    if char == curses.ERR:
-                        await asyncio.sleep(0.1)
-                    elif char == curses.KEY_RESIZE:
-                        #self.make_display()
-                        break
+            
+            while not self.done:
+                char = self.stdscr.getch()
+                if char == curses.ERR:
+                    await asyncio.sleep(0.1)
+                elif char == curses.KEY_RESIZE:
+                    self.maxy, self.maxx = self.stdscr.getmaxyx()
+                    if self.maxy >= self.miny and self.maxx >= self.minx:
+                        self.make_display()
                     else:
-                        self.handle_char(char)
+                        self.stdscr.erase()
+                        break
+                else:
+                    self.handle_char(char)
     
-    def initcolors(self):
+    def init_color_pairs(self):
         for i in range(0, curses.COLORS):
             curses.init_pair(i + 1, i, -1)
         
@@ -108,13 +114,11 @@ class Display(ABC):
             return True
         return False
 
-
-class MyDisplay(Display):
-
-    def make_display(self) -> None:
-
-        colors = {
+class Window(ABC):
+    def __init__(self):
+        self.colors_pairs = {
             "normal": curses.color_pair(0),
+            "reversed": curses.color_pair(0)|curses.A_REVERSE,
             "standout": curses.color_pair(8),
             "address": curses.color_pair(124),
             "port": curses.color_pair(224),
@@ -127,21 +131,30 @@ class MyDisplay(Display):
             "ended": curses.color_pair(250),
         }
 
+class MyDisplay(Display):
+
+    def make_display(self) -> None:
 
         self.maxy, self.maxx = self.stdscr.getmaxyx()
         self.stdscr.erase()
-        self.stdscr.box()
 
-        self.stdscr.addstr(0, 0, f'{self.maxx}x{self.maxy}')
-        curses.setsyx(self.posy, self.posx)
+        #self.stdscr.addstr(0, 0, f'{self.maxx}x{self.maxy}')
+        #curses.setsyx(self.posy, self.posx)
 
         ypos = 3
-        for k,v in self.color_pairs.items():
-            self.stdscr.addstr(ypos, 1, f"{k}", v)
-            ypos += 1
+        #for k,v in self.color_pairs.items():
+        #    self.stdscr.addstr(ypos, 1, f"{k}", v)
+        #    ypos += 1
+
+        #self.stdscr.box()
         self.stdscr.refresh()
-        self.menuwin = MenuWindow()
-        self.headerwin = HeaderWindow()
+        self.menu = MenuWindow()
+        self.header = HeaderWindow(
+            col_names=[
+                "  Start ","   End  ", "BGW",
+                " Local-Address ", "LPort",
+                " Remote-Address", "RPort",
+                "Codec", "QoS", "Cp"])
 
 
     def handle_char(self, char: int) -> None:
@@ -163,22 +176,58 @@ class MyDisplay(Display):
             curses.setsyx(self.posy, self.posx)
         curses.doupdate()
 
-class MenuWindow():
-    def __init__(self, nlines=1, ncols=None):
+class MenuWindow(Window):
+    def __init__(self, nlines=1, xstart=10):
+        super().__init__()
         mcols, mlines = os.get_terminal_size()
-        self.win = curses.newwin(nlines, mcols, mlines-nlines, 0)
+        self.buttons = ["s", "c", "e", "t"]
+        self.xstart = xstart
+        self.win = curses.newwin(nlines, mcols, mlines-nlines, 1)
         self.maxy, self.maxx = self.win.getmaxyx()
-        self.win.addstr(0, 1, f"{' ':>{self.maxx-2}}", curses.A_REVERSE)
+        self.draw()
+
+    def draw(self):
+        self.win.addstr(0, 0, ' ' * (self.maxx - 1), self.colors_pairs["reversed"])
+        for idx, button in enumerate(self.buttons):
+            xpos = (len(self.buttons[idx-1]) + offset + 1) if idx > 0 else self.xstart
+            self.win.addstr(0, xpos, button, self.colors_pairs["reversed"])
+            offset = xpos
         self.win.refresh()
 
+    def handle_char(self, char):        
+        pass
 
-class HeaderWindow():
-    def __init__(self, nlines=2, ncols=None):
+
+class HeaderWindow(Window):
+    def __init__(self, nlines=1, col_names=None, separator=True):
+        super().__init__()
+        self.separator = separator
         mcols, mlines = os.get_terminal_size()
-        self.header = curses.newwin(nlines, mcols, 1, 0)
-        self.maxy, self.maxx = self.header.getmaxyx()
-        self.header.addstr(0, 1, f"{' ':>{self.maxx-2}}", curses.A_REVERSE)
-        self.header.refresh()
+        self.col_names = col_names if col_names else []
+        self.win = curses.newwin(nlines + 2, mcols, 0, 0)
+        self.maxy, self.maxx = self.win.getmaxyx()
+        self.draw()
+
+    def draw(self):
+        self.win.box()
+        offset = 0
+        for idx, col_name in enumerate(self.col_names):
+            xpos = (len(self.col_names[idx-1]) + offset + 1) if idx > 0 else 0
+            if self.separator:
+                col_name = f"{col_name}│"
+                topsep = "┬" if xpos else "┌"
+                botsep = "┴" if xpos else "├"
+                self.win.addstr(0, xpos, topsep, self.colors_pairs["normal"])
+                self.win.addstr(2, xpos, botsep, self.colors_pairs["normal"])
+            self.win.addstr(1, xpos+1, col_name, self.colors_pairs["normal"])
+            offset = xpos
+        if self.separator:
+            xpos = offset + len(self.col_names[-1]) + 1
+            topsep = "┬" if xpos < self.maxx - 1 else "┐"
+            botsep = "┴" if xpos < self.maxx - 1 else "┤"
+            self.win.addstr(0, xpos, topsep, self.colors_pairs["normal"])
+            #self.win.addstr(2, xpos, botsep, self.colors_pairs["normal"])
+        self.win.refresh()
 
 
 async def display_main(stdscr):
