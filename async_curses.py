@@ -147,6 +147,18 @@ class MyDisplay(Display):
         #    ypos += 1
 
         #self.stdscr.box()
+        self.stdscr.addstr(0, 0, "╭─────────╮", curses.color_pair(0))
+        self.stdscr.addstr(1, 0, "│         │", curses.color_pair(0))
+        self.stdscr.addstr(2, 0, "╰─────────╯", curses.color_pair(0))
+        self.stdscr.addstr(1, 1, "RTP Stats", curses.color_pair(221))
+        self.stdscr.addstr(0, 11, "╭─────────╮", curses.color_pair(0))
+        self.stdscr.addstr(1, 11, "│         │", curses.color_pair(0))
+        self.stdscr.addstr(2, 11, "╰─────────╯", curses.color_pair(0))
+        self.stdscr.addstr(1, 13, "Systems", curses.color_pair(221))
+        self.stdscr.addstr(0, 22, "╭─────────╮", curses.color_pair(0))
+        self.stdscr.addstr(1, 22, "│         │", curses.color_pair(0))
+        self.stdscr.addstr(2, 22, "╰─────────╯", curses.color_pair(0))
+        self.stdscr.addstr(1, 23, "Util/Temp", curses.color_pair(221))
         self.stdscr.refresh()
         self.menu = MenuWindow()
         self.header = HeaderWindow(
@@ -202,9 +214,9 @@ class HeaderWindow(Window):
     def __init__(self, nlines=1, col_names=None, separator=True):
         super().__init__()
         self.separator = separator
-        mcols, mlines = os.get_terminal_size()
+        mcols, _ = os.get_terminal_size()
         self.col_names = col_names if col_names else []
-        self.win = curses.newwin(nlines + 2, mcols, 0, 0)
+        self.win = curses.newwin(nlines + 2, mcols, 3, 0)
         self.maxy, self.maxx = self.win.getmaxyx()
         self.draw()
 
