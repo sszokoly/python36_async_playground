@@ -141,7 +141,7 @@ class MyDisplay(Display):
         #self.stdscr.addstr(0, 0, f'{self.maxx}x{self.maxy}')
         #curses.setsyx(self.posy, self.posx)
 
-        ypos = 3
+        #ypos = 3
         #for k,v in self.color_pairs.items():
         #    self.stdscr.addstr(ypos, 1, f"{k}", v)
         #    ypos += 1
