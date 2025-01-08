@@ -131,42 +131,45 @@ class Window(ABC):
             "ended": curses.color_pair(250),
         }
 
+class Workspace():
+    def __init__(self,
+        stdscr,
+        col_attr,
+        col_widths=None,
+        col_names=None,
+        menu_window=None,
+        yoffset=2,
+        xoffset=0,
+        row_iterator=None,
+    ):
+        self._stdscr = stdscr
+        self._col_attr = col_attr
+        self._col_widths = col_widths if col_widths else list(
+            map(len, col_names))
+        self._col_names = col_names if col_names else col_attr
+        self._menuwin = menu_window
+        self._yoffset = yoffset
+        self._xoffset = xoffset
+        self._row_iterator = row_iterator
+
+
+
 class MyDisplay(Display):
+    tab_names =  ["Gateways", "Status", "RTP Stats"]
 
     def make_display(self) -> None:
 
         self.maxy, self.maxx = self.stdscr.getmaxyx()
         self.stdscr.erase()
 
-        #self.stdscr.addstr(0, 0, f'{self.maxx}x{self.maxy}')
-        #curses.setsyx(self.posy, self.posx)
-
-        #ypos = 3
-        #for k,v in self.color_pairs.items():
-        #    self.stdscr.addstr(ypos, 1, f"{k}", v)
-        #    ypos += 1
-
-        #self.stdscr.box()
-        self.stdscr.addstr(0, 0, "╭─────────╮", curses.color_pair(0))
-        self.stdscr.addstr(1, 0, "│         │", curses.color_pair(0))
-        self.stdscr.addstr(2, 0, "╰─────────╯", curses.color_pair(0))
-        self.stdscr.addstr(1, 1, "RTP Stats", curses.color_pair(221))
-        self.stdscr.addstr(0, 11, "╭─────────╮", curses.color_pair(0))
-        self.stdscr.addstr(1, 11, "│         │", curses.color_pair(0))
-        self.stdscr.addstr(2, 11, "╰─────────╯", curses.color_pair(0))
-        self.stdscr.addstr(1, 13, "Systems", curses.color_pair(221))
-        self.stdscr.addstr(0, 22, "╭─────────╮", curses.color_pair(0))
-        self.stdscr.addstr(1, 22, "│         │", curses.color_pair(0))
-        self.stdscr.addstr(2, 22, "╰─────────╯", curses.color_pair(0))
-        self.stdscr.addstr(1, 23, "Util/Temp", curses.color_pair(221))
-        self.stdscr.refresh()
-        self.menu = MenuWindow()
+        self.tab = TabWindow(self.tab_names, self.stdscr)
+        self.menu = MenuWindow(self.stdscr)
         self.header = HeaderWindow(
             col_names=[
                 "  Start ","   End  ", "BGW",
                 " Local-Address ", "LPort",
                 " Remote-Address", "RPort",
-                "Codec", "QoS", "Cp"])
+                "Codec", "QoS"])
 
 
     def handle_char(self, char: int) -> None:
@@ -186,11 +189,54 @@ class MyDisplay(Display):
         elif char == curses.KEY_DOWN:
             self.posy = self.posy + 1 if self.posy < self.maxy -1 else self.posy
             curses.setsyx(self.posy, self.posx)
+        elif chr(char) == "\t":
+            self.tab.shift_right()
         curses.doupdate()
 
-class MenuWindow(Window):
-    def __init__(self, nlines=1, xstart=10):
+class TabWindow(Window):
+    def __init__(self, tab_names, stdscr, nlines=2, yoffset=0, xoffset=0):
         super().__init__()
+        self.tab_names = tab_names
+        self.tab_width = max(len(x) for x in tab_names) + 2
+        self.yoffset = yoffset
+        self.xoffset = xoffset
+        self.active_tab = 0
+        self.maxy, self.maxx = nlines, stdscr.getmaxyx()[1]
+        self.win = stdscr.subwin(nlines, self.maxx, yoffset, xoffset)
+        self.draw()
+    
+    def draw(self):
+        xpos = self.xoffset
+        for idx, tab_names in enumerate(self.tab_names):
+            active = bool(idx == self.active_tab)
+            self._draw_tab(tab_names, self.yoffset, xpos, active)
+            xpos += self.tab_width + 2
+        self.win.refresh()
+
+    def _draw_tab(self, tab_name, ypos, xpos, active):
+        border1 = "╭" + self.tab_width * "─" + "╮"
+        border2 = "│" + " " * self.tab_width + "│"
+        self.win.addstr(ypos, xpos, border1, curses.color_pair(0))
+        self.win.addstr(ypos + 1, xpos, border2, curses.color_pair(0))
+        text = tab_name.center(self.tab_width)
+        if not active:
+            text_color_pair = curses.color_pair(0)
+        else:
+            text_color_pair = curses.color_pair(0)|curses.A_REVERSE
+        self.win.addstr(ypos + 1, xpos+1, text, text_color_pair)
+
+    def shift_right(self):
+        if self.active_tab < len(self.tab_names) - 1:
+            self.active_tab += 1
+        else:
+            self.active_tab = 0
+        self.draw()
+
+
+class MenuWindow(Window):
+    def __init__(self, stdscr, nlines=1, xstart=10):
+        super().__init__()
+        self.stdscr = stdscr
         mcols, mlines = os.get_terminal_size()
         self.buttons = ["s", "c", "e", "t"]
         self.xstart = xstart
@@ -216,7 +262,7 @@ class HeaderWindow(Window):
         self.separator = separator
         mcols, _ = os.get_terminal_size()
         self.col_names = col_names if col_names else []
-        self.win = curses.newwin(nlines + 2, mcols, 3, 0)
+        self.win = curses.newwin(nlines + 2, mcols, 2, 0)
         self.maxy, self.maxx = self.win.getmaxyx()
         self.draw()
 
