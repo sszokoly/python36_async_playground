@@ -89,21 +89,23 @@ def main(stdscr):
                 sys.exit()
 
 def change_terminal(to_type="xterm-256color"):
-    current_term = os.environ.get("TERM")
+    old_term = os.environ.get("TERM")
     types = os.popen("toe -a").read().splitlines()
     if any(x for x in types if x.startswith(to_type)):
         os.environ["TERM"] = to_type
-    return current_term
+    return old_term
 
 def startup():
     print("Starting up")
-    current_term = change_terminal()
-    atexit.register(shutdown, current_term)
+    old_term = change_terminal()
+    print(f"Old TERM: {old_term}")
+    atexit.register(shutdown, old_term)
     curses.wrapper(main)
 
 def shutdown(term):
     print("Shutting down")
-    change_terminal(term)
+    old_term = change_terminal(term)
+    print(f"Old TERM: {old_term}")
 
 
 
