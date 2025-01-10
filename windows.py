@@ -74,9 +74,9 @@ def main(stdscr):
     
         ws = Workspace(
             stdscr,
-            col_attrs=["start_time", "stop_time", "gw_number"],
-            col_widths=[12, 12, 3],
-            col_names=["Start", "Stop", "BGW"]
+            col_attrs=["start_time", "stop_time", "gw_number", "local_address", "local_port", "remote_address", "remote_port", "codec", "qos"],
+            col_widths=[8, 8, 3, 15, 5, 15, 5, 5, 3],
+            col_names=["Start", "Stop", "BGW", "Local-Address", "LPort", "Remote-Address", "RPort", "Codec", "QoS"],
         )
         while not done:
             char = stdscr.getch()
