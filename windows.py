@@ -39,9 +39,9 @@ class Workspace():
 
     def draw(self):
         self._draw_title()
-        self.body.box()
-        #self.body.refresh()
-        self.footer.refresh()
+        self._draw_body()
+        self._draw_footer()
+
     
     def _draw_title(self):
         self.title.box()
@@ -60,7 +60,11 @@ class Workspace():
             pass
         self.title.refresh()
 
+    def _draw_body(self):
+        pass
 
+    def _draw_footer(self):
+        pass
 
 def main(stdscr):
     curses.curs_set(0)
@@ -74,9 +78,12 @@ def main(stdscr):
     
         ws = Workspace(
             stdscr,
-            col_attrs=["start_time", "stop_time", "gw_number", "local_address", "local_port", "remote_address", "remote_port", "codec", "qos"],
+            col_attrs=["start_time", "stop_time", "gw_number",
+                "local_address", "local_port", "remote_address",
+                "remote_port", "codec", "qos"],
             col_widths=[8, 8, 3, 15, 5, 15, 5, 5, 3],
-            col_names=["Start", "Stop", "BGW", "Local-Address", "LPort", "Remote-Address", "RPort", "Codec", "QoS"],
+            col_names=["Start", "Stop", "BGW", "Local-Address",
+                "LPort", "Remote-Address", "RPort", "Codec", "QoS"],
         )
         while not done:
             char = stdscr.getch()
