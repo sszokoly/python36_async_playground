@@ -104,16 +104,16 @@ def change_terminal(to_type="xterm-256color"):
 
 def startup():
     print("Starting up")
-    old_term = change_terminal()
-    print(f"Old TERM: {old_term}")
-    atexit.register(shutdown, old_term)
+    orig_term = change_terminal()
+    print(f"Old TERM: {orig_term}")
+    orig_stty = os.popen("stty -g").read().strip()
+    atexit.register(shutdown, orig_term, orig_stty)
     curses.wrapper(main)
 
-def shutdown(term):
+def shutdown(term, stty):
     print("Shutting down")
-    old_term = change_terminal(term)
-    print(f"Old TERM: {old_term}")
-
+    _ = change_terminal(term)
+    os.system(f"stty {stty}")
 
 
 if __name__ == "__main__":
