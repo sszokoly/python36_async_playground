@@ -4,6 +4,60 @@ import os
 import time
 import sys
 from abc import ABC, abstractmethod
+from bgw import BGW
+from storage import SlicableOrderedDict
+
+bgws = [
+    BGW(host="10.10.48.1", gw_name='gw1', gw_number='001', show_running_config='Model : g430\nFW Vintage : 1\nrtp-stat-service', show_faults='No Fault Messages'),
+    BGW(host="10.10.48.2", gw_name='gw12', gw_number='002', show_running_config='Model : g450\nFW Vintage : 3\n', show_faults='Error'),
+]
+
+
+storage = SlicableOrderedDict(items={
+    "2025-01-10,10:51:36,001,00001": {
+        "gw_number": "001",
+        "session_id": "00001",
+        "start_time": "2025-01-10,10:51:36",
+        "end_time": "10:52:48",
+        "local_addr": "10.10.48.1",
+        "local_port": "2048",
+        "remote_addr": "192.168.148.191",
+        "remote_port": "33634",
+        "qos":  "ok",
+        "codec": "G711U",
+    },
+    "2025-01-10,10:53:36,001,00002": {
+        "gw_number": "001",
+        "session_id": "00001",
+        "start_time": "2025-01-10,10:53:36",
+        "end_time": "10:59:38",
+        "local_addr": "10.10.48.1",
+        "local_port": "2052",
+        "remote_addr": "10.10.48.2",
+        "remote_port": "2064",
+        "qos":  "ok",
+        "codec": "G711U",
+    },
+    "2025-01-10,10:53:36,002,00012": {
+        "gw_number": "002",
+        "session_id": "00001",
+        "start_time": "2025-01-10,10:53:36",
+        "end_time": "10:59:38",
+        "local_addr": "10.10.48.2",
+        "local_port": "2064",
+        "remote_addr": "10.10.48.1",
+        "remote_port": "2052",
+        "qos":  "Faulted",
+        "codec": "G711U",
+    },
+})
+
+row_iterator = list(storage.values())
+col_iterator = lambda c: [
+    c.get('start_time'), c.get('end_time'), c.get('gw_number'),
+    c.get('local_addr'), c.get('local_port'), c.get('remote_addr'),
+    c.get('remote_port'), c.get('codec'), c.get('qos')]
+
 
 
 class Workspace():
@@ -29,12 +83,13 @@ class Workspace():
         self._xoffset = xoffset
         self._row_iterator = row_iterator
         self._col_iterator = col_iterator
+        self._cursy = 0
         self.color_pair = color_pair if color_pair else curses.color_pair(0)
         self.maxy = self._stdscr.getmaxyx()[0] - yoffset
         self.maxx = sum(x + 1 for x in self._col_widths) + 1
         self.title = stdscr.subwin(3, self.maxx, yoffset, xoffset)
-        self.body = stdscr.subwin(self.maxy - 3, self.maxx, yoffset + 2, xoffset)
-        self.footer = stdscr.subwin(1, self.maxx, yoffset, xoffset)
+        self.body = stdscr.subwin(self.maxy - 3, self.maxx, yoffset + 3, xoffset)
+        self.footer = stdscr.subwin(1, self.maxx, self.maxy, xoffset)
         self.draw()
 
     def draw(self):
@@ -53,6 +108,7 @@ class Workspace():
             self.title.addstr(1, xpos, col_name, self.color_pair)
             if idx > 0:
                 self.title.addstr(0, xpos, "┬", self.color_pair)
+                self.title.addstr(2, xpos, "┼", self.color_pair)
         try:
             self.title.addstr(2, self._xoffset, "├", self.color_pair)
             self.title.addstr(2, self.maxx - 1, "┤", self.color_pair)
@@ -61,10 +117,19 @@ class Workspace():
         self.title.refresh()
 
     def _draw_body(self):
-        pass
+        for ridx, row in enumerate(self._row_iterator[self._cursy:  self._cursy + self.maxy - 3]):
+            offset = 0
+            for cidx, (item, width) in enumerate(zip(self._col_iterator(row), self._col_widths)):
+                xpos = self._xoffset if cidx == 0 else offset
+                item = f"│{item[-width:]:>{width}}"
+                offset = xpos + len(item)
+                self.body.addstr(ridx, xpos, item, self.color_pair)
+            self.body.addstr(ridx, xpos + len(item), "│", self.color_pair)
+            self.body.refresh()
 
     def _draw_footer(self):
-        pass
+        self.footer.addstr(0, 0, " " * (self.maxx - 1), self.color_pair|curses.A_REVERSE)
+        self.footer.refresh()
 
 def main(stdscr):
     curses.curs_set(0)
@@ -84,6 +149,8 @@ def main(stdscr):
             col_widths=[8, 8, 3, 15, 5, 15, 5, 5, 3],
             col_names=["Start", "Stop", "BGW", "Local-Address",
                 "LPort", "Remote-Address", "RPort", "Codec", "QoS"],
+            row_iterator=row_iterator,
+            col_iterator=col_iterator,
         )
         while not done:
             char = stdscr.getch()

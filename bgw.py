@@ -127,20 +127,20 @@ proc cmd {{command}} {{
 }}
 
 proc get_active_global_ids {{}} {{
-    global host cmd parse_session_summary_line
+    global cmd parse_session_summary_line, gw_number
     set ids [list]
     foreach line [split [cmd "show rtp-stat sessions active\\n"] "\\n"] {{
         if {{[regexp {{^[0-9]+}} $line]}} {{
             set result [parse_session_summary_line $line]
             lassign $result session_id start_date start_time end_date end_time
-            lappend ids [format "%s,%s,%s,%s" $start_date $start_time $host $session_id]
+            lappend ids [format "%s,%s,%s,%s" $start_date $start_time $gw_number $session_id]
         }}
     }}
     return $ids
 }}
 
 proc get_recent_global_ids {{{{lastn_secs {{20}}}}}} {{
-    global host cmd parse_session_summary_line is_date1_gt_date2
+    global cmd parse_session_summary_line is_date1_gt_date2 gw_number
     set ref_datetime [exec date "+%Y-%m-%d,%H:%M:%S" -d "now - $lastn_secs secs"]
     set ids [list]
     foreach line [split [cmd "show rtp-stat sessions last 20\\n"] "\\n"] {{
@@ -151,7 +151,7 @@ proc get_recent_global_ids {{{{lastn_secs {{20}}}}}} {{
                 set end_datetime [format "%s,%s" $end_date $end_time]
                 set is_end_datetime_gt_ref_datetime [is_date1_gt_date2 $end_datetime $ref_datetime]
                 if {{$is_end_datetime_gt_ref_datetime}} {{
-                    lappend ids [format "%s,%s,%s,%s" $start_date $start_time $host $session_id]
+                    lappend ids [format "%s,%s,%s,%s" $start_date $start_time $gw_number $session_id]
                 }}
             }}
         }}
@@ -239,7 +239,7 @@ if {{$rtp_stat}} {{
 
     if {{$merged_global_ids ne {{}}}} {{
         foreach global_id $merged_global_ids {{
-            lassign [split $global_id ","] start_date start_time host session_id
+            lassign [split $global_id ","] start_date start_time gw_number session_id
             set output [cmd "show rtp-stat detailed $session_id\\n"]
             if {{$output ne ""}} {{
                 set rtp_sessions_array($global_id) $output
@@ -448,7 +448,7 @@ class BGW():
     def __repr__(self):
         return f"BGW(host={self.host})"
 
-    def to_dict(self):
+    def asdict(self):
         return self.__dict__
 
 def iter_session_main_attrs(
