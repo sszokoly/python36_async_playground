@@ -73,7 +73,7 @@ storage = SlicableOrderedDict(items={
         "remote_addr": "10.10.48.63",
         "remote_port": "2054",
         "qos":  "Faulted",
-        "codec": "G711U",
+        "codec": "G729",
     },
     "2025-01-10,10:00:06,006,00020": {
         "gw_number": "006",
@@ -188,6 +188,12 @@ class Workspace():
         elif char == curses.KEY_END:
             self.posy = self.maxy - 4
             self.row_pos = len(self._storage) - 1
+        elif char == curses.KEY_NPAGE:
+            self.posy = self.maxy - 4
+            self.row_pos = max(self.row_pos + (self.maxy - 4), len(self._storage) - 1)
+        elif char == curses.KEY_PPAGE:
+            self.posy = 0
+            self.row_pos = min(self.row_pos - (self.maxy - 4), 0)
         self._draw_body()
 
 def main(stdscr):
@@ -223,7 +229,7 @@ def main(stdscr):
             elif char == curses.KEY_RESIZE:
                 stdscr.erase()
                 break
-            elif char in (curses.KEY_DOWN, curses.KEY_UP, curses.KEY_HOME, curses.KEY_END):
+            elif char in (curses.KEY_DOWN, curses.KEY_UP, curses.KEY_HOME, curses.KEY_END, curses.KEY_NPAGE, curses.KEY_PPAGE):
                 workspaces[active_ws_idx].handle_char(char)
             elif chr(char) == "\t":
                 active_ws_idx = (active_ws_idx + 1) % len(workspaces)
