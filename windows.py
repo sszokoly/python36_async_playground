@@ -105,7 +105,7 @@ class Workspace():
         menu_window=None,
         yoffset=2,
         xoffset=0,
-        row_iterator=None,
+        storage=None,
         col_iterator=None,
         color_pair=None,
     ):
@@ -216,7 +216,19 @@ def main(stdscr):
             col_widths=[8, 8, 3, 15, 5, 15, 5, 5, 3],
             col_names=["Start", "Stop", "BGW", "Local-Address",
                 "LPort", "Remote-Address", "RPort", "Codec", "QoS"],
-            row_iterator=row_iterator,
+            storage=storage,
+            col_iterator=col_iterator,
+        )
+
+        ws2 = Workspace(
+            stdscr,
+            col_attrs=["start_time", "stop_time", "gw_number",
+                "local_address", "local_port", "remote_address",
+                "remote_port", "codec", "qos"],
+            col_widths=[8, 8, 3, 15, 5, 15, 5, 5, 3],
+            col_names=["Start", "Stop", "BGW", "Local-Address",
+                "LPort", "Remote-Address", "RPort", "Codec", "QoS"],
+            storage=storage,
             col_iterator=col_iterator,
         )
 
