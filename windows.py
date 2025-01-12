@@ -8,13 +8,15 @@ from bgw import BGW
 from itertools import islice
 from storage import SlicableOrderedDict
 
-bgws = [
-    BGW(host="10.10.48.1", gw_name='gw1', gw_number='001', show_running_config='Model : g430\nFW Vintage : 1\nrtp-stat-service', show_faults='No Fault Messages'),
-    BGW(host="10.10.48.2", gw_name='gw12', gw_number='002', show_running_config='Model : g450\nFW Vintage : 3\n', show_faults='Error'),
+bgws_storage = [
+    BGW(host="10.10.48.1", gw_name='gw1', gw_number='001', show_system='Model : g430\nHW Vintage : 1\nHW Suffix : A\nFW Vintage : 42.34.1\n', show_running_config='rtp-stat-service\nsla-server-ip-address: 10.10.48.198\n', show_faults='No Fault Messages'),
+    BGW(host="10.10.48.2", gw_name='gw2', gw_number='002', show_system='Model : g450\nHW Vintage : 3\nHW Suffix : B\nFW Vintage : 42.18.1\n', show_running_config='rtp-stat-service\nsla-server-ip-address: 10.10.48.198\n', show_faults='Error'),
+    BGW(host="10.10.48.3", gw_name='gw3', gw_number='003', show_system='Model : g450\nHW Vintage : 4\nHW Suffix : A\nFW Vintage : 42.27.0\n', show_running_config='sla-server-ip-address: 10.10.48.198\n',show_faults='No Fault Messages'),
 ]
 
+bgws_col_iterator = lambda bgw, attr: getattr(bgw, 'attr')
 
-storage = SlicableOrderedDict(items={
+rtp_storage = SlicableOrderedDict(items={
     "2025-01-10,10:00:01,001,00001": {
         "gw_number": "001",
         "session_id": "00001",
@@ -87,10 +89,22 @@ storage = SlicableOrderedDict(items={
         "qos":  "Faulted",
         "codec": "G711U",
     },
+    "2025-01-10,10:00:07,007,00020": {
+        "gw_number": "007",
+        "session_id": "00041",
+        "start_time": "2025-01-10,10:00:07",
+        "end_time": "10:10:07",
+        "local_addr": "10.10.48.7",
+        "local_port": "2064",
+        "remote_addr": "10.10.48.55",
+        "remote_port": "34442",
+        "qos":  "Faulted",
+        "codec": "G711U",
+    },
 })
 
-row_iterator = lambda start,stop: islice(storage.values(), start, stop)
-col_iterator = lambda c: [
+storage_row_iterator = lambda start,stop: islice(rtp_storage.values(), start, stop)
+storage_col_iterator = lambda c: [
     c.get('start_time'), c.get('end_time'), c.get('gw_number'),
     c.get('local_addr'), c.get('local_port'), c.get('remote_addr'),
     c.get('remote_port'), c.get('codec'), c.get('qos')]
@@ -125,10 +139,9 @@ class Workspace():
         self.color_pair = color_pair if color_pair else curses.color_pair(0)
         self.maxy = self._stdscr.getmaxyx()[0] - yoffset
         self.maxx = sum(x + 1 for x in self._col_widths) + 1
-        self.title = stdscr.subwin(3, self.maxx, yoffset, xoffset)
-        self.body = stdscr.subwin(self.maxy - 3, self.maxx, yoffset + 3, xoffset)
-        self.footer = stdscr.subwin(1, self.maxx, self.maxy, xoffset)
-        self.draw()
+        self.title = self._stdscr.subwin(3, self.maxx, yoffset, xoffset)
+        self.body = self._stdscr.subwin(self.maxy - 3, self.maxx, yoffset + 3, xoffset)
+        self.footer = self._stdscr.subwin(1, self.maxx, self.maxy, xoffset)
 
     def draw(self):
         self._draw_title()
@@ -155,16 +168,26 @@ class Workspace():
         self.title.refresh()
 
     def _draw_body(self):
-        start_row = max(0, self.row_pos - (self.maxy - 4))
-        end_row = max(self.row_pos + 1, (self.maxy - 3))
-        for ridx, row in enumerate(self._storage[start_row, end_row]):
+        start_row = self.row_pos
+        end_row = min(self.row_pos + (self.maxy - 3), len(self._storage))
+        for ridx, row in enumerate(self._storage[start_row:end_row]):
             offset = 0
             try:
-                for cidx, (item, width) in enumerate(zip(self._col_iterator(row), self._col_widths)):
+                for cidx, (attr, width) in enumerate(zip(self._col_attrs, self._col_widths)):
                     xpos = self._xoffset if cidx == 0 else offset
-                    item = f"│{item[-width:]:>{width}}"
+                    if hasattr(row, attr):
+                        item = getattr(row, attr)
+                    else:
+                        item = row.get(attr)
+                    item = f"│{str(item)[-width:]:>{width}}"
+                    if hasattr(item, "color_pair"):
+                        cpair = getattr(row, "color_pair")
+                    elif hasattr(item, "get"):
+                        cpair = item.get("color_pair", self.color_pair)
+                    else:
+                        cpair = self.color_pair
+                    cpair = cpair|curses.A_REVERSE if ridx == self.posy else cpair
                     offset = xpos + len(item)
-                    cpair = self.color_pair|curses.A_REVERSE if ridx == self.posy else self.color_pair
                     self.body.addstr(ridx, xpos, item, cpair)
                 self.body.addstr(ridx, xpos + len(item), "│", cpair)
             except curses.error:
@@ -177,23 +200,23 @@ class Workspace():
 
     def handle_char(self, char):
         if char == curses.KEY_DOWN:
-            self.posy = self.posy + 1 if self.posy < self.maxy - 4 else self.posy
-            self.row_pos = self.row_pos + 1 if len(self._storage) > self.row_pos + 1 else self.row_pos
+            self.row_pos = self.row_pos + 1 if self.posy == (self.maxy - 4) and self.row_pos + 1 <= len(self._storage) - (self.maxy - 3) else self.row_pos
+            self.posy = self.posy + 1 if self.posy < (self.maxy - 4) and len(self._storage) - 1 > self.posy else self.posy
         elif char == curses.KEY_UP:
+            self.row_pos = self.row_pos - 1 if self.row_pos > 0 and self.posy == 0 else self.row_pos
             self.posy =  self.posy - 1 if self.posy > 0 else self.posy
-            self.row_pos = self.row_pos - 1 if self.row_pos > 0 else self.row_pos
         elif char == curses.KEY_HOME:
-            self.posy = 0
             self.row_pos = 0
+            self.posy = 0
         elif char == curses.KEY_END:
-            self.posy = self.maxy - 4
-            self.row_pos = len(self._storage) - 1
+            self.posy = min(self.maxy - 4, len(self._storage) - 1)
+            self.row_pos = max(0, len(self._storage) - (self.maxy - 3))
         elif char == curses.KEY_NPAGE:
-            self.posy = self.maxy - 4
-            self.row_pos = max(self.row_pos + (self.maxy - 4), len(self._storage) - 1)
+            self.row_pos = min(self.row_pos + (self.maxy - 3), max(0, len(self._storage) - (self.maxy - 3)))
+            self.posy = 0 if self.row_pos + (self.maxy - 3) <= len(self._storage) - 1 else min(len(self._storage) - 1, (self.maxy - 3) - 1)
         elif char == curses.KEY_PPAGE:
             self.posy = 0
-            self.row_pos = min(self.row_pos - (self.maxy - 4), 0)
+            self.row_pos = max(self.row_pos - (self.maxy - 3), 0)
         self._draw_body()
 
 def main(stdscr):
@@ -208,6 +231,8 @@ def main(stdscr):
 
     while not done:
     
+        workspaces = []
+
         ws1 = Workspace(
             stdscr,
             col_attrs=["start_time", "stop_time", "gw_number",
@@ -216,24 +241,27 @@ def main(stdscr):
             col_widths=[8, 8, 3, 15, 5, 15, 5, 5, 3],
             col_names=["Start", "Stop", "BGW", "Local-Address",
                 "LPort", "Remote-Address", "RPort", "Codec", "QoS"],
-            storage=storage,
-            col_iterator=col_iterator,
-        )
-
-        ws2 = Workspace(
-            stdscr,
-            col_attrs=["start_time", "stop_time", "gw_number",
-                "local_address", "local_port", "remote_address",
-                "remote_port", "codec", "qos"],
-            col_widths=[8, 8, 3, 15, 5, 15, 5, 5, 3],
-            col_names=["Start", "Stop", "BGW", "Local-Address",
-                "LPort", "Remote-Address", "RPort", "Codec", "QoS"],
-            storage=storage,
-            col_iterator=col_iterator,
+            storage=rtp_storage,
+            col_iterator=storage_col_iterator
         )
 
         workspaces.append(ws1)
 
+        ws2 = Workspace(
+            stdscr,
+            col_attrs=["gw_number", "model", "firmware",
+                "hw", "host", "slamon",
+                "rtp_stat", "faults"],
+            col_widths=[3, 5, 8, 2, 15, 15, 8, 6],
+            col_names=["BGW", "Model", "Firmware", "HW", "LAN IP",
+                "SLAMon IP", "RTP-Stat", "Faults"],
+            storage=bgws_storage,
+            col_iterator=bgws_col_iterator
+        )
+
+        workspaces.append(ws2)
+
+        workspaces[active_ws_idx].draw()
         while not done:
             char = stdscr.getch()
             if char == curses.ERR:
@@ -245,6 +273,8 @@ def main(stdscr):
                 workspaces[active_ws_idx].handle_char(char)
             elif chr(char) == "\t":
                 active_ws_idx = (active_ws_idx + 1) % len(workspaces)
+                stdscr.erase()
+                workspaces[active_ws_idx].draw()
             elif chr(char) == "q":
                 sys.exit()
 

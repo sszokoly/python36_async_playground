@@ -372,7 +372,9 @@ class BGW():
         self._faults = None
         self._capture = None
         self._model = None
+        self._hw = None
         self._firmware = None
+        self._slamon = None
         self._serial = None
         self._rtp_stat = None
         self._capture = None
@@ -382,28 +384,45 @@ class BGW():
     def model(self):
         if not self._model:
             m = re.search(r'Model\s+:\s+(\S+)', self.show_system)
-            self._model = m.group(1) if m else "unknown"
+            self._model = m.group(1) if m else "?"
         return self._model
+
+    @property
+    def hw(self):
+        if not self._hw:
+            m = re.search(r'HW Vintage\s+:\s+(\S+)', self.show_system)
+            hw_vintage = m.group(1) if m else "?"
+            m = re.search(r'HW Suffix\s+:\s+(\S+)', self.show_system)
+            hw_suffix = m.group(1) if m else "?"
+            self._hw = f"{hw_vintage}{hw_suffix}"
+        return self._hw
 
     @property
     def firmware(self):
         if not self._firmware:
             m = re.search(r'FW Vintage\s+:\s+(\S+)', self.show_system)
-            self._firmware = m.group(1) if m else "unknown"
+            self._firmware = m.group(1) if m else "?"
         return self._firmware
-    
+
+    @property
+    def slamon(self):
+        if not self._slamon:
+            m = re.search(r'sla-server-ip-address\s+:\s+(\S+)', self.show_system)
+            self._slamon = m.group(1) if m else ""
+        return self._slamon
+
     @property
     def serial(self):
         if not self._serial:
             m = re.search(r'Serial No\s+:\s+(\S+)', self.show_system)
-            self._serial = m.group(1) if m else "unknown"
+            self._serial = m.group(1) if m else "?"
         return self._serial
 
     @property
     def rtp_stat(self):
         if not self._rtp_stat:
             if not self.show_running_config:
-                self._rtp_stat = "unknown"
+                self._rtp_stat = "?"
             else:
                 m = re.search(r'rtp-stat-service', self.show_running_config)
                 self._rtp_stat = "enabled" if m else 'disabled'
@@ -417,7 +436,7 @@ class BGW():
                 config, state = m.group(1, 2)
                 self._capture = config if config == "disabled" else state
             else:
-                self._capture = "unknown"
+                self._capture = "?"
         return self._capture
 
     @property
@@ -428,14 +447,14 @@ class BGW():
                 cels, faren = m.group(1, 2)
                 self._temp = f"{cels}/{faren}"
             else:
-                self._temp = "unknown"
+                self._temp = "?"
         return self._temp
 
     @property
     def faults(self):
         if not self._faults:
             if not self.show_faults:
-                self._faults = "unknown"
+                self._faults = "?"
             elif "No Fault Messages" in self.show_faults:
                 self._faults = "none"
             else:
