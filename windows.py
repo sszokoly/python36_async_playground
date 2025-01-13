@@ -109,6 +109,7 @@ storage_col_iterator = lambda c: [
     c.get('local_addr'), c.get('local_port'), c.get('remote_addr'),
     c.get('remote_port'), c.get('codec'), c.get('qos')]
 
+
 class TabWindow():
     def __init__(self,
         stdscr,
