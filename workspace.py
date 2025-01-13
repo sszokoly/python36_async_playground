@@ -394,7 +394,6 @@ if __name__ == "__main__":
         tab = Tab(
             stdscr,
             tab_names=["RTP Stats", "Inventory"],
-            color_pair=curses.color_pair(203)
         )
         display = MyDisplay(stdscr, workspaces=[ws1, ws2], tabwin=tab)
         display.run()
