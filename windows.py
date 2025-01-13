@@ -148,7 +148,6 @@ class Workspace():
         self._draw_body()
         self._draw_footer()
 
-    
     def _draw_title(self):
         self.title.box()
         offset = 0
@@ -195,7 +194,7 @@ class Workspace():
         self.body.refresh()
 
     def _draw_footer(self):
-        #self.footer.addstr(0, 0, " " * (self.maxx - 1), self.color_pair|curses.A_REVERSE)
+        self.footer.addstr(0, 0, " " * (self.maxx - 1), self.color_pair|curses.A_REVERSE)
         self.footer.refresh()
 
     def handle_char(self, char):
