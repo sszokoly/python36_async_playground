@@ -9,9 +9,9 @@ from itertools import islice
 from storage import SlicableOrderedDict
 
 bgws_storage = [
-    BGW(host="10.10.48.1", gw_name='gw1', gw_number='001', show_system='Model : g430\nHW Vintage : 1\nHW Suffix : A\nFW Vintage : 42.34.1\n', show_running_config='rtp-stat-service\nsla-server-ip-address: 10.10.48.198\n', show_faults='No Fault Messages'),
-    BGW(host="10.10.48.2", gw_name='gw2', gw_number='002', show_system='Model : g450\nHW Vintage : 3\nHW Suffix : B\nFW Vintage : 42.18.1\n', show_running_config='rtp-stat-service\nsla-server-ip-address: 10.10.48.198\n', show_faults='Error'),
-    BGW(host="10.10.48.3", gw_name='gw3', gw_number='003', show_system='Model : g450\nHW Vintage : 4\nHW Suffix : A\nFW Vintage : 42.27.0\n', show_running_config='sla-server-ip-address: 10.10.48.198\n',show_faults='No Fault Messages'),
+    BGW(host="10.10.48.1", gw_name='gw1', gw_number='001', show_system='Model : g430\nHW Vintage : 1\nHW Suffix : A\nFW Vintage : 42.34.1\n', show_running_config='rtp-stat-service\nsla-server-ip-address 10.10.48.198\n', show_faults='No Fault Messages'),
+    BGW(host="10.10.48.2", gw_name='gw2', gw_number='002', show_system='Model : g450\nHW Vintage : 3\nHW Suffix : B\nFW Vintage : 42.18.1\n', show_running_config='rtp-stat-service\nsla-server-ip-address 10.10.48.198\n', show_faults='Error'),
+    BGW(host="10.10.48.3", gw_name='gw3', gw_number='003', show_system='Model : g450\nHW Vintage : 4\nHW Suffix : A\nFW Vintage : 42.27.0\n', show_running_config='sla-server-ip-address 10.10.48.198\n',show_faults='No Fault Messages'),
 ]
 
 bgws_col_iterator = lambda bgw, attr: getattr(bgw, 'attr')
@@ -109,6 +109,52 @@ storage_col_iterator = lambda c: [
     c.get('local_addr'), c.get('local_port'), c.get('remote_addr'),
     c.get('remote_port'), c.get('codec'), c.get('qos')]
 
+class TabWindow():
+    def __init__(self,
+        stdscr,
+        tab_names,
+        nlines=2,
+        yoffset=0,
+        xoffset=0,
+        color_pair=None,
+    ):
+        self._stdscr = stdscr
+        self._tab_names = tab_names
+        self._tab_width = max(len(x) for x in self._tab_names) + 2
+        self._yoffset = yoffset
+        self._xoffset = xoffset
+        self._color_pair = color_pair if color_pair else curses.color_pair(0)
+        self._active_tab_idx = 0
+        self.maxy, self.maxx = nlines, self._stdscr.getmaxyx()[1]
+        self.win = self._stdscr.subwin(nlines, self.maxx, yoffset, xoffset)
+
+    def draw(self):
+        xpos = self._xoffset
+        for idx, tab_names in enumerate(self._tab_names):
+            active = bool(idx == self._active_tab_idx)
+            self._draw_tab(tab_names, self._yoffset, xpos, active)
+            xpos += self._tab_width + 2
+        self.win.refresh()
+
+    def _draw_tab(self, tab_name, ypos, xpos, active):
+        border1 = "╭" + self._tab_width * "─" + "╮"
+        border2 = "│" + " " * self._tab_width + "│"
+        self.win.addstr(ypos, xpos, border1, self._color_pair)
+        self.win.addstr(ypos + 1, xpos, border2, self._color_pair)
+        text = tab_name.center(self._tab_width)
+        if not active:
+            text_color_pair = self._color_pair
+        else:
+            text_color_pair = self._color_pair|curses.A_REVERSE
+        self.win.addstr(ypos + 1, xpos+1, text, text_color_pair)
+
+    def handle_char(self, char):
+        if chr(char) == "\t":
+            if self._active_tab_idx < len(self._tab_names) - 1:
+                self._active_tab_idx += 1
+            else:
+                self._active_tab_idx = 0
+            self.draw()
 
 class Workspace():
     def __init__(self,
@@ -230,15 +276,17 @@ def main(stdscr):
 
     while not done:
     
+        tabwin = TabWindow(stdscr, tab_names=["RTP Stats", "Inventory"])
+
         workspaces = []
 
         ws1 = Workspace(
             stdscr,
-            col_attrs=["start_time", "stop_time", "gw_number",
+            col_attrs=["start_time", "end_time", "gw_number",
                 "local_address", "local_port", "remote_address",
                 "remote_port", "codec", "qos"],
             col_widths=[8, 8, 3, 15, 5, 15, 5, 5, 3],
-            col_names=["Start", "Stop", "BGW", "Local-Address",
+            col_names=["Start", "End", "BGW", "Local-Address",
                 "LPort", "Remote-Address", "RPort", "Codec", "QoS"],
             storage=rtp_storage,
             col_iterator=storage_col_iterator
@@ -260,6 +308,7 @@ def main(stdscr):
 
         workspaces.append(ws2)
 
+        tabwin.draw()
         workspaces[active_ws_idx].draw()
         while not done:
             char = stdscr.getch()
@@ -274,6 +323,7 @@ def main(stdscr):
                 active_ws_idx = (active_ws_idx + 1) % len(workspaces)
                 stdscr.erase()
                 workspaces[active_ws_idx].draw()
+                tabwin.handle_char(char)
             elif chr(char) == "q":
                 sys.exit()
 

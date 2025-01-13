@@ -407,7 +407,7 @@ class BGW():
     @property
     def slamon(self):
         if not self._slamon:
-            m = re.search(r'sla-server-ip-address\s+:\s+(\S+)', self.show_system)
+            m = re.search(r'sla-server-ip-address (\S+)', self.show_system)
             self._slamon = m.group(1) if m else ""
         return self._slamon
 
