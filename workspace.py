@@ -152,7 +152,8 @@ class Tab:
         border1 = "╭" + self._tab_width * "─" + "╮"
         border2 = "│" + " " * self._tab_width + "│"
         self.win.addstr(ypos, xpos, border1, self._color_pair)
-        self.win.addstr(ypos + 1, xpos, border2, self._color_pair)
+        for linen in range(1, self.maxy - 1):
+            self.win.addstr(ypos + linen, xpos, border2, self._color_pair)
         text = tab_name.center(self._tab_width)
         if not active:
             text_color_pair = self._color_pair
