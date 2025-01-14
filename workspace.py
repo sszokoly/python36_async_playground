@@ -152,7 +152,7 @@ class Tab:
         border1 = "╭" + self._tab_width * "─" + "╮"
         border2 = "│" + " " * self._tab_width + "│"
         self.win.addstr(ypos, xpos, border1, self._color_pair)
-        for linen in range(1, self.maxy - 1):
+        for linen in range(1, self.maxy):
             self.win.addstr(ypos + linen, xpos, border2, self._color_pair)
         text = tab_name.center(self._tab_width)
         if not active:
@@ -233,22 +233,24 @@ class Workspace:
             offset = 0
             try:
                 for cidx, (attr, width) in enumerate(zip(self._column_attrs,
-                self._column_widths)):
+                                                         self._column_widths)):
                     xpos = self._xoffset if cidx == 0 else offset
+                    
                     if hasattr(row, attr):
                         item = getattr(row, attr)
                     else:
                         item = row.get(attr)
                     item = f"│{str(item)[-width:]:>{width}}"
+                    
                     if hasattr(item, "color_pair"):
                         cpair = getattr(row, "color_pair")
                     elif hasattr(item, "get"):
                         cpair = item.get("color_pair", self._color_pair)
                     else:
                         cpair = self._color_pair
-                    
                     if ridx == self.posy:
                         cpair = cpair|curses.A_REVERSE
+                    
                     offset = xpos + len(item)
                     self.body.addstr(ridx, xpos, item, cpair)
                 self.body.addstr(ridx, xpos + len(item), "│", cpair)
@@ -386,7 +388,7 @@ if __name__ == "__main__":
                 "host", "slamon", "rtp_stat", "faults",
             ],
             column_names=[
-                "BGW", "Model", "Firmware", "HW", "LAN IP",
+                "BGW", "Model", "FW", "HW", "LAN IP",
                 "SLAMon IP", "RTP-Stat", "Faults",
             ],
             column_widths=[3, 5, 8, 2, 15, 15, 8, 6],
