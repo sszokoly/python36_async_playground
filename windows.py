@@ -7,6 +7,46 @@ from abc import ABC, abstractmethod
 from itertools import islice
 
 
+class Menubar:
+    def __init__(self, stdscr, nlines=1, xoffset=0, color_pair=None) -> None:
+        self._stdscr = stdscr
+        self._xoffset = xoffset
+        self._color_pair = color_pair if color_pair else curses.color_pair(0)
+        self.maxx = self._stdscr.getmaxyx()[1]
+        self.win = self._stdscr.subwin(nlines, self.maxx,
+            self._stdscr.getmaxyx()[0] - nlines, xoffset)
+
+    def draw(self):
+        try:
+            self.win.addstr(0, 0, " " * (self.maxx),
+                self._color_pair|curses.A_REVERSE)
+        except _curses.error:
+            pass
+        self.win.refresh()
+
+    def register_button(self, button):
+        pass
+
+class Button:
+    def __init__(self, char) -> None:
+        self.char = char
+        self.state_idx = 0
+        self.state_labels = ["Start", "Stop"]
+        self.state_funcs = [self.start, self.stop]
+        self.status_labels = ["Running", "Stopped"]
+        self.status_color_pairs = [curses.color_pair(1), curses.color_pair(2)]
+
+    def press(self):
+        self.state_idx = (self.state_idx + 1) % len(self.state_labels)
+
+    def status(self):
+        return (self.status_labels[self.state_idx],
+                self.status_color_pairs[self.state_idx])
+
+    def __str__(self):
+        return f"{self.char}={self.state_labels[self.state_idx]}"
+
+
 def main(stdscr):
     curses.curs_set(0)
     curses.noecho()
@@ -17,6 +57,9 @@ def main(stdscr):
     stdscr.box()
 
     while not done:
+
+        menu = Menubar(stdscr)
+        menu.draw()
 
         while not done:
             char = stdscr.getch()
