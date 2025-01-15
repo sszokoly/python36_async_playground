@@ -7,11 +7,23 @@ from abc import ABC, abstractmethod
 from itertools import islice
 
 
+
+def start():
+    time.sleep(1)
+
+def stop():
+    time.sleep(1)
+
+
 class Menubar:
-    def __init__(self, stdscr, nlines=1, xoffset=0, color_pair=None) -> None:
+    def __init__(self, stdscr, nlines=1, xoffset=0, buttons=None) -> None:
         self._stdscr = stdscr
         self._xoffset = xoffset
-        self._color_pair = color_pair if color_pair else curses.color_pair(0)
+        self._buttons = buttons if buttons else []
+        self._button_chars = [x.char for x in self._buttons]
+        self._button_offset = 20
+        self._color_pair = curses.color_pair(0)|curses.A_REVERSE
+        self.maxy = nlines
         self.maxx = self._stdscr.getmaxyx()[1]
         self.win = self._stdscr.subwin(nlines, self.maxx,
             self._stdscr.getmaxyx()[0] - nlines, xoffset)
@@ -22,19 +34,38 @@ class Menubar:
                 self._color_pair|curses.A_REVERSE)
         except _curses.error:
             pass
+        self._draw_buttons()
         self.win.refresh()
+    
+    def _draw_buttons(self):
+        offset = self._button_offset
+        for idx, button in enumerate(self._buttons):
+            self.win.addstr(0, offset, str(button), self._color_pair)
+            offset += len(str(button)) + 3
 
     def register_button(self, button):
-        pass
+        self._buttons.append(button)
+        self._button_chars.append(button.char)
+        self._width = max(len(str(x)) for x in self._buttons)
+
+    def handle_char(self, char):
+        char = chr(char)
+        if char in self._button_chars:
+            idx = self._button_chars.index(char)
+            self._buttons[idx].press()
+            self.draw()
+
 
 class Button:
     def __init__(self, char) -> None:
         self.char = char
         self.state_idx = 0
         self.state_labels = ["Start", "Stop"]
-        self.state_funcs = [self.start, self.stop]
+        self.state_callbacks = [start, stop]
         self.status_labels = ["Running", "Stopped"]
         self.status_color_pairs = [curses.color_pair(1), curses.color_pair(2)]
+        self.status_temp = "Starting"
+        self.status_temp_color_pair = curses.color_pair(3)
 
     def press(self):
         self.state_idx = (self.state_idx + 1) % len(self.state_labels)
@@ -59,6 +90,7 @@ def main(stdscr):
     while not done:
 
         menu = Menubar(stdscr)
+        menu.register_button(Button("s"))
         menu.draw()
 
         while not done:
@@ -70,6 +102,8 @@ def main(stdscr):
                 break
             elif chr(char) == "q":
                 sys.exit()
+            else:
+                menu.handle_char(char)
 
 def change_terminal(to_type="xterm-256color"):
     old_term = os.environ.get("TERM")
