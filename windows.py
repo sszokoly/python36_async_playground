@@ -7,26 +7,36 @@ from abc import ABC, abstractmethod
 from itertools import islice
 
 
-
 def start():
-    time.sleep(1)
+    time.sleep(2)
+    return True
 
 def stop():
-    time.sleep(1)
-
+    time.sleep(2)
+    return True
 
 class Menubar:
-    def __init__(self, stdscr, nlines=1, xoffset=0, buttons=None) -> None:
+    def __init__(
+        self,
+        stdscr,
+        nlines=1,
+        xoffset=0,
+        buttons=None,
+        button_offset=15,
+        status_width=10,
+    ) -> None:
         self._stdscr = stdscr
         self._xoffset = xoffset
         self._buttons = buttons if buttons else []
+        self._button_offset = button_offset
+        self._status_width = status_width
         self._button_chars = [x.char for x in self._buttons]
-        self._button_offset = 20
         self._color_pair = curses.color_pair(0)|curses.A_REVERSE
         self.maxy = nlines
         self.maxx = self._stdscr.getmaxyx()[1]
         self.win = self._stdscr.subwin(nlines, self.maxx,
             self._stdscr.getmaxyx()[0] - nlines, xoffset)
+        self.color_pairs = self.init_color_pairs()
 
     def draw(self):
         try:
@@ -34,14 +44,22 @@ class Menubar:
                 self._color_pair|curses.A_REVERSE)
         except _curses.error:
             pass
+        #self.draw_status_bar()
         self._draw_buttons()
         self.win.refresh()
-    
+
     def _draw_buttons(self):
         offset = self._button_offset
         for idx, button in enumerate(self._buttons):
             self.win.addstr(0, offset, str(button), self._color_pair)
             offset += len(str(button)) + 3
+
+    def draw_status_bar(self, char=None, label=None, cpair=None):
+        if char is None:
+            return
+        elif char and char not in self._button_chars:
+            return
+        self.win.addstr(0, 1, f"{label:^{self._status_width}}", cpair)
 
     def register_button(self, button):
         self._buttons.append(button)
@@ -55,27 +73,69 @@ class Menubar:
             self._buttons[idx].press()
             self.draw()
 
+    @classmethod
+    def init_color_pairs(cls):
+        for i in range(0, curses.COLORS):
+            curses.init_pair(i + 1, i, -1)
+        
+        return {
+            "RED": curses.color_pair(2),
+            "RED_LIGHT": curses.color_pair(197),
+            "GREEN": curses.color_pair(42),
+            "GREEN_LIGHT": curses.color_pair(156),
+            "YELLOW": curses.color_pair(12),
+            "YELLOW_LIGHT": curses.color_pair(230),
+        }
 
 class Button:
-    def __init__(self, char) -> None:
+    def __init__(
+        self,
+        char,
+        labels,
+        funcs,
+        callback=None,
+        status_labels=None,
+        status_color_pairs=None,
+        temp_status_labels=None,
+        temp_status_color_pairs=None,
+    ) -> None:
         self.char = char
+        self.labels = labels
+        self.funcs = funcs
+        self.callback = callback
+        self.status_labels = status_labels
+        if status_color_pairs:
+            self.status_color_pairs = status_color_pairs
+        else:
+            self.status_color_pairs = [
+                curses.color_pair(3)|curses.A_REVERSE,
+                curses.color_pair(197)|curses.A_REVERSE]
+        self.temp_status_labels = temp_status_labels
+        if temp_status_color_pairs:
+            self.temp_status_color_pairs = temp_status_color_pairs
+        else:
+            self.temp_status_color_pairs = [
+                curses.color_pair(4)|curses.A_REVERSE,
+                curses.color_pair(4)|curses.A_REVERSE]
         self.state_idx = 0
-        self.state_labels = ["Start", "Stop"]
-        self.state_callbacks = [start, stop]
-        self.status_labels = ["Running", "Stopped"]
-        self.status_color_pairs = [curses.color_pair(1), curses.color_pair(2)]
-        self.status_temp = "Starting"
-        self.status_temp_color_pair = curses.color_pair(3)
 
     def press(self):
-        self.state_idx = (self.state_idx + 1) % len(self.state_labels)
-
-    def status(self):
-        return (self.status_labels[self.state_idx],
-                self.status_color_pairs[self.state_idx])
+        label = self.temp_status_labels[self.state_idx]
+        cpair = self.temp_status_color_pairs[self.state_idx]
+        self.callback(self.char, label, cpair)
+        if self.funcs[self.state_idx]():
+            self.state_idx = (self.state_idx + 1) % len(self.labels)
+        label = self.status_labels[self.state_idx]
+        cpair = self.status_color_pairs[self.state_idx]
+        self.callback(self.char, label, cpair)
+        curses.flushinp()
 
     def __str__(self):
-        return f"{self.char}={self.state_labels[self.state_idx]}"
+        return f"{self.char}={self.labels[self.state_idx]}"
+
+    def status(self):
+        if not self.status_labels:
+            return 
 
 
 def main(stdscr):
@@ -90,7 +150,12 @@ def main(stdscr):
     while not done:
 
         menu = Menubar(stdscr)
-        menu.register_button(Button("s"))
+        menu.register_button(
+            Button("s", labels=["Start", "Stop"],
+                    funcs=[start, stop],
+                    callback=menu.draw_status_bar,
+                    status_labels=["Stopped", "Running"],
+                    temp_status_labels=["Starting", "Stopping"]))
         menu.draw()
 
         while not done:
