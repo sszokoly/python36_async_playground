@@ -349,7 +349,7 @@ class BGW():
         host: str,
         proto: str = '',
         last_seen = None,
-        gw_name: str = '', 
+        gw_name: str = '',
         gw_number: str = '',
         show_running_config: str = '',
         show_system: str = '',
@@ -379,6 +379,7 @@ class BGW():
         self._rtp_stat = None
         self._capture = None
         self._temp = None
+        self._uptime = None
 
     @property
     def model(self):
@@ -461,6 +462,13 @@ class BGW():
                 self._faults = "faulty"
         return self._faults
 
+    @property
+    def uptime(self):
+        if not self._uptime:
+            m = re.search(r'Uptime\s+:\s+(\S+)', self.show_system)
+            self._uptime = m.group(1) if m else "?"
+        return self._uptime
+    
     def __str__(self):
         return f"BGW({self.host})"
 
