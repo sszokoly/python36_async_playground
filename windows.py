@@ -202,7 +202,6 @@ def startup():
     print(f"Old TERM: {orig_term}")
     orig_stty = os.popen("stty -g").read().strip()
     atexit.register(shutdown, orig_term, orig_stty)
-    curses.wrapper(main)
 
 def shutdown(term, stty):
     print("Shutting down")
