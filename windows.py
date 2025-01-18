@@ -1,5 +1,5 @@
 import atexit
-import _curses, curses, curses.ascii
+import _curses, curses, curses.ascii, curses.panel
 import os
 import time
 import sys
@@ -18,6 +18,36 @@ def stop():
 def filter():
     time.sleep(0.2)
     return True
+
+
+class Popup:
+    def __init__(
+        self,
+        stdscr,
+        text,
+        margin=1,
+        yoffset=0,
+        color_pair=None
+    ) -> None:
+        self._text = text
+        self._margin = margin
+        self._yoffset = yoffset
+        self._color_pair = color_pair if color_pair else curses.color_pair(0)
+        ypos = stdscr.getmaxyx()[0] // 2 + yoffset - (margin + 1)
+        xpos = stdscr.getmaxyx()[1] // 2 - (len(text) // 2) - (margin + 1)
+        self._win = curses.newwin(2 * margin + 3, len(text) + (2 * margin) + 2,
+                                  ypos, xpos)
+        self._panel = curses.panel.new_panel(self._win)
+    
+    def show(self):
+        self._win.box()
+        self._win.addstr(1 + self._margin, 1 + self._margin,
+                         self._text, self._color_pair)
+        self._win.refresh()
+
+    def erase(self):
+        self._win.erase()
+        self._win.refresh()
 
 class Menubar:
     def __init__(
@@ -101,6 +131,7 @@ class Menubar:
 class Button:
     def __init__(
         self,
+        stdscr,
         char,
         labels,
         funcs,
@@ -110,6 +141,7 @@ class Button:
         temp_status_labels=[],
         temp_status_color_pairs=[],
     ) -> None:
+        self.stdscr = stdscr
         self.char = char
         self.labels = labels
         self.funcs = funcs
@@ -133,6 +165,8 @@ class Button:
         self._status_color_pairs = self.status_color_pairs[self.state_idx]
 
     def press(self):
+        pop = Popup(self.stdscr, text="Please wait")
+        pop.show()
         if self.temp_status_labels:
             self._status_label = self.temp_status_labels[self.state_idx]
             self._status_color_pairs = self.temp_status_color_pairs[self.state_idx]
@@ -143,6 +177,8 @@ class Button:
             self._status_label = self.status_labels[self.state_idx]
             self._status_color_pairs = self.status_color_pairs[self.state_idx]
             self.callback()
+        pop.erase()
+        del pop
         curses.flushinp()
 
     def __str__(self):
@@ -160,18 +196,19 @@ def main(stdscr):
     stdscr.nodelay(True)
     done = False
     stdscr.box()
+    stdscr.addstr(stdscr.getmaxyx()[0] // 2, stdscr.getmaxyx()[1] // 2 - 4, "Test text", curses.color_pair(2))
 
     while not done:
 
         menu = Menubar(stdscr)
         menu.register_button(
-            Button("s", labels=["Start", "Stop"],
+            Button(stdscr, "s", labels=["Start", "Stop"],
                     funcs=[start, stop],
                     callback=menu.draw,
                     status_labels=["Loop", "Loop"],
                     temp_status_labels=["Starting", "Stopping"]))
         menu.register_button(
-            Button("f", labels=["Filter"],
+            Button(stdscr, "f", labels=["Filter"],
                     funcs=[filter],
                     callback=menu.draw))
         
