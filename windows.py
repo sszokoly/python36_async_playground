@@ -1,4 +1,5 @@
 import atexit
+import functools
 import _curses, curses, curses.ascii, curses.panel
 import os
 import time
@@ -7,76 +8,106 @@ from abc import ABC, abstractmethod
 from itertools import islice
 
 
-def start():
-    time.sleep(2)
-    return True
+class MyPanel:
+    def __init__(
+        self,
+        stdscr,
+        body,
+        attr=None,
+        offset_y=1,
+        offset_x=1,
+        margin=1,
+    ) -> None:
+        self.stdscr = stdscr
+        self.body = body
+        self.attr = attr
+        self.offset_y = offset_y
+        self.offset_x = offset_x
+        self.margin = margin
+        self._initialize()
 
-def stop():
-    time.sleep(2)
-    return True
+    def _initialize(self):
+        maxy, maxx = self.stdscr.getmaxyx()
+        nlines = maxy - (2 * self.margin)
+        ncols = maxx - (2 * self.margin)
+        begin_y = self.offset_y
+        begin_x = self.offset_x
+        self.win = curses.newwin(nlines, ncols, begin_y, begin_x)
+        self.panel = curses.panel.new_panel(self.win)
+        self.panel.top()
+        self.attr = self.attr if self.attr else curses.color_pair(0)
 
-def filter():
-    time.sleep(0.2)
-    return True
+    def draw(self):
+        self.win.box()
+        self.win.addstr(self.margin, self.margin, self.body, self.attr)
+        self.win.refresh()
 
+    def erase(self):
+        self.win.erase()
+        self.win.refresh()
 
 class Popup:
     def __init__(
         self,
         stdscr,
-        text,
+        message,
+        attr=None,
+        offset_y=-1,
         margin=1,
-        yoffset=0,
-        color_pair=None
     ) -> None:
-        self._text = text
-        self._margin = margin
-        self._yoffset = yoffset
-        self._color_pair = color_pair if color_pair else curses.color_pair(0)
-        ypos = stdscr.getmaxyx()[0] // 2 + yoffset - (margin + 1)
-        xpos = stdscr.getmaxyx()[1] // 2 - (len(text) // 2) - (margin + 1)
-        self._win = curses.newwin(2 * margin + 3, len(text) + (2 * margin) + 2,
-                                  ypos, xpos)
-        self._panel = curses.panel.new_panel(self._win)
+        self.stdscr = stdscr
+        self.message = message
+        self.attr = attr
+        self.offset_y = offset_y
+        self.margin = margin
+        self._initialize()
     
-    def show(self):
-        self._win.box()
-        self._win.addstr(1 + self._margin, 1 + self._margin,
-                         self._text, self._color_pair)
-        self._win.refresh()
+    def draw(self):
+        self.win.refresh()
 
     def erase(self):
-        self._win.erase()
-        self._win.refresh()
+        self.win.erase()
+        self.win.refresh()
+
+    def _initialize(self):
+        maxy, maxx = self.stdscr.getmaxyx()
+        nlines = 3 + (2 * self.margin)
+        ncols = len(self.message) + (2 * self.margin) + 2
+        begin_y = maxy // 2 + self.offset_y - (self.margin + 1)
+        begin_x = maxx // 2 - (len(self.message) // 2) - (self.margin + 1)
+        self.win = curses.newwin(nlines, ncols, begin_y, begin_x)
+        curses.panel.new_panel(self.win)
+        
+        attr = self.attr if self.attr else curses.color_pair(0)
+        self.win.attron(attr)
+        self.win.box()
+        self.win.addstr(self.margin + 1, self.margin + 1, self.message, attr)
 
 class Menubar:
     def __init__(
         self,
         stdscr,
-        nlines=1,
-        xoffset=0,
         buttons=None,
         button_offset=20,
+        button_gap=1,
+        nlines=1,
+        offset_x=0,
         status_width=10,
+        attr=None,
     ) -> None:
-        self._stdscr = stdscr
-        self._xoffset = xoffset
-        self._buttons = buttons if buttons else []
-        self._button_offset = button_offset
-        self._status_width = status_width
-        self._button_chars = [x.char for x in self._buttons]
-        self._button_width = 3
-        self._color_pair = curses.color_pair(0)|curses.A_REVERSE
-        self.maxy = nlines
-        self.maxx = self._stdscr.getmaxyx()[1]
-        self.win = self._stdscr.subwin(nlines, self.maxx,
-            self._stdscr.getmaxyx()[0] - nlines, xoffset)
-        self.color_pairs = self.init_color_pairs()
+        self.stdscr = stdscr
+        self.buttons = buttons if buttons else []
+        self.button_offset = button_offset
+        self.button_gap = button_gap
+        self.nlines = nlines
+        self.offset_x = offset_x
+        self.status_width = status_width
+        self.attr = attr
+        self._initialize()
 
     def draw(self):
         try:
-            self.win.addstr(0, 0, " " * (self.maxx),
-                self._color_pair|curses.A_REVERSE)
+            self.win.addstr(0, 0, " " * (self.maxx), self.attr)
         except _curses.error:
             pass
         self._draw_status_bar()
@@ -85,33 +116,34 @@ class Menubar:
 
     def _draw_status_bar(self):
         offset = 1
-        for b in self._buttons:
-            label, cpair = b.status()
+        for b in self.buttons:
+            label, button_attr = b.status()
             if not label:
                 continue
-            label = f"│{label:^{self._status_width}}│"
-            self.win.addstr(0, offset, label, cpair)
+            label = f"│{label:^{self.status_width}}│"
+            self.win.addstr(0, offset, label, button_attr)
             offset += len(label)
     
-    def _draw_buttons(self, gap=3):
-        offset = self._button_offset
-        for b in self._buttons:
+    def _draw_buttons(self):
+        offset = self.button_offset
+        for b in self.buttons:
             label = f"{str(b):{self._button_width}}"
-            self.win.addstr(0, offset, label, self._color_pair)
-            offset += len(label) + gap
+            self.win.addstr(0, offset, label, self.attr)
+            offset += len(label) + self.button_gap
 
     def register_button(self, button):
-        self._buttons.append(button)
+        self.buttons.append(button)
         self._button_chars.append(button.char)
-        self._button_width = max(len(l) for b in self._buttons for l in b.labels) + 2
-        self._status_width = max(len(l) for b in self._buttons for l in
-                                 b.status_labels + b.temp_status_labels)
+        self._button_width = max(len(l) for b in self.buttons
+            for l in b.labels) + 2
+        self.status_width = max(len(l) for b in self.buttons
+            for l in b.status_labels + b.tempstatus_labels)
 
     def handle_char(self, char):
         char = chr(char)
         if char in self._button_chars:
             idx = self._button_chars.index(char)
-            self._buttons[idx].press()
+            self.buttons[idx].press()
             self.draw()
 
     @classmethod
@@ -128,7 +160,20 @@ class Menubar:
             "YELLOW_LIGHT": curses.color_pair(230),
         }
 
+    def _initialize(self):
+        self.maxy = nlines = self.nlines
+        self.maxx = ncols = self.stdscr.getmaxyx()[1]
+        begin_y = self.stdscr.getmaxyx()[0] - nlines
+        begin_x = self.offset_x
+        self._button_chars = [x.char for x in self.buttons]
+        self.attr = self.attr or curses.color_pair(0)|curses.A_REVERSE
+        self.color_pairs = self.init_color_pairs()
+        self.win = self.stdscr.subwin(nlines, ncols, begin_y, begin_x)
+
 class Button:
+
+    button_map = {"d": "🅳 ", "f": "🅵 ", "s": "🆂 "}
+    
     def __init__(
         self,
         stdscr,
@@ -137,9 +182,9 @@ class Button:
         funcs,
         callback=None,
         status_labels=[],
-        status_color_pairs=[],
-        temp_status_labels=[],
-        temp_status_color_pairs=[],
+        status_attrs=[],
+        tempstatus_labels=[],
+        temp_attrs=[],
     ) -> None:
         self.stdscr = stdscr
         self.char = char
@@ -147,45 +192,61 @@ class Button:
         self.funcs = funcs
         self.callback = callback
         self.status_labels = status_labels
-        if status_color_pairs:
-            self.status_color_pairs = status_color_pairs
-        else:
-            self.status_color_pairs = [
+        self.status_attrs = status_attrs
+        self.tempstatus_labels = tempstatus_labels
+        self.temp_attrs = temp_attrs
+        self._initialize()
+
+    def _initialize(self):
+        self.state_idx = 0
+        
+        self.status_attrs = self.status_attrs or [
                 curses.color_pair(3)|curses.A_REVERSE,
                 curses.color_pair(197)|curses.A_REVERSE]
-        self.temp_status_labels = temp_status_labels
-        if temp_status_color_pairs:
-            self.temp_status_color_pairs = temp_status_color_pairs
-        else:
-            self.temp_status_color_pairs = [
+        
+        self.temp_attrs = self.temp_attrs or [
                 curses.color_pair(4)|curses.A_REVERSE,
                 curses.color_pair(4)|curses.A_REVERSE]
-        self.state_idx = 0
-        self._status_label = None if not self.status_labels else status_labels[self.state_idx]
-        self._status_color_pairs = self.status_color_pairs[self.state_idx]
+
+        if self.status_labels:
+            self.status_label = self.status_labels[self.state_idx]
+        else:
+            self.status_label = None
+
+        if self.tempstatus_labels:
+            self.tempstatus_label = self.tempstatus_labels[self.state_idx]
+        else:
+            self.tempstatus_label = None
+
+        self.status_attr = self.status_attrs[self.state_idx]
 
     def press(self):
-        pop = Popup(self.stdscr, text="Please wait")
-        pop.show()
-        if self.temp_status_labels:
-            self._status_label = self.temp_status_labels[self.state_idx]
-            self._status_color_pairs = self.temp_status_color_pairs[self.state_idx]
+        pop = Popup(self.stdscr, message="Please wait")
+        pop.draw()
+        
+        if self.tempstatus_labels:
+            self.status_label = self.tempstatus_labels[self.state_idx]
+            self.status_attr = self.temp_attrs[self.state_idx]
             self.callback()
+        
         if self.funcs[self.state_idx]():
             self.state_idx = (self.state_idx + 1) % len(self.labels)
-        if self.temp_status_labels:
-            self._status_label = self.status_labels[self.state_idx]
-            self._status_color_pairs = self.status_color_pairs[self.state_idx]
+        
+        if self.tempstatus_labels:
+            self.status_label = self.status_labels[self.state_idx]
+            self.status_attr = self.status_attrs[self.state_idx]
             self.callback()
+        
         pop.erase()
         del pop
         curses.flushinp()
 
     def __str__(self):
-        return f"{self.char}={self.labels[self.state_idx]}"
+        char = self.button_map.get(self.char, self.char)
+        return f"{char}={self.labels[self.state_idx]}"
 
     def status(self):
-        return self._status_label, self._status_color_pairs
+        return self.status_label, self.status_attr
 
 
 def main(stdscr):
@@ -193,10 +254,43 @@ def main(stdscr):
     curses.noecho()
     curses.start_color()
     curses.use_default_colors()
-    stdscr.nodelay(True)
+    stdscr.resize(24, 80)
+    stdpanel =  curses.panel.new_panel(stdscr)
     done = False
     stdscr.box()
-    stdscr.addstr(stdscr.getmaxyx()[0] // 2, stdscr.getmaxyx()[1] // 2 - 4, "Test text", curses.color_pair(2))
+    maxy, maxx = stdscr.getmaxyx()
+    ypos = 0
+    rtppanel = None
+
+    def draw_maxyx():
+        nonlocal stdscr, maxy, maxx, ypos
+        text = f"{maxy}x{maxx} ypos={ypos}"
+        attr = curses.color_pair(3)
+        stdscr.addstr(maxy // 2, maxx // 2 - 6, (len(text)+2) * " ", attr)
+        stdscr.addstr(maxy // 2, maxx // 2 - 6, text, attr)
+        stdscr.refresh()
+
+    def start():
+        time.sleep(2)
+        return True
+
+    def stop():
+        time.sleep(2)
+        return True
+
+    def draw_rtppanel():
+        nonlocal stdscr, ypos, rtppanel, stdpanel
+        rtppanel = MyPanel(stdscr, body="whatever")
+        time.sleep(0.2)
+        rtppanel.draw()
+        curses.panel.update_panels()
+        return True
+
+    def erase_rtppanel():
+        nonlocal ypos, rtppanel, stdpanel
+        time.sleep(0.2)
+        rtppanel.erase()
+        return True
 
     while not done:
 
@@ -205,14 +299,15 @@ def main(stdscr):
             Button(stdscr, "s", labels=["Start", "Stop"],
                     funcs=[start, stop],
                     callback=menu.draw,
-                    status_labels=["Loop", "Loop"],
-                    temp_status_labels=["Starting", "Stopping"]))
+                    status_labels=["EventLoop", "EventLoop"],
+                    tempstatus_labels=["Starting", "Stopping"]))
         menu.register_button(
-            Button(stdscr, "f", labels=["Filter"],
-                    funcs=[filter],
+            Button(stdscr, "d", labels=["Details", "Details"],
+                    funcs=[draw_rtppanel, erase_rtppanel],
                     callback=menu.draw))
         
         menu.draw()
+        draw_maxyx()
 
         while not done:
             char = stdscr.getch()
@@ -223,6 +318,12 @@ def main(stdscr):
                 break
             elif chr(char) == "q":
                 sys.exit()
+            elif char == curses.KEY_DOWN:
+                ypos = ypos + 1 if ypos < maxy - 1 else ypos
+                draw_maxyx()
+            elif char == curses.KEY_UP:
+                ypos = ypos - 1 if ypos > 0 else 0
+                draw_maxyx()
             else:
                 menu.handle_char(char)
 

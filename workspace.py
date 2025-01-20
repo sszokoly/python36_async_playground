@@ -1,6 +1,7 @@
 import _curses, curses, curses.ascii
 from abc import ABC, abstractmethod
 import time
+import sys
 
 class Display(ABC):
     def __init__(self,
@@ -21,10 +22,6 @@ class Display(ABC):
         self.maxy, self.maxx = self._stdscr.getmaxyx()
         self.active_ws_idx = 0
         self.color_pairs = self.init_color_pairs()
-        curses.noecho()
-        curses.start_color()
-        curses.use_default_colors()
-        curses.curs_set(0)
 
     @abstractmethod
     def make_display(self) -> None:
@@ -39,36 +36,22 @@ class Display(ABC):
 
     def run(self) -> None:
         self._stdscr.nodelay(True)
+
+        self.make_display()
         
         while not self.done:
-
-            while self.must_resize():
-                char = self._stdscr.getch()
-                if char == curses.ERR:
-                    time.sleep(0.1)
-                elif char == curses.KEY_RESIZE:
-                    self.maxy, self.maxx = self._stdscr.getmaxyx()
-                    self._stdscr.erase()
-                elif chr(char) in ("q", "Q"):
-                    self.set_exit()
-                    break
-        
-            if not self.done:
-                self.make_display()
-            
-            while not self.done:
-                char = self._stdscr.getch()
-                if char == curses.ERR:
-                    time.sleep(0.1)
-                elif char == curses.KEY_RESIZE:
-                    self.maxy, self.maxx = self._stdscr.getmaxyx()
-                    if self.maxy >= self.miny and self.maxx >= self.minx:
-                        self.make_display()
-                    else:
-                        self._stdscr.erase()
-                        break
+            char = self._stdscr.getch()
+            if char == curses.ERR:
+                time.sleep(0.1)
+            elif char == curses.KEY_RESIZE:
+                self.maxy, self.maxx = self._stdscr.getmaxyx()
+                if self.maxy >= self.miny and self.maxx >= self.minx:
+                    self.make_display()
                 else:
-                    self.handle_char(char)
+                    self._stdscr.erase()
+                    break
+            else:
+                self.handle_char(char)
     
     @classmethod
     def init_color_pairs(cls):
@@ -364,8 +347,39 @@ if __name__ == "__main__":
         },
     ]
 
-    def main(stdscr):
+    def main(stdscr, miny: int = 24, minx: int = 80):
+        curses.curs_set(0)
         curses.use_default_colors()
+        curses.start_color()
+        curses.noecho()
+
+        def must_resize(miny, minx):
+            nonlocal stdscr
+            
+            maxy, maxx = stdscr.getmaxyx()
+            msg1 = f"Resize screen to at least {miny:>3} x {minx:>3}"
+            msg2 = f"             Current size {maxy:>3} x {maxx:>3}"
+            msg3 = "Press 'q' to exit"
+            stdscr.addstr(maxy // 2 - 2, (maxx - len(msg1)) // 2, msg1)
+            stdscr.addstr(maxy // 2 - 1, (maxx - len(msg2)) // 2, msg2)
+            stdscr.addstr(maxy // 2 + 1, (maxx - len(msg3)) // 2, msg3)
+            stdscr.box()
+            stdscr.refresh()
+            
+            if maxy < miny or maxx < minx:
+                return True
+            return False
+
+        while must_resize(miny, minx):
+            char = stdscr.getch()
+            if char == curses.ERR:
+                time.sleep(0.1)
+            elif char == curses.KEY_RESIZE:
+                stdscr.erase()
+            elif chr(char) in ("q", "Q"):
+                return
+
+        stdscr.resize(24, 80)
 
         ws1 = Workspace(
             stdscr,
