@@ -34,54 +34,62 @@ class MyPanel:
         begin_x = self.offset_x
         self.win = curses.newwin(nlines, ncols, begin_y, begin_x)
         self.panel = curses.panel.new_panel(self.win)
-        self.panel.top()
         self.attr = self.attr if self.attr else curses.color_pair(0)
 
-    def draw(self):
+    def draw(self, body=None):
+        if body:
+            self.win.erase()
+            self.body = body
         self.win.box()
         self.win.addstr(self.margin, self.margin, self.body, self.attr)
         self.win.refresh()
+        return self
 
     def erase(self):
         self.win.erase()
         self.win.refresh()
+        return self
 
 class Popup:
     def __init__(
         self,
         stdscr,
-        message,
+        body,
         attr=None,
         offset_y=-1,
         margin=1,
     ) -> None:
         self.stdscr = stdscr
-        self.message = message
-        self.attr = attr
+        self.body = body
+        self.attr = attr if attr else curses.color_pair(0)
         self.offset_y = offset_y
         self.margin = margin
         self._initialize()
     
-    def draw(self):
+    def draw(self, body=None):
+        if body:
+            self.win.erase()
+            self.body = body
+        self.win.box()
+        self.win.addstr(self.margin + 1, self.margin + 1, self.body, self.attr)
         self.win.refresh()
+        return self
 
     def erase(self):
         self.win.erase()
         self.win.refresh()
+        return self
 
     def _initialize(self):
         maxy, maxx = self.stdscr.getmaxyx()
         nlines = 3 + (2 * self.margin)
-        ncols = len(self.message) + (2 * self.margin) + 2
+        ncols = len(self.body) + (2 * self.margin) + 2
         begin_y = maxy // 2 + self.offset_y - (self.margin + 1)
-        begin_x = maxx // 2 - (len(self.message) // 2) - (self.margin + 1)
+        begin_x = maxx // 2 - (len(self.body) // 2) - (self.margin + 1)
         self.win = curses.newwin(nlines, ncols, begin_y, begin_x)
         curses.panel.new_panel(self.win)
-        
-        attr = self.attr if self.attr else curses.color_pair(0)
-        self.win.attron(attr)
-        self.win.box()
-        self.win.addstr(self.margin + 1, self.margin + 1, self.message, attr)
+        self.win.attron(self.attr)
+
 
 class Menubar:
     def __init__(
@@ -221,25 +229,31 @@ class Button:
         self.status_attr = self.status_attrs[self.state_idx]
 
     def press(self):
-        pop = Popup(self.stdscr, message="Please wait")
-        pop.draw()
+        pop = Popup(self.stdscr, body="Please wait").draw()
         
         if self.tempstatus_labels:
-            self.status_label = self.tempstatus_labels[self.state_idx]
-            self.status_attr = self.temp_attrs[self.state_idx]
-            self.callback()
+            self._update_status(temp_labels=True)
         
         if self.funcs[self.state_idx]():
             self.state_idx = (self.state_idx + 1) % len(self.labels)
         
         if self.tempstatus_labels:
-            self.status_label = self.status_labels[self.state_idx]
-            self.status_attr = self.status_attrs[self.state_idx]
-            self.callback()
+            self._update_status(temp_labels=False)
         
         pop.erase()
-        del pop
         curses.flushinp()
+
+    def _update_status(self, temp_labels):
+        if temp_labels:
+            label = self.tempstatus_labels[self.state_idx]
+            attr = self.temp_attrs[self.state_idx]
+        else:
+            label = self.status_labels[self.state_idx]
+            attr = self.status_attrs[self.state_idx]
+        
+        self.status_label = label
+        self.status_attr = attr
+        self.callback()
 
     def __str__(self):
         char = self.button_map.get(self.char, self.char)
@@ -271,11 +285,11 @@ def main(stdscr):
         stdscr.refresh()
 
     def start():
-        time.sleep(2)
+        time.sleep(1)
         return True
 
     def stop():
-        time.sleep(2)
+        time.sleep(1)
         return True
 
     def draw_rtppanel():
