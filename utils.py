@@ -62,7 +62,8 @@ async def async_shell_prev(
 
 async def async_shell(
     cmd: str,
-    timeout: Optional[int] = None
+    timeout: Optional[int] = None,
+    name: Optional[str] = None
 ) -> str:
     """
     Runs a shell command asynchronously with support for timeouts and error handling.
@@ -75,32 +76,36 @@ async def async_shell(
         str - The output of the command. If timeout occurs or process is cancelled,
         appropriate messages are returned.
     """
+    name = name if name else 'async_shell'
+    
     try:
-        proc = await asyncio.create_subprocess_shell(
-            cmd,
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE
-        )
-        logger.debug(f"Created process PID {proc.pid}")
-        stdout, stderr = await asyncio.wait_for(proc.communicate(), timeout)
+        try:
+            proc = await asyncio.create_subprocess_shell(
+                cmd,
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE
+            )
+            logger.debug(f"Created process PID {proc.pid} in '{name}'")
+            stdout, stderr = await asyncio.wait_for(proc.communicate(), timeout)
 
-        if proc.returncode == 0 and not stderr:
-            return stdout.decode().strip()
-        else:
-            raise Exception(stderr.decode().strip())
+            if proc.returncode == 0 and not stderr:
+                return stdout.decode().strip()
+            else:
+                raise Exception(stderr.decode().strip())
+
+        finally:
+            if proc and proc.returncode is None:
+                logger.debug(f"Terminating PID {proc.pid} in '{name}'")
+                proc._transport.close()
+                try:
+                    proc.terminate()
+                    await proc.wait()
+                except Exception as _e:
+                    logger.error(f"{repr(_e)} for PID {proc.pid} in '{name}'")
 
     except Exception as e:
-        logger.error(f'{repr(e)} for PID {proc.pid if proc else None}')
-        raise e
-
-    finally:
-        if proc and proc.returncode is None:
-            proc._transport.close()
-            try:
-                proc.terminate()
-                await proc.wait()
-            except Exception as _e:
-                logger.error(f'{repr(_e)} for PID {proc.pid}')
+        logger.error(f"{repr(e)} in '{name}'")
+        raise
 
 def asyncio_run(
     main: Callable[..., Coroutine[Any, Any, Any]],
@@ -175,9 +180,9 @@ if __name__ == "__main__":
             return "Cancelled"
 
         loop = asyncio.get_event_loop()
-        task1 = loop.create_task(async_shell("sleep 1;echo `date`", timeout=3))
-        task2 = loop.create_task(async_shell("sleep 4;echo `date`", timeout=3))
-        task3 = loop.create_task(async_shell("sleep 9;echo `date`", timeout=3))
+        task1 = loop.create_task(async_shell("sleep 1;echo `date`", timeout=3, name="task1"))
+        task2 = loop.create_task(async_shell("sleep 4;echo `date`", timeout=3, name="task2"))
+        task3 = loop.create_task(async_shell("sleep 9;echo `date`", timeout=3, name="task3"))
         task4 = loop.create_task(canceltask(task3))
         results = await asyncio.gather(task1, task2, task3, task4, return_exceptions=True)
         for result in results:
