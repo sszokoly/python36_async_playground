@@ -13,7 +13,7 @@ from asyncio.subprocess import Process, PIPE
 from asyncio import Queue, Semaphore
 from datetime import datetime
 from utils import asyncio_run
-from typing import Dict, Iterator, List, Tuple, Union
+from typing import Dict, Iterator, List, Tuple, Union, Optional, Set, Iterable
 from storage import AsyncMemoryStorage
 from session import reDetailed
 
@@ -731,40 +731,63 @@ class BGWMonitor():
                     pass
         return dictitem
 
-    @staticmethod
-    def _registered_bgw_hosts(bgw_filter=None) -> Dict[str, str]:
-        """Return a dictionary of registered media-gateways
 
-        The dictionary has the gateway iIP as the key and the protocol
-        type 'encrypted' or 'unencrypted' as the value.
+def connected_gateways(ip_filter: Optional[Set[str]] = None) -> Dict[str, str]:
+    """Return a dictionary of connected G4xx media-gateways
 
-        Returns:
-            dict: A dictionary of connected bgws
-        """
-        bgws_hosts = {}
-        output: str = os.popen('netstat -tan | grep ESTABLISHED').read()
-        for line in output.splitlines():
-            m = re.search(r'([0-9.]+):(1039|2945)\s+([0-9.]+):([0-9]+)', line)
-            if not m:
-                continue
-            proto: str = 'encrypted' if m.group(2) == '1039' else 'unencrypted'
-            if bgw_filter and m.group(3) in bgw_filter:
-                bgws_hosts[m.group(3)] = proto
-            else:
-                bgws_hosts[m.group(3)] = proto
-        return bgws_hosts if bgws_hosts else {"10.10.48.58": "unencrypted", "10.44.244.51": "encrypted"}
+    The function retrieves established gateway connections from netstat,
+    optionally filters them based on the IP addresses, and determines whether
+    each connection is encrypted or unencrypted based on the port number.
 
-def get_username():
+    The dictionary has the gateway IP as the key and the protocol
+    type 'encrypted' or 'unencrypted' as the value.
+
+    Args:
+        ip_filter (Optional[Set[str]], optional): IP addresses to filter.
+
+    Returns:
+        Dict[str, str]: A dictionary of connected gateways.
+    """
+    result: Dict[str, str] = {}
+    ip_filter = set(ip_filter) if ip_filter else set()
+    connections = os.popen("netstat -tan | grep ESTABLISHED").read()
+    
+    for line in connections.splitlines():
+        match = re.search(r"([0-9.]+):(1039|2945)\s+([0-9.]+):([0-9]+)", line)
+        if match:
+            ip = match.group(3)
+            proto = "encrypted" if match.group(2) == "1039" else "unencrypted"
+            logging.debug(f"Found gateway {ip} using {proto} protocol")
+            if not ip_filter or ip in ip_filter:
+                result[ip] = proto
+                logging.debug(f"Added gateway {ip} to result dictionary")
+    
+    if not result:
+        return {"10.10.48.58": "unencrypted", "10.44.244.51": "encrypted"}
+    
+    return {ip: result[ip] for ip in sorted(result)}
+
+def get_username() -> str:
+    """Prompt user for SSH username of gateways.
+
+    Returns:
+        str: The input string of SSH username.
+    """
     while True:
-        username = input("Enter SSH username of BGWs: ")
+        username = input("Enter SSH username of media-gateways: ")
         comfirm = input("Is this correct (Y/N)?: ")
         if comfirm.lower().startswith("y"):
             break
     return username.strip()
 
-def get_passwd():
+def get_passwd() -> str:
+    """Prompt user for SSH password of gateways.
+
+    Returns:
+        str: The input string of SSH password.
+    """
     while True:
-        passwd = input("Enter SSH passwd of BGWs: ")
+        passwd = input("Enter SSH passwd of media-gateways: ")
         comfirm = input("Is this correct (Y/N)?: ")
         if comfirm.lower().startswith("y"):
             break

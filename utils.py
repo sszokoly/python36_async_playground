@@ -1,69 +1,112 @@
-from ast import If
 import asyncio
-from signal import SIGINT, SIGTERM
-from typing import Any, Coroutine, TypeVar, Optional, Set, Callable, Any, TypeVar, Tuple
+import logging
 from asyncio import coroutines
 from asyncio import events
 from asyncio import tasks
-import logging
+from typing import Any, Callable, Coroutine, Optional, Tuple
 
-logger = logging.getLogger('__name__')
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s %(levelname)-8s %(message)s')
+logger = logging.getLogger(__name__)
+FORMAT = "%(asctime)s - %(levelname)8s - %(message)s [%(filename)s:%(lineno)s]"
+logging.basicConfig(format=FORMAT)
+logger.setLevel(logging.DEBUG)
 
-F = TypeVar('F', bound=Callable[..., Any])
-T = TypeVar('T')
-
-async def async_shell(
-    cmd: str,
-    timeout: Optional[float] = None,
-    verbose: bool = False,
-    name: Optional[str] = "async_shell",
+async def async_shell_prev(
+    cmd: str, 
+    timeout: Optional[int] = None
 ) -> Tuple[str, str, int]:
-    """Shell command executor with optional timeout.
+    """
+    Runs a shell command asynchronously with support for timeouts and error handling.
 
     Args:
         cmd (str): The shell command to execute.
-        timeout (Optional[float]): Optional timeout in seconds.
-        verbose (bool): Flag to enable verbose output.
-        name (Optional[str]): Optional name for the coroutine.
+        timeout (Optional[int]): Maximum duration (in seconds) before the process is terminated.
 
     Returns:
-        Tuple[str, str, int]: A tuple containing the stdout, stderr, and return code.
-    """    
-    if verbose:
-        print(f"Running command: {cmd} in {name}")
-
-    proc = await asyncio.create_subprocess_shell(
+        Tuple[str, str, int]: A tuple containing stdout, stderr, and return code. If timeout occurs 
+        or process is cancelled, appropriate messages are returned.
+    """
+    try:
+        proc = await asyncio.create_subprocess_shell(
             cmd,
             stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE)
-    try:
-        stdout, stderr = await asyncio.wait_for(
-            proc.communicate(),
-            timeout=timeout)
-        return (
-            stdout.decode().strip(),
-            stderr.decode().strip(),
-            proc.returncode
+            stderr=asyncio.subprocess.PIPE
         )
+        logger.debug(f"Created process PID {proc.pid}")
+        
+        try:
+            stdout, stderr = await asyncio.wait_for(proc.communicate(), timeout)
+            return_code = proc.returncode
+
+            stdout_str = stdout.decode().strip()
+            stderr_str = stderr.decode().strip()
+
+            if return_code == 0 and not stderr_str:
+                return (stdout_str, '', return_code)
+            else:
+                return ('', stderr_str, return_code)
+
+        except Exception as e:
+            logger.error(f'{repr(e)} for PID {proc.pid}')
+            if proc.returncode is None:
+                proc._transport.close()
+                try:
+                    proc.terminate()
+                    await proc.wait()
+                except Exception as _e:
+                    logger.error(f'{repr(_e)} for PID {proc.pid}')
+            return ('', e, 1)
 
     except Exception as e:
-        if isinstance(e, asyncio.CancelledError):
-            err = f"Command cancelled in {name}"
-        elif isinstance(e, asyncio.TimeoutError):
-            err = f"Command timeout after {timeout}s in {name}"
-        else:
-            err = repr(e)
-        proc.terminate()
-        proc._transport.close()
-        await proc.wait()
-        if verbose:
-            print(err)
-        return "", err, 1
+        logger.error(f'Error:{repr(e)} {str(e)}')
+        return ('', e, 1)
 
-def asyncio_run(main, *, debug=None):
+async def async_shell(
+    cmd: str,
+    timeout: Optional[int] = None
+) -> str:
+    """
+    Runs a shell command asynchronously with support for timeouts and error handling.
+
+    Args:
+        cmd: str - The shell command to execute.
+        timeout: Optional[int] - Duration (in secs) before the process is terminated.
+
+    Returns:
+        str - The output of the command. If timeout occurs or process is cancelled,
+        appropriate messages are returned.
+    """
+    try:
+        proc = await asyncio.create_subprocess_shell(
+            cmd,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE
+        )
+        logger.debug(f"Created process PID {proc.pid}")
+        stdout, stderr = await asyncio.wait_for(proc.communicate(), timeout)
+
+        if proc.returncode == 0 and not stderr:
+            return stdout.decode().strip()
+        else:
+            raise Exception(stderr.decode().strip())
+
+    except Exception as e:
+        logger.error(f'{repr(e)} for PID {proc.pid if proc else None}')
+        raise e
+
+    finally:
+        if proc and proc.returncode is None:
+            proc._transport.close()
+            try:
+                proc.terminate()
+                await proc.wait()
+            except Exception as _e:
+                logger.error(f'{repr(_e)} for PID {proc.pid}')
+
+def asyncio_run(
+    main: Callable[..., Coroutine[Any, Any, Any]],
+    *,
+    debug: Optional[bool] = None
+) -> Any:
     """Execute the coroutine and return the result.
 
     This function runs the passed coroutine, taking care of
@@ -78,14 +121,6 @@ def asyncio_run(main, *, debug=None):
     This function always creates a new event loop and closes it at the end.
     It should be used as a main entry point for asyncio programs, and should
     ideally only be called once.
-
-    Example:
-
-        async def main():
-            await asyncio.sleep(1)
-            print('hello')
-
-        asyncio.run(main())
     """
     if events._get_running_loop() is not None:
         raise RuntimeError(
@@ -110,7 +145,6 @@ def asyncio_run(main, *, debug=None):
             events.set_event_loop(None)
             loop.close()
 
-
 def _cancel_all_tasks(loop):
     to_cancel = asyncio.Task.all_tasks()
     if not to_cancel:
@@ -118,6 +152,7 @@ def _cancel_all_tasks(loop):
 
     for task in to_cancel:
         task.cancel()
+
 
     loop.run_until_complete(tasks.gather(*to_cancel, return_exceptions=True))
 
@@ -132,5 +167,20 @@ def _cancel_all_tasks(loop):
             })
 
 if __name__ == "__main__":
-    coro = async_shell("sleep 3;echo `date`", timeout=2, verbose=True)
-    print(asyncio_run(coro, debug=False))
+    async def main():
+        
+        async def canceltask(task):
+            await asyncio.sleep(1)
+            task.cancel()
+            return "Cancelled"
+
+        loop = asyncio.get_event_loop()
+        task1 = loop.create_task(async_shell("sleep 1;echo `date`", timeout=3))
+        task2 = loop.create_task(async_shell("sleep 4;echo `date`", timeout=3))
+        task3 = loop.create_task(async_shell("sleep 9;echo `date`", timeout=3))
+        task4 = loop.create_task(canceltask(task3))
+        results = await asyncio.gather(task1, task2, task3, task4, return_exceptions=True)
+        for result in results:
+            print(repr(result))
+
+    asyncio_run(main(), debug=False)
