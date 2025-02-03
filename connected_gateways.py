@@ -52,4 +52,4 @@ def connected_gateways(ip_filter: Optional[Set[str]] = None) -> Dict[str, str]:
     return {ip: result[ip] for ip in sorted(result)}
 
 if __name__ == '__main__':
-    connected_gateways()
+    print(connected_gateways())

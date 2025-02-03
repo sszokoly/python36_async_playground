@@ -1,14 +1,14 @@
 import asyncio
 import logging
-from re import A, ASCII
 import time
 import concurrent.futures
 from asyncio import Queue, Semaphore
 from utils import asyncio_run, async_shell
-from typing import Callable, Coroutine, Optional
+from typing import Callable, Coroutine, Optional, List
 from connected_gateways import connected_gateways
 from bgw import BGW
 from subprocess import CalledProcessError
+from config import create_bgw_script
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.CRITICAL)
@@ -39,7 +39,6 @@ async def query_gateway(
     :param name: The name of the task
     :return: The output of the cmd
     """
-    cmd = f"sleep 2;echo `date`"
     name = name if name else bgw.host
     semaphore = semaphore if semaphore else Semaphore(1)
     proc = None
@@ -52,8 +51,9 @@ async def query_gateway(
             async with semaphore:
                 logger.debug(f"Aquired semaphore in {name}, free {semaphore._value}")
                 diff = time.perf_counter() - start
-                proc = await asyncio.create_subprocess_shell(
-                    cmd,
+                script = create_bgw_script(bgw)
+                proc = await asyncio.create_subprocess_exec(
+                    script,
                     stdout=asyncio.subprocess.PIPE,
                     stderr=asyncio.subprocess.PIPE
                 )
@@ -68,7 +68,7 @@ async def query_gateway(
                 if proc.returncode != 0 or stderr_str:
                     raise CalledProcessError(
                         returncode=proc.returncode,
-                        cmd=cmd,
+                        cmd=script,
                         stderr=stderr_str,
                     )
 

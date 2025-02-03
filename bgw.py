@@ -32,7 +32,7 @@ set passwd {passwd}
 set rtp_stat {rtp_stat}
 set lastn_secs {lastn_secs}
 set commands {{ {commands} }}
-set log_file {expect_log_file}
+set log_file {expect_log}
 
 ############################## Expect Variables ##############################
 
@@ -369,6 +369,7 @@ class BGW():
         self.show_capture = show_capture
         self.show_voip_dsp = show_voip_dsp
         self.show_temp = show_temp
+        self.queue = Queue()
         self._faults = None
         self._capture = None
         self._model = None
