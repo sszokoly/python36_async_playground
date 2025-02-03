@@ -595,8 +595,8 @@ class BGWMonitor():
                             self._processing_queue.put_nowait(stdout.decode())
                         if run_once:
                             break
-                sleep_secs = max(self.polling_secs - diff, 0)
-                logging.info(f"{name} Sleeping {sleep_secs:.3f}s")
+                sleep_secs = round(max(self.polling_secs - diff, 0), 1)
+                logging.info(f"{name} Sleeping {sleep_secs}s")
                 await asyncio.sleep(sleep_secs)
             except asyncio.CancelledError:
                 logging.warning(f"{name} Cancelling task")
