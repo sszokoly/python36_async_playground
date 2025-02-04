@@ -11,7 +11,7 @@ from subprocess import CalledProcessError
 from config import create_bgw_script
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.CRITICAL)
+logger.setLevel(logging.DEBUG)
 
 GATEWAYS = {}
 
@@ -53,7 +53,7 @@ async def query_gateway(
                 diff = time.perf_counter() - start
                 script = create_bgw_script(bgw)
                 proc = await asyncio.create_subprocess_exec(
-                    script,
+                    *script,
                     stdout=asyncio.subprocess.PIPE,
                     stderr=asyncio.subprocess.PIPE
                 )
@@ -71,6 +71,16 @@ async def query_gateway(
                         cmd=script,
                         stderr=stderr_str,
                     )
+                
+                else:
+                    if not queue:
+                        return stdout_str
+                    else:
+                        queue.put_nowait(stdout_str)
+                    
+                    sleep_secs = round(max(polling_secs - diff, 0), 2)
+                    logger.debug(f"Sleeping {sleep_secs}s in {name}")
+                    await asyncio.sleep(sleep_secs)
 
         except asyncio.CancelledError as e:
             logger.error(f"CancelledError in {name}")
@@ -91,19 +101,6 @@ async def query_gateway(
             is_stopped = True
             break
 
-        else:
-            if proc.returncode == 0 and not stderr:
-                if not queue:
-                    return stdout_str
-                else:
-                    queue.put_nowait(stdout_str)
-            else:
-                logger.error(f"{stderr_str} for PID {proc.pid} in {name}")
-            
-            sleep_secs = round(max(polling_secs - diff, 0), 2)
-            logger.debug(f"Sleeping {sleep_secs}s in {name}")
-            await asyncio.sleep(sleep_secs)
-
         finally:
             logger.debug(f"Released semaphore in {name}, free {semaphore._value}")
             if proc and proc.returncode is None:
@@ -119,7 +116,7 @@ async def query_gateway(
         return caught_exception
 
 async def discover_gateways(
-    timeout=3,
+    timeout=5,
     semaphore=None,
     clear=False,
     callback=callback
@@ -166,11 +163,37 @@ if __name__ == "__main__":
         
         bgw1 = BGW("192.168.160.1")
         loop = asyncio.get_event_loop()
-        task1 = loop.create_task(query_gateway(bgw1, timeout=1, name="bgw1"))
+        task1 = loop.create_task(query_gateway(bgw1, timeout=3, name="bgw1"))
         task2 = loop.create_task(discover_gateways())
         task3 = loop.create_task(cancel_task(task1))
         await asyncio.gather(task1, task2, task3, return_exceptions=True)
         for task in (task1, task2, task3):
             print(f"task: {repr(task.result())}")
+    
+    async def main2():
+        async def cancel_task(task):
+            await asyncio.sleep(10)
+            task.cancel()
+            await task
+            return "Cancelled"
+        
+        async def process_queue(queue):
+            while True:
+                item = await queue.get()
+                print(f"ITEM: {item}")
 
-    asyncio_run(main(), debug=False)
+        queue = Queue()
+        loop = asyncio.get_event_loop()
+        bgw = BGW("192.168.160.1")
+        task1 = loop.create_task(query_gateway(bgw, queue=queue, timeout=5))
+        task2 = loop.create_task(process_queue(queue))
+        task3 = loop.create_task(cancel_task(task1))
+        task4 = loop.create_task(cancel_task(task2))
+        await asyncio.gather(task1, task2, task3, task4, return_exceptions=True)
+        for task in (task1, task2):
+            if task.exception() is None:
+                print(f"task result: {repr(task.result())}")
+            else:
+                logger.error("Got exception", exc_info=task.exception())
+
+    asyncio_run(main2(), debug=False)

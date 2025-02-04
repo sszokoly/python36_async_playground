@@ -1,20 +1,16 @@
 import logging
 from bgw import BGW
 
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.WARNING)
-
 config = {
     "username": "root",
     "passwd": "cmb@Dm1n",
     "polling_secs": 5,
     "max_polling": 20,
     "lastn_secs": 3630,
-    "debug": False,
-    "loglevel": "ERROR",
+    "loglevel": "DEBUG",
     "logfile": "bgw.log",
     "expect_log": "expect_log",
-    "discovery_commands": [
+    "discovery_commands": [ 
         "show running-config",
         "show system",
         "show faults",
@@ -37,9 +33,9 @@ set lastn_secs {lastn_secs}
 set commands {{ {commands} }}
 set log_file {expect_log}
 
-set randomInt [expr {{int(rand() * 3)}}]
+set randomInt [expr {{int(rand() * 4)}}]
 
-sleep 2
+#sleep 2
 
 if {{$randomInt == 4}} {{
     puts -nonewline stderr "ExpectTimeout"; exit 255
@@ -47,6 +43,9 @@ if {{$randomInt == 4}} {{
 sleep 1
 puts "{{\\"gw_number\\": \\"001\\", \\"host\\": \\"$host\\", \\"timestamp\\": \\"2024-12-30,11:06:15\\", \\"commands\\": {{\\"show system\\": \\"location: 1\\", \\"show running-config\\": \\"location: 1\\"}}, \\"rtp_sessions\\": {{\\"2024-12-30,11:06:15,$host,000$randomInt\\": \\"session 000$randomInt\\"}}}}"
 '''
+
+logger = logging.getLogger(__name__)
+logger.setLevel(config["loglevel"])
 
 def create_bgw_script(bgw):
     debug = True if logger.getEffectiveLevel() == 10 else False
