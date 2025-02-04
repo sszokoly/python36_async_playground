@@ -1,0 +1,567 @@
+parent: waiting for sync byte
+parent: telling child to go ahead
+parent: now unsynchronized from child
+spawn: returns {21714}
+
+expect: does "" (spawn_id exp5) match glob pattern "Password: "? no
+Password: 
+expect: does "\rPassword: " (spawn_id exp5) match glob pattern "Password: "? yes
+expect: set expect_out(0,string) "Password: "
+expect: set expect_out(spawn_id) "exp5"
+expect: set expect_out(buffer) "\rPassword: "
+send: sending "cmb@Dm1n\n" to { exp5 }
+
+expect: does "" (spawn_id exp5) match glob pattern "*Permission denied*"? no
+")# "? no
+
+
+expect: does "\r\n" (spawn_id exp5) match glob pattern "*Permission denied*"? no
+")# "? no
+
+expect: does "\r\n\r" (spawn_id exp5) match glob pattern "*Permission denied*"? no
+")# "? no
+
+
+
+
+Last login: 4-Feb-2025 12:25:42
+
+Survivable-call-engine is disabled
+
+labg430-004(super)# 
+expect: does "\r\n\r\n\r\n\r\n\r\nLast login: 4-Feb-2025 12:25:42\r\n\r\nSurvivable-call-engine is disabled\r\n\r\nlabg430-004(super)# " (spawn_id exp5) match glob pattern "*Permission denied*"? no
+")# "? yes
+expect: set expect_out(0,string) ")# "
+expect: set expect_out(spawn_id) "exp5"
+expect: set expect_out(buffer) "\r\n\r\n\r\n\r\n\r\nLast login: 4-Feb-2025 12:25:42\r\n\r\nSurvivable-call-engine is disabled\r\n\r\nlabg430-004(super)# "
+send: sending "show running-config\n" to { exp5 }
+
+expect: does "" (spawn_id exp5) match glob pattern ")# "? no
+"*continue-- "? no
+"*to continue."? no
+"*."? no
+s
+expect: does "s" (spawn_id exp5) match glob pattern ")# "? no
+"*continue-- "? no
+"*to continue."? no
+"*."? no
+how running-config
+
+! version 42.24.0
+Config info release 42.24.0 time "12:30:49 04 FEB 2025 " serial_number 11N508729350
+ !
+encrypted-username SU+mdSkIxr9TfkR3f+rlDQ== password yUqiF2SaUS6OcqbMDC3LZII9TYWWRDZwzu7EwnqYLbU= access-type 6Mr0Vk3DCqRJiSYDWNFM/w==
+set logout 999
+hostname "labg430"
+no ip telnet 
+ip tftp-server file-system-size 2288
+set port mirror source-port 10/3 mirror-port 10/4 sampling always direction both
+!
+interface Vlan 1
+ icc-vlan
+ ip address 10.44.244.51    255.255.254.0  
+ pmi
+ exit
+!
+interface FastEthernet 10/2
+ exit
+!
+interface USB-Modem
+ description "Default Modem Setup"
+ timeout absolute 10
+ ppp authentication ras
+ no shutdown
+ ip address 10.3.248.253    255.255.255.252
+ exit
+!
+capture buffer-size 10000
+capture max-frame-size 1500
+! Avaya Login Confirmation Received.
+EASGManage enableEASG
+product-id 8e1696ac3881f3b131a989a6e5522f33
+!
+ip domain name-server-list 1
+  name-server 1 10.44.244.92
+  exit
+ip domain list 1 "surreyschools.ca"
+ip domain timeout 2 
+!
+set logging file enable 
+set logging file condition all Debug 
+!
+no snmp-server community 
+!
+ip default-gateway 10.44.244.254   1 low  
+no ip arp inspection
+!
+rtp-stat-service
+rtp-stat qos-trap
+no rtp-stat fault
+analog-test
+exit
+!
+set sla-monitor enable
+set sla-server-ip-address 10.10.48.198
+set ip-address-map "sd36cm.surreyschools.ca" 10
+expect: does "show running-config\r\n\r\n! version 42.24.0\r\nConfig info release 42.24.0 time "12:30:49 04 FEB 2025 " serial_number 11N508729350\r\n !\r\nencrypted-username SU+mdSkIxr9TfkR3f+rlDQ== password yUqiF2SaUS6OcqbMDC3LZII9TYWWRDZwzu7EwnqYLbU= access-type 6Mr0Vk3DCqRJiSYDWNFM/w==\r\nset logout 999\r\nhostname "labg430"\r\nno ip telnet \r\nip tftp-server file-system-size 2288\r\nset port mirror source-port 10/3 mirror-port 10/4 sampling always direction both\r\n!\r\ninterface Vlan 1\r\n icc-vlan\r\n ip address 10.44.244.51    255.255.254.0  \r\n pmi\r\n exit\r\n!\r\ninterface FastEthernet 10/2\r\n exit\r\n!\r\ninterface USB-Modem\r\n description "Default Modem Setup"\r\n timeout absolute 10\r\n ppp authentication ras\r\n no shutdown\r\n ip address 10.3.248.253    255.255.255.252\r\n exit\r\n!\r\ncapture buffer-size 10000\r\ncapture max-frame-size 1500\r\n! Avaya Login Confirmation Received.\r\nEASGManage enableEASG\r\nproduct-id 8e1696ac3881f3b131a989a6e5522f33\r\n!\r\nip domain name-server-list 1\r\n  name-server 1 10.44.244.92\r\n  exit\r\nip domain list 1 "surreyschools.ca"\r\nip domain timeout 2 \r\n!\r\nset logging file enable \r\nset logging file condition all Debug \r\n!\r\nno snmp-server community \r\n!\r\nip default-gateway 10.44.244.254   1 low  \r\nno ip arp inspection\r\n!\r\nrtp-stat-service\r\nrtp-stat qos-trap\r\nno rtp-stat fault\r\nanalog-test\r\nexit\r\n!\r\nset sla-monitor enable\r\nset sla-server-ip-address 10.10.48.198\r\nset ip-address-map "sd36cm.surreyschools.ca" 10" (spawn_id exp5) match glob pattern ")# "? no
+"*continue-- "? no
+"*to continue."? no
+"*."? yes
+expect: set expect_out(0,string) "show running-config\r\n\r\n! version 42.24.0\r\nConfig info release 42.24.0 time "12:30:49 04 FEB 2025 " serial_number 11N508729350\r\n !\r\nencrypted-username SU+mdSkIxr9TfkR3f+rlDQ== password yUqiF2SaUS6OcqbMDC3LZII9TYWWRDZwzu7EwnqYLbU= access-type 6Mr0Vk3DCqRJiSYDWNFM/w==\r\nset logout 999\r\nhostname "labg430"\r\nno ip telnet \r\nip tftp-server file-system-size 2288\r\nset port mirror source-port 10/3 mirror-port 10/4 sampling always direction both\r\n!\r\ninterface Vlan 1\r\n icc-vlan\r\n ip address 10.44.244.51    255.255.254.0  \r\n pmi\r\n exit\r\n!\r\ninterface FastEthernet 10/2\r\n exit\r\n!\r\ninterface USB-Modem\r\n description "Default Modem Setup"\r\n timeout absolute 10\r\n ppp authentication ras\r\n no shutdown\r\n ip address 10.3.248.253    255.255.255.252\r\n exit\r\n!\r\ncapture buffer-size 10000\r\ncapture max-frame-size 1500\r\n! Avaya Login Confirmation Received.\r\nEASGManage enableEASG\r\nproduct-id 8e1696ac3881f3b131a989a6e5522f33\r\n!\r\nip domain name-server-list 1\r\n  name-server 1 10.44.244.92\r\n  exit\r\nip domain list 1 "surreyschools.ca"\r\nip domain timeout 2 \r\n!\r\nset logging file enable \r\nset logging file condition all Debug \r\n!\r\nno snmp-server community \r\n!\r\nip default-gateway 10.44.244.254   1 low  \r\nno ip arp inspection\r\n!\r\nrtp-stat-service\r\nrtp-stat qos-trap\r\nno rtp-stat fault\r\nanalog-test\r\nexit\r\n!\r\nset sla-monitor enable\r\nset sla-server-ip-address 10.10.48.198\r\nset ip-address-map "sd36cm.surreyschools."
+expect: set expect_out(spawn_id) "exp5"
+expect: set expect_out(buffer) "show running-config\r\n\r\n! version 42.24.0\r\nConfig info release 42.24.0 time "12:30:49 04 FEB 2025 " serial_number 11N508729350\r\n !\r\nencrypted-username SU+mdSkIxr9TfkR3f+rlDQ== password yUqiF2SaUS6OcqbMDC3LZII9TYWWRDZwzu7EwnqYLbU= access-type 6Mr0Vk3DCqRJiSYDWNFM/w==\r\nset logout 999\r\nhostname "labg430"\r\nno ip telnet \r\nip tftp-server file-system-size 2288\r\nset port mirror source-port 10/3 mirror-port 10/4 sampling always direction both\r\n!\r\ninterface Vlan 1\r\n icc-vlan\r\n ip address 10.44.244.51    255.255.254.0  \r\n pmi\r\n exit\r\n!\r\ninterface FastEthernet 10/2\r\n exit\r\n!\r\ninterface USB-Modem\r\n description "Default Modem Setup"\r\n timeout absolute 10\r\n ppp authentication ras\r\n no shutdown\r\n ip address 10.3.248.253    255.255.255.252\r\n exit\r\n!\r\ncapture buffer-size 10000\r\ncapture max-frame-size 1500\r\n! Avaya Login Confirmation Received.\r\nEASGManage enableEASG\r\nproduct-id 8e1696ac3881f3b131a989a6e5522f33\r\n!\r\nip domain name-server-list 1\r\n  name-server 1 10.44.244.92\r\n  exit\r\nip domain list 1 "surreyschools.ca"\r\nip domain timeout 2 \r\n!\r\nset logging file enable \r\nset logging file condition all Debug \r\n!\r\nno snmp-server community \r\n!\r\nip default-gateway 10.44.244.254   1 low  \r\nno ip arp inspection\r\n!\r\nrtp-stat-service\r\nrtp-stat qos-trap\r\nno rtp-stat fault\r\nanalog-test\r\nexit\r\n!\r\nset sla-monitor enable\r\nset sla-server-ip-address 10.10.48.198\r\nset ip-address-map "sd36cm.surreyschools."
+expect: continuing expect
+
+expect: does "ca" 10" (spawn_id exp5) match glob pattern ")# "? no
+"*continue-- "? no
+"*to continue."? no
+"*."? no
+.10.48.240
+set ip-address-map "sd36cm2.surreyschools.ca" 10.10.48.239
+set ip-address-map "sd36cm1.surreyschools.ca" 10.10.48.238
+certificate-options 
+ set validate-alternate-name yes
+ set validate-common-name yes
+ set validate-expiration always
+ exit
+!
+set mgc list 10.10.48.240
+set mgc list 10.44.244.56
+set mediaserver 10.10.48.240 10.10.48.240 23 telnet
+set mediaserver 10.10.48.240 10.10.48.240 5023 sat
+set mediaserver 10.44.244.56 10.44.244.56 23 telnet
+set mediaserver 10.44.244.56 10.44.244.56 5023 sat
+!#
+!# End of configuration file. Press Enter to continue.
+
+expect: does "ca" 10.10.48.240\r\nset ip-address-map "sd36cm2.surreyschools.ca" 10.10.48.239\r\nset ip-address-map "sd36cm1.surreyschools.ca" 10.10.48.238\r\ncertificate-options \r\n set validate-alternate-name yes\r\n set validate-common-name yes\r\n set validate-expiration always\r\n exit\r\n!\r\nset mgc list 10.10.48.240\r\nset mgc list 10.44.244.56\r\nset mediaserver 10.10.48.240 10.10.48.240 23 telnet\r\nset mediaserver 10.10.48.240 10.10.48.240 5023 sat\r\nset mediaserver 10.44.244.56 10.44.244.56 23 telnet\r\nset mediaserver 10.44.244.56 10.44.244.56 5023 sat\r\n!#\r\n!# End of configuration file. Press Enter to continue.\r\n" (spawn_id exp5) match glob pattern ")# "? no
+"*continue-- "? no
+"*to continue."? yes
+expect: set expect_out(0,string) "ca" 10.10.48.240\r\nset ip-address-map "sd36cm2.surreyschools.ca" 10.10.48.239\r\nset ip-address-map "sd36cm1.surreyschools.ca" 10.10.48.238\r\ncertificate-options \r\n set validate-alternate-name yes\r\n set validate-common-name yes\r\n set validate-expiration always\r\n exit\r\n!\r\nset mgc list 10.10.48.240\r\nset mgc list 10.44.244.56\r\nset mediaserver 10.10.48.240 10.10.48.240 23 telnet\r\nset mediaserver 10.10.48.240 10.10.48.240 5023 sat\r\nset mediaserver 10.44.244.56 10.44.244.56 23 telnet\r\nset mediaserver 10.44.244.56 10.44.244.56 5023 sat\r\n!#\r\n!# End of configuration file. Press Enter to continue."
+expect: set expect_out(spawn_id) "exp5"
+expect: set expect_out(buffer) "ca" 10.10.48.240\r\nset ip-address-map "sd36cm2.surreyschools.ca" 10.10.48.239\r\nset ip-address-map "sd36cm1.surreyschools.ca" 10.10.48.238\r\ncertificate-options \r\n set validate-alternate-name yes\r\n set validate-common-name yes\r\n set validate-expiration always\r\n exit\r\n!\r\nset mgc list 10.10.48.240\r\nset mgc list 10.44.244.56\r\nset mediaserver 10.10.48.240 10.10.48.240 23 telnet\r\nset mediaserver 10.10.48.240 10.10.48.240 5023 sat\r\nset mediaserver 10.44.244.56 10.44.244.56 23 telnet\r\nset mediaserver 10.44.244.56 10.44.244.56 5023 sat\r\n!#\r\n!# End of configuration file. Press Enter to continue."
+expect: continuing expect
+
+expect: does "\r\n" (spawn_id exp5) match glob pattern ")# "? no
+"*continue-- "? no
+"*to continue."? no
+"*."? no
+l
+expect: does "\r\nl" (spawn_id exp5) match glob pattern ")# "? no
+"*continue-- "? no
+"*to continue."? no
+"*."? no
+abg430-004(super)# 
+expect: does "\r\nlabg430-004(super)# " (spawn_id exp5) match glob pattern ")# "? yes
+expect: set expect_out(0,string) ")# "
+expect: set expect_out(spawn_id) "exp5"
+expect: set expect_out(buffer) "\r\nlabg430-004(super)# "
+send: sending "show system\n" to { exp5 }
+
+expect: does "" (spawn_id exp5) match glob pattern ")# "? no
+"*continue-- "? no
+"*to continue."? no
+"*."? no
+s
+expect: does "s" (spawn_id exp5) match glob pattern ")# "? no
+"*continue-- "? no
+"*to continue."? no
+"*."? no
+how system
+System Name                 : 
+System Location             : 
+System Contact              : 
+Uptime (d,h:m:s)            : 14,02:36:08
+Call Controller Time        : 12:30:53 04 FEB 2025 
+Serial No                   : 11N508729350
+Model                       : G430
+HW Vintage                  : 1
+HW Suffix                   : A
+FW Vintage                  : 42.24.0
+LAN MAC Address             : b4:b0:17:8f:24:e1
+WAN MAC Address             : b4:b0:17:8f:24:e3
+SERVICES MAC address        : b4:b0:17:8f:24:e0
+RAM Memory                  : 256MB
+Compact Flash Memory        : No CompactFlash card is installed
+Main PSU                    : 175W
+POE PSU                     : Not present
+Media Socket #1             : 25 channels on board VoIP DSP
+Media Socket #2             : Not present
+FANS                        : No Fault messages
+Expansion module #1         : Not Present
+Expansion module #2         : Not Present
+labg430-004(super)# 
+expect: does "show system\r\nSystem Name                 : \r\nSystem Location             : \r\nSystem Contact              : \r\nUptime (d,h:m:s)            : 14,02:36:08\r\nCall Controller Time        : 12:30:53 04 FEB 2025 \r\nSerial No                   : 11N508729350\r\nModel                       : G430\r\nHW Vintage                  : 1\r\nHW Suffix                   : A\r\nFW Vintage                  : 42.24.0\r\nLAN MAC Address             : b4:b0:17:8f:24:e1\r\nWAN MAC Address             : b4:b0:17:8f:24:e3\r\nSERVICES MAC address        : b4:b0:17:8f:24:e0\r\nRAM Memory                  : 256MB\r\nCompact Flash Memory        : No CompactFlash card is installed\r\nMain PSU                    : 175W\r\nPOE PSU                     : Not present\r\nMedia Socket #1             : 25 channels on board VoIP DSP\r\nMedia Socket #2             : Not present\r\nFANS                        : No Fault messages\r\nExpansion module #1         : Not Present\r\nExpansion module #2         : Not Present\r\nlabg430-004(super)# " (spawn_id exp5) match glob pattern ")# "? yes
+expect: set expect_out(0,string) ")# "
+expect: set expect_out(spawn_id) "exp5"
+expect: set expect_out(buffer) "show system\r\nSystem Name                 : \r\nSystem Location             : \r\nSystem Contact              : \r\nUptime (d,h:m:s)            : 14,02:36:08\r\nCall Controller Time        : 12:30:53 04 FEB 2025 \r\nSerial No                   : 11N508729350\r\nModel                       : G430\r\nHW Vintage                  : 1\r\nHW Suffix                   : A\r\nFW Vintage                  : 42.24.0\r\nLAN MAC Address             : b4:b0:17:8f:24:e1\r\nWAN MAC Address             : b4:b0:17:8f:24:e3\r\nSERVICES MAC address        : b4:b0:17:8f:24:e0\r\nRAM Memory                  : 256MB\r\nCompact Flash Memory        : No CompactFlash card is installed\r\nMain PSU                    : 175W\r\nPOE PSU                     : Not present\r\nMedia Socket #1             : 25 channels on board VoIP DSP\r\nMedia Socket #2             : Not present\r\nFANS                        : No Fault messages\r\nExpansion module #1         : Not Present\r\nExpansion module #2         : Not Present\r\nlabg430-004(super)# "
+send: sending "show faults\n" to { exp5 }
+
+expect: does "" (spawn_id exp5) match glob pattern ")# "? no
+"*continue-- "? no
+"*to continue."? no
+"*."? no
+s
+expect: does "s" (spawn_id exp5) match glob pattern ")# "? no
+"*continue-- "? no
+"*to continue."? no
+"*."? no
+how faults
+
+CURRENTLY ACTIVE FAULTS
+--------------------------------------------------------------------------
+
+-- MGP Faults --
+	+ Primary controller not found, 01/21-09:57:03.00
+	+ Gateway Certificate near Expiry or Expired, 02/04-10:38:19.00
+
+Current Alarm Indications, ALM LED is on
+--------------------------------------------------------------------------
+	+ Primary Controller
+
+Done!
+labg430-004(super)# 
+expect: does "show faults\r\n\r\nCURRENTLY ACTIVE FAULTS\r\n--------------------------------------------------------------------------\r\n\r\n-- MGP Faults --\r\n\t+ Primary controller not found, 01/21-09:57:03.00\r\n\t+ Gateway Certificate near Expiry or Expired, 02/04-10:38:19.00\r\n\r\nCurrent Alarm Indications, ALM LED is on\r\n--------------------------------------------------------------------------\r\n\t+ Primary Controller\r\n\r\nDone!\r\nlabg430-004(super)# " (spawn_id exp5) match glob pattern ")# "? yes
+expect: set expect_out(0,string) ")# "
+expect: set expect_out(spawn_id) "exp5"
+expect: set expect_out(buffer) "show faults\r\n\r\nCURRENTLY ACTIVE FAULTS\r\n--------------------------------------------------------------------------\r\n\r\n-- MGP Faults --\r\n\t+ Primary controller not found, 01/21-09:57:03.00\r\n\t+ Gateway Certificate near Expiry or Expired, 02/04-10:38:19.00\r\n\r\nCurrent Alarm Indications, ALM LED is on\r\n--------------------------------------------------------------------------\r\n\t+ Primary Controller\r\n\r\nDone!\r\nlabg430-004(super)# "
+send: sending "show capture\n" to { exp5 }
+
+expect: does "" (spawn_id exp5) match glob pattern ")# "? no
+"*continue-- "? no
+"*to continue."? no
+"*."? no
+s
+expect: does "s" (spawn_id exp5) match glob pattern ")# "? no
+"*continue-- "? no
+"*to continue."? no
+"*."? no
+how capture
+
+Capture service is enabled and inactive
+Capture start time not-started
+Capture stop time not-stopped
+Current buffer size is 10000 KB
+Configured buffer size is 10000 KB
+Buffer mode is cyclic
+Maximum number of bytes captured from each frame: 1500
+Capture list 500 on all interfaces
+Capture IPSec decrypted
+Number of captured frames in file: 0 (out of 0 total captured frames)
+Memory buffer occupancy: 0.0 % (including overheads)
+labg430-004(super)# 
+expect: does "show capture\r\n\r\nCapture service is enabled and inactive\r\nCapture start time not-started\r\nCapture stop time not-stopped\r\nCurrent buffer size is 10000 KB\r\nConfigured buffer size is 10000 KB\r\nBuffer mode is cyclic\r\nMaximum number of bytes captured from each frame: 1500\r\nCapture list 500 on all interfaces\r\nCapture IPSec decrypted\r\nNumber of captured frames in file: 0 (out of 0 total captured frames)\r\nMemory buffer occupancy: 0.0 % (including overheads)\r\nlabg430-004(super)# " (spawn_id exp5) match glob pattern ")# "? yes
+expect: set expect_out(0,string) ")# "
+expect: set expect_out(spawn_id) "exp5"
+expect: set expect_out(buffer) "show capture\r\n\r\nCapture service is enabled and inactive\r\nCapture start time not-started\r\nCapture stop time not-stopped\r\nCurrent buffer size is 10000 KB\r\nConfigured buffer size is 10000 KB\r\nBuffer mode is cyclic\r\nMaximum number of bytes captured from each frame: 1500\r\nCapture list 500 on all interfaces\r\nCapture IPSec decrypted\r\nNumber of captured frames in file: 0 (out of 0 total captured frames)\r\nMemory buffer occupancy: 0.0 % (including overheads)\r\nlabg430-004(super)# "
+send: sending "show voip-dsp\n" to { exp5 }
+
+expect: does "" (spawn_id exp5) match glob pattern ")# "? no
+"*continue-- "? no
+"*to continue."? no
+"*."? no
+s
+expect: does "s" (spawn_id exp5) match glob pattern ")# "? no
+"*continue-- "? no
+"*to continue."? no
+"*."? no
+how voip-dsp
+DSP #1 PARAMETERS
+--------------------------------------------------------------
+Board type     : 25 Channels on board VoIP DSP
+Fw Vintage     : 170
+
+DSP#1 CURRENT STATE
+--------------------------------------------------------------
+In Use         : 0 of 25 channels, 0 of 750 points (0.0% used)
+State          : Idle
+Admin State    : Release
+
+Core# Channels Admin     State
+      In Use   State
+----- -------- --------- -------
+    1  0 of 25   Release Idle
+
+
+DSP #2 Not Present
+
+Done!
+labg430-004(super)# 
+expect: does "show voip-dsp\r\nDSP #1 PARAMETERS\r\n--------------------------------------------------------------\r\nBoard type     : 25 Channels on board VoIP DSP\r\nFw Vintage     : 170\r\n\r\nDSP#1 CURRENT STATE\r\n--------------------------------------------------------------\r\nIn Use         : 0 of 25 channels, 0 of 750 points (0.0% used)\r\nState          : Idle\r\nAdmin State    : Release\r\n\r\nCore# Channels Admin     State\r\n      In Use   State\r\n----- -------- --------- -------\r\n    1  0 of 25   Release Idle\r\n\r\n\r\nDSP #2 Not Present\r\n\r\nDone!\r\nlabg430-004(super)# " (spawn_id exp5) match glob pattern ")# "? yes
+expect: set expect_out(0,string) ")# "
+expect: set expect_out(spawn_id) "exp5"
+expect: set expect_out(buffer) "show voip-dsp\r\nDSP #1 PARAMETERS\r\n--------------------------------------------------------------\r\nBoard type     : 25 Channels on board VoIP DSP\r\nFw Vintage     : 170\r\n\r\nDSP#1 CURRENT STATE\r\n--------------------------------------------------------------\r\nIn Use         : 0 of 25 channels, 0 of 750 points (0.0% used)\r\nState          : Idle\r\nAdmin State    : Release\r\n\r\nCore# Channels Admin     State\r\n      In Use   State\r\n----- -------- --------- -------\r\n    1  0 of 25   Release Idle\r\n\r\n\r\nDSP #2 Not Present\r\n\r\nDone!\r\nlabg430-004(super)# "
+send: sending "show temp\n" to { exp5 }
+
+expect: does "" (spawn_id exp5) match glob pattern ")# "? no
+"*continue-- "? no
+"*to continue."? no
+"*."? no
+s
+expect: does "s" (spawn_id exp5) match glob pattern ")# "? no
+"*continue-- "? no
+"*to continue."? no
+"*."? no
+how temp
+
+Base Ambient
+-------
+Temperature : 33C (91F)
+High Warning: 42C (108F)
+Low Warning : -5C (23F)
+
+Expansion Module 1 - Ambient
+-------------------------
+Not installed  
+
+Expansion Module 2 - Ambient
+-------------------------
+Not installed  
+labg430-004(super)# 
+expect: does "show temp\r\n\r\nBase Ambient\r\n-------\r\nTemperature : 33C (91F)\r\nHigh Warning: 42C (108F)\r\nLow Warning : -5C (23F)\r\n\r\nExpansion Module 1 - Ambient\r\n-------------------------\r\nNot installed  \r\n\r\nExpansion Module 2 - Ambient\r\n-------------------------\r\nNot installed  \r\nlabg430-004(super)# " (spawn_id exp5) match glob pattern ")# "? yes
+expect: set expect_out(0,string) ")# "
+expect: set expect_out(spawn_id) "exp5"
+expect: set expect_out(buffer) "show temp\r\n\r\nBase Ambient\r\n-------\r\nTemperature : 33C (91F)\r\nHigh Warning: 42C (108F)\r\nLow Warning : -5C (23F)\r\n\r\nExpansion Module 1 - Ambient\r\n-------------------------\r\nNot installed  \r\n\r\nExpansion Module 2 - Ambient\r\n-------------------------\r\nNot installed  \r\nlabg430-004(super)# "
+send: sending "exit\n" to { exp5 }
+argv[0] = expect  argv[1] = -c  argv[2] = 
+#!/usr/bin/expect
+############################# Template Variables #############################
+
+set host 10.44.244.51
+set username root
+set passwd cmb@Dm1n
+set rtp_stat 0
+set lastn_secs 3630
+set commands { "show running-config" "show system" "show faults" "show capture" "show voip-dsp" "show temp" }
+set log_file expect_log
+
+############################## Expect Variables ##############################
+
+set timeout 10
+set prompt "\)# "
+array set commands_array {}
+array set rtp_sessions_array {}
+set global_ids [list]
+log_user 0
+
+if {[info exists log_file] && $log_file ne "/dev/null"} {
+    if {[file exists $log_file]} {
+        file delete $log_file
+    }
+}
+exp_internal -f $log_file 0
+
+################################# Procedures #################################
+
+proc to_json {} {
+    global host gw_name gw_number timestamp commands_array rtp_sessions_array
+    set json "{"
+    append json "\"host\": \"$host\", "
+    append json "\"gw_name\": \"$gw_name\", "
+    append json "\"gw_number\": \"$gw_number\", "
+    append json "\"timestamp\": \"$timestamp\", "
+    append json "\"commands\": {"
+    foreach {key value} [array get commands_array] {
+        append json "\"$key\": \"$value\", "
+    }
+    set json [string trimright $json ", "]
+    append json "}, "
+    append json "\"rtp_sessions\": {"
+    foreach {key value} [array get rtp_sessions_array] {
+        append json "\"$key\": \"$value\", "
+    }
+    set json [string trimright $json ", "]
+    append json "}}"
+    return $json
+}
+
+proc merge_lists {list1 list2} {
+    set combined [concat $list1 $list2]
+    set result [lsort -unique $combined]
+    return $result
+}
+
+proc clean_output {output} {
+    set pattern {\r\n\-\-type q to quit or space key to continue\-\- .+?K}
+    regsub -all $pattern $output "" output
+    set lines [split $output "\n"]
+    set prompt_removed [lrange $lines 0 end-1]
+    set output [join $prompt_removed "\n"]
+    regsub -all {"} $output {\"} output_escaped_quotes
+    set result [string trimright $output_escaped_quotes "\r\n"]
+    return $result
+}
+
+proc cmd {command} {
+    global prompt
+    set output ""
+    send "$command"
+    expect {
+        $prompt {
+            set current_output $expect_out(buffer)
+            append output $current_output
+        }
+        "*continue-- " {
+            set current_output $expect_out(buffer)
+            append output $current_output
+            send "\n"
+            exp_continue
+        }
+        "*to continue." {
+            set current_output $expect_out(buffer)
+            append output $current_output
+            exp_continue
+        }
+        "*." {
+            set current_output $expect_out(buffer)
+            append output $current_output
+            sleep 1
+            exp_continue
+        }
+        timeout {
+            puts stderr "Timeout";
+            return ""
+        }
+    }
+    set result [clean_output $output]
+    return [string trimleft $result $command]
+}
+
+proc get_active_global_ids {} {
+    global cmd parse_session_summary_line, gw_number
+    set ids [list]
+    foreach line [split [cmd "show rtp-stat sessions active\n"] "\n"] {
+        if {[regexp {^[0-9]+} $line]} {
+            set result [parse_session_summary_line $line]
+            lassign $result session_id start_date start_time end_date end_time
+            lappend ids [format "%s,%s,%s,%s" $start_date $start_time $gw_number $session_id]
+        }
+    }
+    return $ids
+}
+
+proc get_recent_global_ids {{lastn_secs {20}}} {
+    global cmd parse_session_summary_line is_date1_gt_date2 gw_number
+    set ref_datetime [exec date "+%Y-%m-%d,%H:%M:%S" -d "now - $lastn_secs secs"]
+    set ids [list]
+    foreach line [split [cmd "show rtp-stat sessions last 20\n"] "\n"] {
+        if {[regexp {^[0-9]+} $line]} {
+            set result [parse_session_summary_line $line]
+            lassign $result session_id start_date start_time end_date end_time
+            if {$end_time ne "-"} {
+                set end_datetime [format "%s,%s" $end_date $end_time]
+                set is_end_datetime_gt_ref_datetime [is_date1_gt_date2 $end_datetime $ref_datetime]
+                if {$is_end_datetime_gt_ref_datetime} {
+                    lappend ids [format "%s,%s,%s,%s" $start_date $start_time $gw_number $session_id]
+                }
+            }
+        }
+    }
+    return $ids
+}
+
+proc parse_session_summary_line {input} {
+    set pattern {^(\S+)  (\*|\s)  (\S+),(\S+)\s+(\S+)\s+.*$}
+    if {[regexp $pattern $input _ id qos start_date start_time end_time]} {
+        # if end time rolled over to the next day
+        if {$end_time < $start_time} {
+            set end_date [exec date "+%Y-%m-%d" -d "$start_date + 1 day"]
+        } else {
+            set end_date $start_date
+        }
+        return [list $id "$start_date" "$start_time" "$end_date" "$end_time"]
+    } else {
+        puts stderr "Error: Input format does not match: $input";
+        return ""
+    }
+}
+
+proc is_date1_gt_date2 {date1 date2} {
+    # Convert the date strings into epoch timestamps
+    set timestamp1 [clock scan $date1 -format "%Y-%m-%d,%H:%M:%S"]
+    set timestamp2 [clock scan $date2 -format "%Y-%m-%d,%H:%M:%S"]
+    # Compare the timestamps
+    if {$timestamp1 > $timestamp2} {
+        return 1
+    } else {
+        return 0 
+    }
+}
+
+################################# Main Script ################################
+
+#Spawn SSH connection
+spawn ssh -q -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null $username@$host
+
+#Handle SSH connection
+expect {
+    "Password: " {send "$passwd\n"}
+    timeout {
+        puts -nonewline stderr "ExpectTimeout";
+        exit 255
+    }
+    eof {
+        puts -nonewline stderr "ExpectTimeout";
+        exit 255
+    }
+}
+expect {
+    "*Permission denied*" {
+        puts -nonewline stderr "PermissionDenied";
+        exit 255
+    }
+    $prompt {}
+}
+
+#Extract gateway name and number from prompt
+regexp {([^\s]+)-(\d+)[\(]} $expect_out(buffer) "" gw_name gw_number
+if {$gw_name ne ""} {
+    set gw_name $gw_name
+} else {
+    set gw_name ""
+}
+if {$gw_number ne ""} {
+    set gw_number $gw_number
+} else {
+    set gw_number ""
+}
+
+#Capture timestamp
+set timestamp [exec date "+%Y-%m-%d,%H:%M:%S"]
+
+#Collect RTP statistics if requested
+if {$rtp_stat} {
+    #Recent global session ids
+    set recent_global_ids [get_recent_global_ids $lastn_secs]
+    #Active global session ids
+    set active_global_ids [get_active_global_ids]
+    #Merged global session ids
+    set merged_global_ids [merge_lists $recent_global_ids $active_global_ids]
+
+    if {$merged_global_ids ne {}} {
+        foreach global_id $merged_global_ids {
+            lassign [split $global_id ","] start_date start_time gw_number session_id
+            set output [cmd "show rtp-stat detailed $session_id\n"]
+            if {$output ne ""} {
+                set rtp_sessions_array($global_id) $output
+            }
+        }
+    }
+}
+
+#Iterate through "commands" and run each
+foreach command $commands {
+    set output [cmd "$command\n"]
+    if {$output ne ""} {
+        set commands_array($command) $output
+    }
+}
+
+send "exit\n"
+
+#Output results in JSON format
+puts [to_json]
+  
+set argc 0
+set argv0 "expect"
+set argv ""

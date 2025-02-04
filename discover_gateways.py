@@ -45,7 +45,7 @@ async def query_gateway(
     is_stopped = False
     caught_exception = None
 
-    while not is_stopped:
+    while True:
         try:
             start = time.perf_counter()
             async with semaphore:
@@ -85,20 +85,20 @@ async def query_gateway(
         except asyncio.CancelledError as e:
             logger.error(f"CancelledError in {name}")
             caught_exception = e
-            is_stopped = True
+            #is_stopped = True
             break
     
         except asyncio.TimeoutError as e:
             logger.error(f"TimeoutError in {name}")
             caught_exception = e
             if not queue:
-                is_stopped = True
+                #is_stopped = True
                 break
 
         except Exception as e:
             logger.error(f"{repr(e)} in {name}")
             caught_exception = e
-            is_stopped = True
+            #is_stopped = True
             break
 
         finally:
@@ -116,7 +116,7 @@ async def query_gateway(
         return caught_exception
 
 async def discover_gateways(
-    timeout=5,
+    timeout=10,
     semaphore=None,
     clear=False,
     callback=callback
@@ -148,6 +148,7 @@ async def discover_gateways(
             ex += 1
         else:
             ok += 1
+            print(result)
         if callback:
             callback(ok, ex, total)
 
@@ -156,14 +157,14 @@ if __name__ == "__main__":
     async def main():
         
         async def cancel_task(task):
-            await asyncio.sleep(2)
+            await asyncio.sleep(10)
             task.cancel()
             await task
             return "Cancelled"
         
         bgw1 = BGW("192.168.160.1")
         loop = asyncio.get_event_loop()
-        task1 = loop.create_task(query_gateway(bgw1, timeout=3, name="bgw1"))
+        task1 = loop.create_task(query_gateway(bgw1, timeout=10, name="bgw1"))
         task2 = loop.create_task(discover_gateways())
         task3 = loop.create_task(cancel_task(task1))
         await asyncio.gather(task1, task2, task3, return_exceptions=True)
@@ -185,15 +186,15 @@ if __name__ == "__main__":
         queue = Queue()
         loop = asyncio.get_event_loop()
         bgw = BGW("192.168.160.1")
-        task1 = loop.create_task(query_gateway(bgw, queue=queue, timeout=5))
+        task1 = loop.create_task(query_gateway(bgw, queue=queue, timeout=10))
         task2 = loop.create_task(process_queue(queue))
         task3 = loop.create_task(cancel_task(task1))
         task4 = loop.create_task(cancel_task(task2))
-        await asyncio.gather(task1, task2, task3, task4, return_exceptions=True)
-        for task in (task1, task2):
-            if task.exception() is None:
-                print(f"task result: {repr(task.result())}")
+        results = await asyncio.gather(task1, task2, task3, task4, return_exceptions=True)
+        for result in results:
+            if isinstance(result, Exception):
+                logger.error(f"Got exception {repr(result)}")
             else:
-                logger.error("Got exception", exc_info=task.exception())
+                print(f"task result: {result}")
 
-    asyncio_run(main2(), debug=False)
+    asyncio_run(main(), debug=False)
