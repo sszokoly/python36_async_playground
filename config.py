@@ -7,7 +7,7 @@ config = {
     "polling_secs": 5,
     "max_polling": 20,
     "lastn_secs": 3630,
-    "loglevel": "DEBUG",
+    "loglevel": "ERROR",
     "logfile": "bgw.log",
     "expect_log": "expect_log",
     "discovery_commands": [ 
