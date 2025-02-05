@@ -68,11 +68,16 @@ async def query_gateway(
                 stderr_str = stderr.decode().strip()
 
                 if proc.returncode != 0 or stderr_str:
-                    raise CalledProcessError(
+                    caught_exception = CalledProcessError(
                         returncode=proc.returncode,
                         cmd=script,
                         stderr=stderr_str,
+                        output=stdout_str,
                     )
+                    if not queue:
+                        break
+                    else:
+                        logger.error(f"CalledProcessError with {stderr_str} in {name}")
                 
                 else:
                     if not queue:
@@ -121,11 +126,12 @@ async def discover_gateways(
     timeout=10,
     semaphore=None,
     clear=False,
-    callback=callback
+    callback=None,
+    max_polling=20,
 ) -> None:
     global GATEWAYS
     GATEWAYS = {} if clear else GATEWAYS
-    semaphore = semaphore if semaphore else Semaphore(20)
+    semaphore = semaphore if semaphore else Semaphore(max_polling)
     loop = asyncio.get_event_loop()
     
     GATEWAYS = {ip: BGW(ip, proto) for ip, proto in
@@ -156,6 +162,8 @@ async def discover_gateways(
 
 
 if __name__ == "__main__":
+    
+    #GATEWAYS = {}
     async def main():
         
         async def cancel_task(task):
@@ -187,16 +195,25 @@ if __name__ == "__main__":
                 item = await queue.get()
                 c += 1
                 try:
-                    dictitem = json.loads(item, strict=False)
+                    data = json.loads(item, strict=False)
                 except json.JSONDecodeError:
                     logging.error("JSONDecodeError")
-                print(f"Got from {dictitem.get('gw_name'):12} {len(item):>4} in cycle {c:>6}  @{datetime.now()}")
+                else:
+                    host = data.get("host")
+                    if host:
+                        GATEWAYS[host].update(data)
+                        print(f"Got from {data.get('gw_name'):12} {len(item):>4} in cycle {c:>6}  @{datetime.now()}")
+                        #print(data)
 
         queue = Queue()
         semaphore = Semaphore(20)
         loop = asyncio.get_event_loop()
-        bgw1 = BGW("10.10.48.58")
-        bgw2 = BGW("10.44.244.51")
+        bgw1 = BGW("10.10.48.58", "encrypted")
+        bgw2 = BGW("10.44.244.51", "encrypted")
+        GATEWAYS.update({
+            "10.10.48.58": bgw1,
+            "10.44.244.51": bgw2,
+        })
         task1 = loop.create_task(query_gateway(bgw1, queue=queue, timeout=10, semaphore=semaphore))
         task2 = loop.create_task(query_gateway(bgw2, queue=queue, timeout=10, semaphore=semaphore))
         task3 = loop.create_task(process_queue(queue))

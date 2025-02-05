@@ -7,7 +7,7 @@ config = {
     "polling_secs": 5,
     "max_polling": 20,
     "lastn_secs": 3630,
-    "loglevel": "ERROR",
+    "loglevel": "DEBUG",
     "logfile": "bgw.log",
     "expect_log": "expect_log",
     "discovery_commands": [ 
@@ -55,12 +55,12 @@ exp_internal -f $log_file 0
 ################################# Procedures #################################
 
 proc to_json {{}} {{
-    global host gw_name gw_number timestamp commands_array rtp_sessions_array
+    global host gw_name gw_number last_seen commands_array rtp_sessions_array
     set json "{{"
     append json "\\"host\\": \\"$host\\", "
     append json "\\"gw_name\\": \\"$gw_name\\", "
     append json "\\"gw_number\\": \\"$gw_number\\", "
-    append json "\\"timestamp\\": \\"$timestamp\\", "
+    append json "\\"last_seen\\": \\"$last_seen\\", "
     append json "\\"commands\\": {{"
     foreach {{key value}} [array get commands_array] {{
         append json "\\"$key\\": \\"$value\\", "
@@ -227,8 +227,8 @@ if {{$gw_number ne ""}} {{
     set gw_number ""
 }}
 
-#Capture timestamp
-set timestamp [exec date "+%Y-%m-%d,%H:%M:%S"]
+#Capture last_seen
+set last_seen [exec date "+%Y-%m-%d,%H:%M:%S"]
 
 #Collect RTP statistics if requested
 if {{$rtp_stat}} {{
@@ -243,8 +243,14 @@ if {{$rtp_stat}} {{
         foreach global_id $merged_global_ids {{
             lassign [split $global_id ","] start_date start_time gw_number session_id
             set output [cmd "show rtp-stat detailed $session_id\\n"]
-            if {{$output ne ""}} {{
-                set rtp_sessions_array($global_id) $output
+            set status [catch {{set output [cmd "show rtp-stat detailed $session_id\\n"]}} errmsg]
+            if {{$status != 0}} {{
+                puts -nonewline stderr "ExpectTimeout during \\"show rtp-stat detailed $session_id\\"";
+                exit 255
+            }} else {{
+                if {{$output ne ""}} {{
+                    set rtp_sessions_array($global_id) $output
+                }}
             }}
         }}
     }}
@@ -252,16 +258,22 @@ if {{$rtp_stat}} {{
 
 #Iterate through "commands" and run each
 foreach command $commands {{
-    set output [cmd "$command\\n"]
-    if {{$output ne ""}} {{
-        set commands_array($command) $output
+    #set output [cmd "$command\\n"]
+    set status [catch {{set output [cmd "$command\\n"]}} errmsg]
+    if {{$status != 0}} {{
+        puts -nonewline stderr "ExpectTimeout during \\"$command\\"";
+        exit 255
+    }} else {{
+        if {{$output ne ""}} {{
+            set commands_array($command) $output
+        }}
     }}
 }}
 
-send "exit\\n"
-
 #Output results in JSON format
 puts [to_json]
+
+send "exit\\n"
 '''
 
 script_template_test = '''
@@ -288,8 +300,10 @@ logger = logging.getLogger(__name__)
 logger.setLevel(config["loglevel"])
 
 def create_bgw_script(bgw):
-    debug = True if logger.getEffectiveLevel() == 10 else False
-    
+    if logger.getEffectiveLevel() == 10:
+        expect_log = "_".join((config["expect_log"], bgw.host))
+    else:    
+        expect_log = "/dev/null"
     if not bgw.last_seen:
         rtp_stat = 0
         commands = config["discovery_commands"]
@@ -309,7 +323,7 @@ def create_bgw_script(bgw):
         "rtp_stat": rtp_stat,
         "lastn_secs": config["lastn_secs"],
         "commands": " ".join(f'"{c}"' for c in commands),
-        "expect_log": config["expect_log"] if debug else "/dev/null",
+        "expect_log": expect_log,
     })
     
     return ["/usr/bin/env", "expect", "-c", script]

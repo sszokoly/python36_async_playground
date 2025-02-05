@@ -381,6 +381,7 @@ class BGW():
         self._capture = None
         self._temp = None
         self._uptime = None
+        self._voip_dsp = None
 
     @property
     def model(self):
@@ -466,10 +467,38 @@ class BGW():
     @property
     def uptime(self):
         if not self._uptime:
-            m = re.search(r'Uptime\s+:\s+(\S+)', self.show_system)
+            m = re.search(r'Uptime.+?:\s+(\S+)', self.show_system)
             self._uptime = m.group(1) if m else "?"
         return self._uptime
-    
+
+    @property
+    def voip_dsp(self):
+        inuse, total = 0, 0
+        dsps = re.findall(r"In Use\s+:\s+(\d+) of (\d+) channels", self.show_voip_dsp)
+        for dsp in dsps:
+            try:
+                dsp_inuse, dsp_total = dsp
+                inuse += int(dsp_inuse)
+                total += int(dsp_total)
+            except:
+                pass
+        total = total if total > 0 else "?"
+        inuse = inuse if total > 0 else "?"
+        return f"{inuse}/{total}"
+
+
+
+    def update(self, data):
+        self.last_seen = data.get("last_seen", self.last_seen)
+        self.gw_name = data.get("gw_name", self.gw_name)
+        self.gw_number = data.get("gw_number", self.gw_number)
+        self.show_running_config = data.get("commands", {}).get("show running-config", self.show_running_config)
+        self.show_system = data.get("commands", {}).get("show system", self.show_system)
+        self.show_faults = data.get("commands", {}).get("show faults", self.show_faults)
+        self.show_capture = data.get("commands", {}).get("show capture", self.show_capture)
+        self.show_voip_dsp = data.get("commands", {}).get("show voip-dsp", self.show_voip_dsp)
+        self.show_temp = data.get("commands", {}).get("show temp", self.show_temp)
+
     def __str__(self):
         return f"BGW({self.host})"
 
