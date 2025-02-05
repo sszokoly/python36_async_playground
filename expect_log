@@ -146,3 +146,139 @@ expect: does "\r\nA" (spawn_id exp5) match glob pattern ")# "? no
 "*continue-- "? no
 "*to continue."? no
 "*."? no
+vayaG450A-001(super)# 
+expect: does "\r\nAvayaG450A-001(super)# " (spawn_id exp5) match glob pattern ")# "? yes
+expect: set expect_out(0,string) ")# "
+expect: set expect_out(spawn_id) "exp5"
+expect: set expect_out(buffer) "\r\nAvayaG450A-001(super)# "
+send: sending "show system\n" to { exp5 }
+
+expect: does "" (spawn_id exp5) match glob pattern ")# "? no
+"*continue-- "? no
+"*to continue."? no
+"*."? no
+s
+expect: does "s" (spawn_id exp5) match glob pattern ")# "? no
+"*continue-- "? no
+"*to continue."? no
+"*."? no
+how system
+System Name             : 
+System Location         : 
+System Contact          : 
+Uptime (d,h:m:s)        : 14,06:32:56
+Call Controller Time    : 16:28:57 04 FEB 2025 
+Serial No               : 13TG01116522
+Model                   : G450
+Chassis HW Vintage      : 1
+Chassis HW Suffix       : A
+Mainboard HW Vintage    : 2
+Mainboard HW Suffix     : B
+Mainboard HW CS         : 2.1.7
+Mainboard FW Vintage    : 42.24.0
+LAN MAC Address         : 00:1b:4f:3f:73:e0
+WAN1 MAC Address        : 00:1b:4f:3f:73:e1
+WAN2 MAC Address        : 00:1b:4f:3f:73:e2
+SERVICES MAC address    : 00:1b:4f:3f:73:e3
+Memory #1               : 256MB
+Memory #2               : Not present
+Compact Flash Memory    : No CompactFlash card is installed
+PSU #1                  : AC 400W
+PSU #2                  : Not present
+Media Socket #1         : MP160 VoIP DSP Module
+
+--type q to quit or space key to continue-- 
+expect: does "show system\r\nSystem Name             : \r\nSystem Location         : \r\nSystem Contact          : \r\nUptime (d,h:m:s)        : 14,06:32:56\r\nCall Controller Time    : 16:28:57 04 FEB 2025 \r\nSerial No               : 13TG01116522\r\nModel                   : G450\r\nChassis HW Vintage      : 1\r\nChassis HW Suffix       : A\r\nMainboard HW Vintage    : 2\r\nMainboard HW Suffix     : B\r\nMainboard HW CS         : 2.1.7\r\nMainboard FW Vintage    : 42.24.0\r\nLAN MAC Address         : 00:1b:4f:3f:73:e0\r\nWAN1 MAC Address        : 00:1b:4f:3f:73:e1\r\nWAN2 MAC Address        : 00:1b:4f:3f:73:e2\r\nSERVICES MAC address    : 00:1b:4f:3f:73:e3\r\nMemory #1               : 256MB\r\nMemory #2               : Not present\r\nCompact Flash Memory    : No CompactFlash card is installed\r\nPSU #1                  : AC 400W\r\nPSU #2                  : Not present\r\nMedia Socket #1         : MP160 VoIP DSP Module\r\n\r\n--type q to quit or space key to continue-- " (spawn_id exp5) match glob pattern ")# "? no
+"*continue-- "? yes
+expect: set expect_out(0,string) "show system\r\nSystem Name             : \r\nSystem Location         : \r\nSystem Contact          : \r\nUptime (d,h:m:s)        : 14,06:32:56\r\nCall Controller Time    : 16:28:57 04 FEB 2025 \r\nSerial No               : 13TG01116522\r\nModel                   : G450\r\nChassis HW Vintage      : 1\r\nChassis HW Suffix       : A\r\nMainboard HW Vintage    : 2\r\nMainboard HW Suffix     : B\r\nMainboard HW CS         : 2.1.7\r\nMainboard FW Vintage    : 42.24.0\r\nLAN MAC Address         : 00:1b:4f:3f:73:e0\r\nWAN1 MAC Address        : 00:1b:4f:3f:73:e1\r\nWAN2 MAC Address        : 00:1b:4f:3f:73:e2\r\nSERVICES MAC address    : 00:1b:4f:3f:73:e3\r\nMemory #1               : 256MB\r\nMemory #2               : Not present\r\nCompact Flash Memory    : No CompactFlash card is installed\r\nPSU #1                  : AC 400W\r\nPSU #2                  : Not present\r\nMedia Socket #1         : MP160 VoIP DSP Module\r\n\r\n--type q to quit or space key to continue-- "
+expect: set expect_out(spawn_id) "exp5"
+expect: set expect_out(buffer) "show system\r\nSystem Name             : \r\nSystem Location         : \r\nSystem Contact          : \r\nUptime (d,h:m:s)        : 14,06:32:56\r\nCall Controller Time    : 16:28:57 04 FEB 2025 \r\nSerial No               : 13TG01116522\r\nModel                   : G450\r\nChassis HW Vintage      : 1\r\nChassis HW Suffix       : A\r\nMainboard HW Vintage    : 2\r\nMainboard HW Suffix     : B\r\nMainboard HW CS         : 2.1.7\r\nMainboard FW Vintage    : 42.24.0\r\nLAN MAC Address         : 00:1b:4f:3f:73:e0\r\nWAN1 MAC Address        : 00:1b:4f:3f:73:e1\r\nWAN2 MAC Address        : 00:1b:4f:3f:73:e2\r\nSERVICES MAC address    : 00:1b:4f:3f:73:e3\r\nMemory #1               : 256MB\r\nMemory #2               : Not present\r\nCompact Flash Memory    : No CompactFlash card is installed\r\nPSU #1                  : AC 400W\r\nPSU #2                  : Not present\r\nMedia Socket #1         : MP160 VoIP DSP Module\r\n\r\n--type q to quit or space key to continue-- "
+send: sending "\n" to { exp5 }
+expect: continuing expect
+
+expect: does "" (spawn_id exp5) match glob pattern ")# "? no
+"*continue-- "? no
+"*to continue."? no
+"*."? no
+
+expect: does "\r" (spawn_id exp5) match glob pattern ")# "? no
+"*continue-- "? no
+"*to continue."? no
+"*."? no
+[KMedia Socket #2         : Not present
+Media Socket #3         : Not present
+Media Socket #4         : Not present
+FAN Tray                : Present
+AvayaG450A-001(super)# 
+expect: does "\r\u001b[KMedia Socket #2         : Not present\r\nMedia Socket #3         : Not present\r\nMedia Socket #4         : Not present\r\nFAN Tray                : Present\r\nAvayaG450A-001(super)# " (spawn_id exp5) match glob pattern ")# "? yes
+expect: set expect_out(0,string) ")# "
+expect: set expect_out(spawn_id) "exp5"
+expect: set expect_out(buffer) "\r\u001b[KMedia Socket #2         : Not present\r\nMedia Socket #3         : Not present\r\nMedia Socket #4         : Not present\r\nFAN Tray                : Present\r\nAvayaG450A-001(super)# "
+send: sending "show faults\n" to { exp5 }
+
+expect: does "" (spawn_id exp5) match glob pattern ")# "? no
+"*continue-- "? no
+"*to continue."? no
+"*."? no
+s
+expect: does "s" (spawn_id exp5) match glob pattern ")# "? no
+"*continue-- "? no
+"*to continue."? no
+"*."? no
+how faults
+
+CURRENTLY ACTIVE FAULTS
+--------------------------------------------------------------------------
+
+-- Media Module Faults --
+	+ Insertion failure, mmid = v5, 01/21-09:59:46.00
+
+Current Alarm Indications, ALM LED is off
+--------------------------------------------------------------------------
+None
+
+Done!
+AvayaG450A-001(super)# 
+expect: does "show faults\r\n\r\nCURRENTLY ACTIVE FAULTS\r\n--------------------------------------------------------------------------\r\n\r\n-- Media Module Faults --\r\n\t+ Insertion failure, mmid = v5, 01/21-09:59:46.00\r\n\r\nCurrent Alarm Indications, ALM LED is off\r\n--------------------------------------------------------------------------\r\nNone\r\n\r\nDone!\r\nAvayaG450A-001(super)# " (spawn_id exp5) match glob pattern ")# "? yes
+expect: set expect_out(0,string) ")# "
+expect: set expect_out(spawn_id) "exp5"
+expect: set expect_out(buffer) "show faults\r\n\r\nCURRENTLY ACTIVE FAULTS\r\n--------------------------------------------------------------------------\r\n\r\n-- Media Module Faults --\r\n\t+ Insertion failure, mmid = v5, 01/21-09:59:46.00\r\n\r\nCurrent Alarm Indications, ALM LED is off\r\n--------------------------------------------------------------------------\r\nNone\r\n\r\nDone!\r\nAvayaG450A-001(super)# "
+send: sending "show capture\n" to { exp5 }
+
+expect: does "" (spawn_id exp5) match glob pattern ")# "? no
+"*continue-- "? no
+"*to continue."? no
+"*."? no
+s
+expect: does "s" (spawn_id exp5) match glob pattern ")# "? no
+"*continue-- "? no
+"*to continue."? no
+"*."? no
+how capture
+
+Capture service is enabled and inactive
+Capture start time not-started
+Capture stop time not-stopped
+Current buffer size is 1024 KB
+Buffer mode is cyclic
+Maximum number of bytes captured from each frame: 1500
+Capture list 500 on all interfaces
+Capture IPSec decrypted
+Number of captured frames in file: 0 (out of 0 total captured frames)
+Memory buffer occupancy: 0.0 % (including overheads)
+AvayaG450A-001(super)# 
+expect: does "show capture\r\n\r\nCapture service is enabled and inactive\r\nCapture start time not-started\r\nCapture stop time not-stopped\r\nCurrent buffer size is 1024 KB\r\nBuffer mode is cyclic\r\nMaximum number of bytes captured from each frame: 1500\r\nCapture list 500 on all interfaces\r\nCapture IPSec decrypted\r\nNumber of captured frames in file: 0 (out of 0 total captured frames)\r\nMemory buffer occupancy: 0.0 % (including overheads)\r\nAvayaG450A-001(super)# " (spawn_id exp5) match glob pattern ")# "? yes
+expect: set expect_out(0,string) ")# "
+expect: set expect_out(spawn_id) "exp5"
+expect: set expect_out(buffer) "show capture\r\n\r\nCapture service is enabled and inactive\r\nCapture start time not-started\r\nCapture stop time not-stopped\r\nCurrent buffer size is 1024 KB\r\nBuffer mode is cyclic\r\nMaximum number of bytes captured from each frame: 1500\r\nCapture list 500 on all interfaces\r\nCapture IPSec decrypted\r\nNumber of captured frames in file: 0 (out of 0 total captured frames)\r\nMemory buffer occupancy: 0.0 % (including overheads)\r\nAvayaG450A-001(super)# "
+send: sending "show voip-dsp\n" to { exp5 }
+
+expect: does "" (spawn_id exp5) match glob pattern ")# "? no
+"*continue-- "? no
+"*to continue."? no
+"*."? no
+s
+expect: does "s" (spawn_id exp5) match glob pattern ")# "? no
+"*continue-- "? no
+"*to continue."? no
+"*."? no
