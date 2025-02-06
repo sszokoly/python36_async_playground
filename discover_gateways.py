@@ -203,7 +203,7 @@ if __name__ == "__main__":
                     if host:
                         GATEWAYS[host].update(data)
                         print(f"Got from {data.get('gw_name'):12} {len(item):>4} in cycle {c:>6}  @{datetime.now()}")
-                        #print(data)
+                        print(f"Voip-dsp usage in {host}: {GATEWAYS[host].voip_dsp}")
 
         queue = Queue()
         semaphore = Semaphore(20)
