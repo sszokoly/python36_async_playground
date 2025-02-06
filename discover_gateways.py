@@ -47,7 +47,7 @@ async def query_gateway(
     is_stopped = False
     caught_exception = None
 
-    while True:
+    while not is_stopped:
         try:
             start = time.perf_counter()
             async with semaphore:
@@ -67,17 +67,21 @@ async def query_gateway(
                 stdout_str = stdout.decode().strip()
                 stderr_str = stderr.decode().strip()
 
-                if proc.returncode != 0 or stderr_str:
-                    caught_exception = CalledProcessError(
-                        returncode=proc.returncode,
-                        cmd=script,
-                        stderr=stderr_str,
-                        output=stdout_str,
-                    )
-                    if not queue:
-                        break
+                if proc.returncode != 0:
+                    if stderr_str and proc.returncode == 255:
+                        caught_exception = CalledProcessError(
+                            returncode=proc.returncode,
+                            cmd=script,
+                            stderr=stderr_str,
+                            output=stdout_str,
+                        )
+                        if not queue:
+                            break
+                        else:
+                            logger.error(f"CalledProcessError with {stderr_str} in {name}")
                     else:
-                        logger.error(f"CalledProcessError with {stderr_str} in {name}")
+                        is_stopped = True
+                        break
                 
                 else:
                     if not queue:
@@ -218,7 +222,10 @@ if __name__ == "__main__":
         task2 = loop.create_task(query_gateway(bgw2, queue=queue, timeout=10, semaphore=semaphore))
         task3 = loop.create_task(process_queue(queue))
         task4 = loop.create_task(cancel_tasks([task1, task2, task3]))
-        results = await asyncio.gather(task1, task2, task3, task4, return_exceptions=True)
+        try:
+            results = await asyncio.gather(task1, task2, task3, task4, return_exceptions=True)
+        except Exception as e:
+            logger.error(f"{repr(e)}")
         for result in results:
             if isinstance(result, Exception):
                 logger.error(f"Got exception {repr(result)}")
