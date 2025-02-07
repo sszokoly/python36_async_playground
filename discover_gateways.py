@@ -68,19 +68,17 @@ async def query_gateway(
                 stderr_str = stderr.decode().strip()
 
                 if proc.returncode != 0:
-                    if stderr_str and proc.returncode == 255:
-                        caught_exception = CalledProcessError(
-                            returncode=proc.returncode,
-                            cmd=script,
-                            stderr=stderr_str,
-                            output=stdout_str,
-                        )
-                        if not queue:
-                            break
-                        else:
-                            logger.error(f"CalledProcessError with {stderr_str} in {name}")
+                    caught_exception = CalledProcessError(
+                        returncode=proc.returncode,
+                        cmd=script,
+                        stderr=stderr_str,
+                        output=stdout_str,
+                    )
+                    logger.error(f"CalledProcessError with {stderr_str} in {name}")
+
+                    if stderr_str and proc.returncode == 255 and queue:
+                        continue
                     else:
-                        is_stopped = True
                         break
                 
                 else:
@@ -222,10 +220,7 @@ if __name__ == "__main__":
         task2 = loop.create_task(query_gateway(bgw2, queue=queue, timeout=10, semaphore=semaphore))
         task3 = loop.create_task(process_queue(queue))
         task4 = loop.create_task(cancel_tasks([task1, task2, task3]))
-        try:
-            results = await asyncio.gather(task1, task2, task3, task4, return_exceptions=True)
-        except Exception as e:
-            logger.error(f"{repr(e)}")
+        results = await asyncio.gather(task1, task2, task3, task4, return_exceptions=True)
         for result in results:
             if isinstance(result, Exception):
                 logger.error(f"Got exception {repr(result)}")
