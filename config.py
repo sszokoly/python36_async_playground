@@ -276,7 +276,7 @@ puts [to_json]
 send "exit\\n"
 '''
 
-script_template_test = '''
+script_template = '''
 set host {host}
 set username {username}
 set passwd {passwd}
@@ -285,11 +285,11 @@ set lastn_secs {lastn_secs}
 set commands {{ {commands} }}
 set log_file {expect_log}
 
-set randomInt [expr {{int(rand() * 4)}}]
+set randomInt [expr {{int(rand() * 2)}}]
 
-sleep 2
+sleep 1
 
-if {{$randomInt == 4}} {{
+if {{$randomInt == 1}} {{
     puts -nonewline stderr "ExpectTimeout"; exit 255
 }}
 sleep 1

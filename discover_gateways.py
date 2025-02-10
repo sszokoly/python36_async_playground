@@ -2,7 +2,7 @@ import asyncio
 import logging
 import time
 import json
-import concurrent.futures
+from concurrent import futures
 from asyncio import Queue, Semaphore
 from datetime import datetime
 from utils import asyncio_run, async_shell
@@ -44,14 +44,13 @@ async def query_gateway(
     name = name if name else bgw.host
     semaphore = semaphore if semaphore else Semaphore(1)
     proc = None
-    is_stopped = False
-    caught_exception = None
 
-    while not is_stopped:
+    while True:
         try:
             start = time.perf_counter()
             async with semaphore:
-                logger.debug(f"Aquired semaphore in {name}, free {semaphore._value}")
+                logger.debug(f"Acquired semaphore in {name}, free {semaphore._value}")
+                
                 diff = time.perf_counter() - start
                 script = create_bgw_script(bgw)
                 proc = await asyncio.create_subprocess_exec(
@@ -60,69 +59,59 @@ async def query_gateway(
                     stderr=asyncio.subprocess.PIPE
                 )
                 logger.debug(f"Created process PID {proc.pid} in {name}")
-                stdout, stderr = await asyncio.wait_for(
-                    proc.communicate(), timeout
-                )
-
-                stdout_str = stdout.decode().strip()
-                stderr_str = stderr.decode().strip()
-
-                if proc.returncode != 0:
-                    caught_exception = CalledProcessError(
-                        returncode=proc.returncode,
-                        cmd=script,
-                        stderr=stderr_str,
-                        output=stdout_str,
-                    )
-                    logger.error(f"CalledProcessError with {stderr_str} in {name}")
-
-                    if stderr_str and proc.returncode == 255 and queue:
-                        continue
-                    else:
-                        break
                 
-                else:
-                    if not queue:
-                        return stdout_str
-                    else:
-                        queue.put_nowait(stdout_str)
+                try:
+                    stdout, stderr = await asyncio.wait_for(
+                        proc.communicate(), timeout
+                    )
+
+                    stdout_str = stdout.decode().strip()
+                    stderr_str = stderr.decode().strip()
+
+                    if proc.returncode != 0:
+                        caught_exception = CalledProcessError(
+                            returncode=proc.returncode,
+                            cmd=script,
+                            stderr=stderr_str,
+                            output=stdout_str,
+                        )
+                        logger.error(f"CalledProcessError with stderr={stderr_str} in {name}")
+
+                        if queue and stderr_str and proc.returncode == 255:
+                            pass
+                        else:
+                            raise caught_exception
                     
-                    sleep_secs = round(max(polling_secs - diff, 0), 2)
-                    logger.debug(f"Sleeping {sleep_secs}s in {name}")
-                    await asyncio.sleep(sleep_secs)
+                    else:
+                        if not queue:
+                            return stdout_str
+                        else:
+                            queue.put_nowait(stdout_str)
+                
+                except asyncio.TimeoutError:
+                    logger.error(f"TimeoutError in {name}")
+                    if not queue:
+                        raise
 
-        except asyncio.CancelledError as e:
+                sleep_secs = round(max(polling_secs - diff, 0), 2)
+                logger.debug(f"Sleeping {sleep_secs}s in {name}")
+                await asyncio.sleep(sleep_secs)
+
+        except asyncio.CancelledError:
             logger.error(f"CancelledError in {name}")
-            caught_exception = e
-            #is_stopped = True
-            break
-    
-        except asyncio.TimeoutError as e:
-            logger.error(f"TimeoutError in {name}")
-            caught_exception = e
-            if not queue:
-                #is_stopped = True
-                break
-
-        except Exception as e:
-            logger.error(f"{repr(e)} in {name}")
-            caught_exception = e
-            #is_stopped = True
-            break
+            raise
 
         finally:
             logger.debug(f"Released semaphore in {name}, free {semaphore._value}")
             if proc and proc.returncode is None:
                 logger.debug(f"Terminating PID {proc.pid} in '{name}'")
+                proc.kill()
+                #proc._transport.close()
                 try:
-                    proc._transport.close()
-                    proc.kill()
                     await proc.wait()
-                except Exception as _e:
-                    logger.error(f"{repr(_e)} for PID {proc.pid} in {name}")
+                except Exception as e:
+                    logger.error(f"{repr(e)} for PID {proc.pid} in {name}")
 
-    if caught_exception:
-        return caught_exception
 
 async def discover_gateways(
     timeout=10,
@@ -158,7 +147,7 @@ async def discover_gateways(
             ex += 1
         else:
             ok += 1
-            print(result[:30])
+            #print(result[:30])
         if callback:
             callback(ok, ex, total)
 

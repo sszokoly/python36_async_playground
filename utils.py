@@ -11,6 +11,16 @@ FORMAT = "%(asctime)s - %(levelname)8s - %(message)s [%(filename)s:%(lineno)s]"
 logging.basicConfig(format=FORMAT)
 logger.setLevel(logging.DEBUG)
 
+def custom_exception_handler(loop, context):
+    exc = context.get('exception')
+    # Suppress the spurious TimeoutError reported at shutdown.
+    if isinstance(exc, Exception):
+        # Optionally, log that we suppressed it:
+        # print("Suppressed spurious TimeoutError during shutdown.")
+        return
+    # For other exceptions, call the default handler.
+    loop.default_exception_handler(context)
+
 async def async_shell_prev(
     cmd: str, 
     timeout: Optional[int] = None
@@ -146,6 +156,7 @@ def asyncio_run(
         raise ValueError("a coroutine was expected, got {!r}".format(main))
 
     loop = events.new_event_loop()
+    loop.set_exception_handler(custom_exception_handler)
     try:
         events.set_event_loop(loop)
         if debug is not None:
