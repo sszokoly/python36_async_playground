@@ -157,7 +157,7 @@ def asyncio_run(
         raise ValueError("a coroutine was expected, got {!r}".format(main))
 
     loop = events.new_event_loop()
-    #loop.set_exception_handler(custom_exception_handler)
+    loop.set_exception_handler(custom_exception_handler)
     try:
         events.set_event_loop(loop)
         if debug is not None:

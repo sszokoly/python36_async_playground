@@ -276,7 +276,7 @@ puts [to_json]
 send "exit\\n"
 '''
 
-script_template_test = '''
+script_template = '''
 set host {host}
 set username {username}
 set passwd {passwd}
@@ -285,15 +285,14 @@ set lastn_secs {lastn_secs}
 set commands {{ {commands} }}
 set log_file {expect_log}
 
-set randomInt [expr {{int(rand() * 2)}}]
+set randomInt [expr {{int(rand() * 4)}}]
 
-sleep 1
+sleep 4
 
-if {{$randomInt == 1}} {{
-    puts -nonewline stderr "ExpectTimeout"; exit 255
-}}
-sleep 1
-puts "{{\\"gw_number\\": \\"001\\", \\"host\\": \\"$host\\", \\"timestamp\\": \\"2024-12-30,11:06:15\\", \\"commands\\": {{\\"show system\\": \\"location: 1\\", \\"show running-config\\": \\"location: 1\\"}}, \\"rtp_sessions\\": {{\\"2024-12-30,11:06:15,$host,000$randomInt\\": \\"session 000$randomInt\\"}}}}"
+#if {{$randomInt == 1}} {{
+#    puts -nonewline stderr "ExpectTimeout"; exit 255
+#}}
+puts "{{\\"gw_number\\": \\"001\\", \\"gw_name\\": \\"bgw1\\", \\"host\\": \\"$host\\", \\"timestamp\\": \\"2024-12-30,11:06:15\\", \\"commands\\": {{\\"show system\\": \\"location: 1\\", \\"show running-config\\": \\"location: 1\\"}}, \\"rtp_sessions\\": {{\\"2024-12-30,11:06:15,$host,000$randomInt\\": \\"session 000$randomInt\\"}}}}"
 '''
 
 logger = logging.getLogger(__name__)

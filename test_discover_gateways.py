@@ -34,10 +34,10 @@ async def process_queue(queue):
                 if host:
                     GATEWAYS[host].update(data)
                     print(f"Got from {data.get('gw_name'):12} {len(item):>4} in cycle {c:>6}  @{datetime.now()}")
-                    print(f"Voip-dsp usage in {host}: {GATEWAYS[host].voip_dsp}")
-        except Exception as e:
-            logger.error(f"GOT {repr(e)}")
-            break
+                    #print(f"Voip-dsp usage in {host}: {GATEWAYS[host].voip_dsp}")
+        except asyncio.CancelledError:
+            logger.error("CancelledError in process_queue")
+            raise
 
 async def main():
 
