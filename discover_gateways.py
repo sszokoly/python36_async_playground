@@ -13,7 +13,7 @@ from subprocess import CalledProcessError
 from config import create_bgw_script
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.ERROR)
+logger.setLevel(logging.DEBUG)
 
 GATEWAYS = {}
 

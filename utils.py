@@ -14,9 +14,10 @@ logger.setLevel(logging.DEBUG)
 def custom_exception_handler(loop, context):
     exc = context.get('exception')
     # Suppress the spurious TimeoutError reported at shutdown.
-    if isinstance(exc, Exception):
+    if isinstance(exc, asyncio.CancelledError) or isinstance(exc, asyncio.TimeoutError):
         # Optionally, log that we suppressed it:
         # print("Suppressed spurious TimeoutError during shutdown.")
+        logger.error(f"{repr(exc)} silenced")
         return
     # For other exceptions, call the default handler.
     loop.default_exception_handler(context)
@@ -156,7 +157,7 @@ def asyncio_run(
         raise ValueError("a coroutine was expected, got {!r}".format(main))
 
     loop = events.new_event_loop()
-    loop.set_exception_handler(custom_exception_handler)
+    #loop.set_exception_handler(custom_exception_handler)
     try:
         events.set_event_loop(loop)
         if debug is not None:
