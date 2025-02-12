@@ -9,6 +9,7 @@ def main(stdscr):
     try:
         for i in range(0, 255):
             stdscr.addstr(str(i), curses.color_pair(i))
+            stdscr.addstr(str(i), curses.color_pair(i)|curses.A_REVERSE)
     except curses.ERR:
         # End of screen reached
         pass

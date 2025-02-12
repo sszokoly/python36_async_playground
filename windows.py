@@ -50,6 +50,46 @@ class MyPanel:
         self.win.refresh()
         return self
 
+class ProgressBar:
+    def __init__(
+        self,
+        stdscr,
+        fraction,
+        width=21,
+        attr_fg=None,
+        attr_bg=None,
+        offset_y=2,
+    ) -> None:
+        self.stdscr = stdscr
+        self.fraction = fraction
+        self.width = width
+        self.attr_fg = attr_fg or curses.color_pair(221)|curses.A_REVERSE
+        self.attr_bg = attr_bg or curses.color_pair(239)|curses.A_REVERSE
+        self.offset_y = offset_y
+        self._initialize()
+
+    def _initialize(self):
+        maxy, maxx = self.stdscr.getmaxyx()
+        begin_y = maxy // 2 + self.offset_y
+        begin_x = maxx // 2 - (self.width // 2)
+        self.win = curses.newwin(1, self.width, begin_y, begin_x)
+        curses.panel.new_panel(self.win)
+        self.win.attron(self.attr_bg)
+
+    def draw(self, fraction=None):
+        if fraction:
+            self.win.erase()
+            self.fraction = fraction
+        lwidth = int(self.fraction * self.width)
+        rwidth = self.width - lwidth
+        try:
+            self.win.addstr(0, 0, lwidth * " ", self.attr_fg)
+            self.win.addstr(0, lwidth, rwidth * " ", self.attr_bg)
+        except _curses.error:
+            pass
+        self.win.refresh()
+        return self
+
 class Popup:
     def __init__(
         self,
@@ -180,7 +220,7 @@ class Menubar:
 
 class Button:
 
-    button_map = {"d": "🅳 ", "f": "🅵 ", "s": "🆂 "}
+    button_map = {"d": "🅳 ", "f": "🅵 ", "r": "🆁", "s": "🆂 "}
     
     def __init__(
         self,
@@ -306,6 +346,19 @@ def main(stdscr):
         rtppanel.erase()
         return True
 
+    def discover_start():
+        nonlocal stdscr
+        fraction = 0
+        progbar = ProgressBar(stdscr, fraction=fraction)
+        for _ in range(20):
+            fraction += 0.05
+            progbar.draw(fraction)
+            time.sleep(0.2)
+
+    def discover_stop():
+        curses.panel.update_panels()
+
+
     while not done:
 
         menu = Menubar(stdscr)
@@ -316,8 +369,12 @@ def main(stdscr):
                     status_labels=["EventLoop", "EventLoop"],
                     tempstatus_labels=["Starting", "Stopping"]))
         menu.register_button(
-            Button(stdscr, "d", labels=["Details", "Details"],
+            Button(stdscr, "r", labels=["RTPstat", "RTPstat"],
                     funcs=[draw_rtppanel, erase_rtppanel],
+                    callback=menu.draw))
+        menu.register_button(
+            Button(stdscr, "d", labels=["DiscoverStart", "DiscoverStop"],
+                    funcs=[discover_start, discover_stop],
                     callback=menu.draw))
         
         menu.draw()
