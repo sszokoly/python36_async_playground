@@ -220,7 +220,7 @@ class Menubar:
 
 class Button:
 
-    button_map = {"d": "🅳 ", "f": "🅵 ", "r": "🆁", "s": "🆂 "}
+    button_map = {"d": "🅳 ", "f": "🅵 ", "r": "🆁 ", "s": "🆂 "}
     
     def __init__(
         self,
