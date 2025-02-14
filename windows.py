@@ -150,7 +150,7 @@ class Menubar:
         self.nlines = nlines
         self.offset_x = offset_x
         self.status_width = status_width
-        self.attr = attr
+        self.attr = attr or curses.color_pair(224)|curses.A_REVERSE
         self._initialize()
 
     def draw(self):
