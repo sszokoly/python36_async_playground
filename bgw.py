@@ -486,8 +486,6 @@ class BGW():
         inuse = inuse if total > 0 else "?"
         return f"{inuse}/{total}"
 
-
-
     def update(self, data):
         self.last_seen = data.get("last_seen", self.last_seen)
         self.gw_name = data.get("gw_name", self.gw_name)

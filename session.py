@@ -3,7 +3,7 @@
 import re
 from typing import Dict, Iterator, List, Tuple, Union
 
-DETAILED_PATTERNS = (
+RTP_DETAILED_PATTERNS = (
     r'.*?Session-ID: (?P<session_id>\d+)',
     r'.*?Status: (?P<status>\S+),',
     r'.*?QOS: (?P<qos>\S+),',
