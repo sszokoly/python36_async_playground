@@ -48,6 +48,7 @@ config = {
         "show capture",
         "show voip-dsp",
         "show temp",
+        "show sla-monitor",
     ],
     "query_commands": [
         "show voip-dsp",
@@ -417,6 +418,7 @@ class BGW():
         show_capture: str = '',
         show_voip_dsp: str = '',
         show_temp: str = '',
+        show_sla_monitor: str = '',
     ) -> None:
         self.host = host
         self.proto = proto
@@ -429,6 +431,7 @@ class BGW():
         self.show_capture = show_capture
         self.show_voip_dsp = show_voip_dsp
         self.show_temp = show_temp
+        self.show_sla_monitor = show_sla_monitor
         self.queue = Queue()
         self._faults = None
         self._capture = None
@@ -442,6 +445,7 @@ class BGW():
         self._temp = None
         self._uptime = None
         self._voip_dsp = None
+        self._sla_server = None
 
     @property
     def model(self):
@@ -546,16 +550,25 @@ class BGW():
         inuse = inuse if total > 0 else "?"
         return f"{inuse}/{total}"
 
+    @property
+    def sla_server(self):
+        if not self._sla_server:
+            m = re.search(r'Registered Server IP Address:\s+(\S+)', self.show_sla_monitor)
+            self._sla_server = m.group(1) if m.group(1) != "0.0.0.0" else ""
+        return self._sla_server
+
     def update(self, data):
         self.last_seen = data.get("last_seen", self.last_seen)
         self.gw_name = data.get("gw_name", self.gw_name)
         self.gw_number = data.get("gw_number", self.gw_number)
-        self.show_running_config = data.get("commands", {}).get("show running-config", self.show_running_config)
-        self.show_system = data.get("commands", {}).get("show system", self.show_system)
-        self.show_faults = data.get("commands", {}).get("show faults", self.show_faults)
-        self.show_capture = data.get("commands", {}).get("show capture", self.show_capture)
-        self.show_voip_dsp = data.get("commands", {}).get("show voip-dsp", self.show_voip_dsp)
-        self.show_temp = data.get("commands", {}).get("show temp", self.show_temp)
+        commands = data.get("commands", {})
+        self.show_running_config = commands.get("show running-config", self.show_running_config)
+        self.show_system = commands.get("show system", self.show_system)
+        self.show_faults = commands.get("show faults", self.show_faults)
+        self.show_capture = commands.get("show capture", self.show_capture)
+        self.show_voip_dsp = commands.get("show voip-dsp", self.show_voip_dsp)
+        self.show_temp = commands.get("show temp", self.show_temp)
+        self.show_sla_monitor = commands.get("show sla-monitor", self.show_sla_monitor)
 
     def __str__(self):
         return f"BGW({self.host})"
@@ -848,9 +861,6 @@ class SlicableOrderedDict(MutableMapping):
             return NotImplemented
         return list(self.items()) == list(other.items()) and self.maxlen == other.maxlen
 
-    def __len__(self):
-        return len(self._items)
-
 class AsyncMemoryStorage(SlicableOrderedDict):
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
@@ -1007,31 +1017,6 @@ def custom_exception_handler(loop, context):
         return
     loop.default_exception_handler(context)
 
-def custom_create_task(
-    loop: asyncio.AbstractEventLoop, 
-    coro: Coroutine[Any, Any, Any], 
-    name: Optional[str] = None
-) -> asyncio.Task:
-    """Patched version of create_task that assigns a name to the task.
-
-    Parameters
-    ----------
-    loop : asyncio.AbstractEventLoop
-        The event loop to create the task in.
-    coro : Coroutine[Any, Any, Any]
-        The coroutine to run in the task.
-    name : Optional[str], optional
-        The name to assign to the task. Defaults to None.
-
-    Returns
-    -------
-    asyncio.Task
-        The newly created task.
-    """
-    task = asyncio.tasks.Task(coro, loop=loop)
-    task.name = name
-    return task
-
 def create_bgw_script(bgw: BGW) -> List[str]:
     """
     Create the script passed to expect to connect to the BGW.
@@ -1044,7 +1029,7 @@ def create_bgw_script(bgw: BGW) -> List[str]:
     Returns
     -------
     List[str]
-        A list of the command, arguments, and script to execute the expect script.
+        A list of the arguments to execute the expect script.
     """
     if logger.getEffectiveLevel() == 10:
         expect_log = "_".join((config["expect_log"], bgw.host))
@@ -1095,10 +1080,13 @@ def connected_gateways(ip_filter: Optional[Set[str]] = None) -> Dict[str, str]:
     connections = os.popen("netstat -tan | grep ESTABLISHED").read()
     
     for line in connections.splitlines():
-        match = re.search(r"([0-9.]+):(1039|2945)\s+([0-9.]+):([0-9]+)", line)
-        if match:
-            ip = match.group(3)
-            proto = "encrypted" if match.group(2) == "1039" else "unencrypted"
+        m = re.search(r"([0-9.]+):(1039|2944|2945)\s+([0-9.]+):([0-9]+)", line)
+        if m:
+            ip = m.group(3)
+            if m.group(2) in ("1039", "2944"):
+                proto = "encrypted"
+            else:
+                proto = "unencrypted"
             logging.debug(f"Found gateway {ip} using {proto} protocol")
             if not ip_filter or ip in ip_filter:
                 result[ip] = proto
@@ -1271,7 +1259,7 @@ def discover_callback(ok, ex, total):
     print(f"ok:{ok}/ex:{ex}/total:{total}")
 
 def poll_callback(bgw):
-    print(f"{bgw.gw_name:15} last seen at {bgw.last_seen}")
+    print(f"{bgw.gw_name:15} last_seen:{bgw.last_seen}")
 
 async def process_queue(queue, callback=None, name=None):
     c = 0
@@ -1293,9 +1281,34 @@ def update_gateway(data, callback=None):
             if callback:
                 callback(GATEWAYS[host])
 
+def _create_task(
+    loop: asyncio.AbstractEventLoop, 
+    coro: Coroutine[Any, Any, Any], 
+    name: Optional[str] = None
+) -> asyncio.Task:
+    """Patched version of create_task that assigns a name to the task.
+
+    Parameters
+    ----------
+    loop : asyncio.AbstractEventLoop
+        The event loop to create the task in.
+    coro : Coroutine[Any, Any, Any]
+        The coroutine to run in the task.
+    name : Optional[str], optional
+        The name to assign to the task. Defaults to None.
+
+    Returns
+    -------
+    asyncio.Task
+        The newly created task.
+    """
+    task = asyncio.tasks.Task(coro, loop=loop)
+    task.name = name
+    return task
+
 async def main():
     loop = asyncio.get_event_loop()
-    loop.create_task = lambda coro, name=None: custom_create_task(loop, coro, name)
+    loop.create_task = lambda coro, name=None: _create_task(loop, coro, name)
     ip_filter = config["ip_filter"]
 
     print("##### DISCOVER GATEWAYS #####")
@@ -1321,7 +1334,7 @@ async def main():
     print("##### SHUTTING DOWN #####")
     cancel_tasks = []
     for task in asyncio.Task.all_tasks(loop):
-        if hasattr(task, "name") and not task.done():
+        if hasattr(task, "name") and task.name and not task.done():
             print(f"Canceling task '{task.name}'")
             task.cancel()
             cancel_tasks.append(task)
@@ -1364,7 +1377,6 @@ if __name__ == "__main__":
     parser.add_argument('-f', dest='polling_secs', default=5, help='polling frequency in seconds, default 5secs')
     parser.add_argument('-i', dest='ip_filter', default=None, nargs='+', help='BGW IP filter')
     args = parser.parse_args()
-    args.ip_filter = ['10.10.48.58']
 
     args.username = args.username or (config.get("username") or get_username())
     args.passwd = args.passwd or (config.get("passwd") or get_passwd())
