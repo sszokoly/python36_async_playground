@@ -307,7 +307,7 @@ puts [to_json]
 send "exit\\n"
 '''
 
-script_template = '''
+script_template_test = '''
 set host {host}
 set username {username}
 set passwd {passwd}
@@ -1206,17 +1206,18 @@ async def discover_gateways(
     timeout=10,
     max_polling=20,
     callback=None,
+    ip_filter=None,
 ) -> None:
     global GATEWAYS
     GATEWAYS = {}
     semaphore = Semaphore(max_polling)
     
     GATEWAYS = {ip: BGW(ip, proto) for ip, proto in
-        connected_gateways().items()}
+        connected_gateways(ip_filter).items()}
 
     tasks = []
     for bgw in GATEWAYS.values():
-        name = f"'query_gateway({bgw.host})'"
+        name = f"query_gateway({bgw.host})"
         task = loop.create_task(query_gateway(
             bgw,
             timeout=timeout,
@@ -1231,7 +1232,7 @@ async def discover_gateways(
             result = await fut
             update_gateway(result)
             ok += 1
-        except Exception as e:
+        except Exception:
             ex += 1
         if callback:
             callback(ok, ex, total)
@@ -1245,7 +1246,6 @@ async def poll_gateways(
     max_polling=20,
     callback=None,
 ) -> None:
-    global GATEWAYS
     semaphore = Semaphore(max_polling)
     queue = asyncio.Queue(loop=loop)
 
@@ -1296,6 +1296,7 @@ def update_gateway(data, callback=None):
 async def main():
     loop = asyncio.get_event_loop()
     loop.create_task = lambda coro, name=None: custom_create_task(loop, coro, name)
+    ip_filter = config["ip_filter"]
 
     print("##### DISCOVER GATEWAYS #####")
     discover_task = loop.create_task(discover_gateways(
@@ -1303,12 +1304,13 @@ async def main():
         timeout=config["timeout"],
         max_polling=config["max_polling"],
         callback=discover_callback,
+        ip_filter=ip_filter,
     ), name="discover_gateways()")
     
     await asyncio.gather(discover_task)
 
     print("##### POLLING  GATEWAYS #####")
-    polling_task = loop.create_task(poll_gateways(
+    loop.create_task(poll_gateways(
         loop=loop,
         timeout=config["timeout"],
         max_polling=config["max_polling"],
@@ -1355,13 +1357,14 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Monitors Avaya Branch Gateways (BGW)')
     parser.add_argument('-u', dest='username', default='', help='BGW username')
     parser.add_argument('-p', dest='passwd', default='', help='BGW password')
-    parser.add_argument('-n', dest='lastn_secs', default=30, help='secs to look back in RTP statistics')
-    parser.add_argument('-m', dest='max_polling', default=20, help='max simultaneous polling sessons')
-    parser.add_argument('-l', dest='loglevel', default="DEBUG", help='loglevel')
-    parser.add_argument('-t', dest='timeout', default=10, help='timeout in secs')
-    parser.add_argument('-f', dest='polling_secs', default=5, help='polling frequency in seconds')
-    parser.add_argument('-i', dest='ip_filter', default=None, help='BGW IP filter')
+    parser.add_argument('-n', dest='lastn_secs', default=30, help='secs to look back in RTP statistics, default 30secs')
+    parser.add_argument('-m', dest='max_polling', default=20, help='max simultaneous polling sessons, default 20')
+    parser.add_argument('-l', dest='loglevel', default="ERROR", help='loglevel')
+    parser.add_argument('-t', dest='timeout', default=10, help='timeout in secs, default 10secs')
+    parser.add_argument('-f', dest='polling_secs', default=5, help='polling frequency in seconds, default 5secs')
+    parser.add_argument('-i', dest='ip_filter', default=None, nargs='+', help='BGW IP filter')
     args = parser.parse_args()
+    args.ip_filter = ['10.10.48.58']
 
     args.username = args.username or (config.get("username") or get_username())
     args.passwd = args.passwd or (config.get("passwd") or get_passwd())
