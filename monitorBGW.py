@@ -1334,8 +1334,8 @@ if __name__ == "__main__":
         """
         while True:
             username = input("Enter SSH username of media-gateways: ")
-            comfirm = input("Is this correct (Y/N)?: ")
-            if comfirm.lower().startswith("y"):
+            confirm = input("Is this correct (Y/N)?: ")
+            if confirm.lower().startswith("y"):
                 break
         return username.strip()
 
@@ -1347,8 +1347,8 @@ if __name__ == "__main__":
         """
         while True:
             passwd = input("Enter SSH password of media-gateways: ")
-            comfirm = input("Is this correct (Y/N)?: ")
-            if comfirm.lower().startswith("y"):
+            confirm = input("Is this correct (Y/N)?: ")
+            if confirm.lower().startswith("y"):
                 break
         return passwd.strip()
 
@@ -1357,7 +1357,7 @@ if __name__ == "__main__":
     parser.add_argument('-p', dest='passwd', default='', help='BGW password')
     parser.add_argument('-n', dest='lastn_secs', default=30, help='secs to look back in RTP statistics')
     parser.add_argument('-m', dest='max_polling', default=20, help='max simultaneous polling sessons')
-    parser.add_argument('-l', dest='loglevel', default="ERROR", help='loglevel')
+    parser.add_argument('-l', dest='loglevel', default="DEBUG", help='loglevel')
     parser.add_argument('-t', dest='timeout', default=10, help='timeout in secs')
     parser.add_argument('-f', dest='polling_secs', default=5, help='polling frequency in seconds')
     parser.add_argument('-i', dest='ip_filter', default=None, help='BGW IP filter')
