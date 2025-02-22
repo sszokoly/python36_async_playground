@@ -5,7 +5,7 @@ import json
 from concurrent import futures
 from asyncio import Queue, Semaphore
 from datetime import datetime
-from utils import asyncio_run, async_shell
+from utils import asyncio_run, exec_script
 from typing import Callable, Coroutine, Optional, List
 from connected_gateways import connected_gateways
 from bgw import BGW
@@ -23,94 +23,67 @@ def callback(ok, ex, total):
 async def query_gateway(
     bgw: BGW,
     timeout: float = 2,
-    queue: Optional[Queue] = None,
+    queue: Optional[asyncio.Queue] = None,
     polling_secs: float = 5,
-    semaphore: Optional[Semaphore] = None,
+    semaphore: Optional[asyncio.Semaphore] = None,
     name: Optional[str] = None
-) -> str:
+) -> Optional[str]:
     """
-    Asynchronously runs a ping command and returns the output.
-    If `queue` is provided, the output is put onto the queue and the function
-    does not return. Otherwise, the output is returned directly.
+    Asynchronously queries a BGW and returns the command output.
 
-    :param ip: The IP address to ping
-    :param timeout: The timeout for the ping command
-    :param queue: The queue to put the output onto
-    :param polling_secs: The time to wait between pings
-    :param semaphore: The semaphore to use for limiting concurrency
-    :param name: The name of the task
-    :return: The output of the cmd
+    If a queue is provided, the output is placed onto the queue and the
+    function does not return a value.
+    Otherwise, the output is returned directly.
+
+    Args:
+        bgw (BGW): The BGW instance to query.
+        timeout (float, optional): The timeout for the command execution.
+        queue (Optional[asyncio.Queue], optional): A queue to place the output.
+        polling_secs (float, optional): The interval between polling attempts.
+        semaphore (Optional[asyncio.Semaphore], optional): A semaphore.
+        name (Optional[str], optional): The name of the task for logging.
+
+    Returns:
+        Optional[str]: The output of the command if no queue is provided.
     """
-    name = name if name else bgw.host
-    semaphore = semaphore if semaphore else Semaphore(1)
-    proc = None
+
+    name = name or f"query_gateway({bgw.host})"
+    semaphore = semaphore if semaphore else asyncio.Semaphore(1)
 
     while True:
         try:
             start = time.perf_counter()
             async with semaphore:
-                logger.debug(f"Acquired semaphore in {name}, free {semaphore._value}")
+                logger.info(
+                    f"Acquired semaphore in {name}, free {semaphore._value}"
+                )
                 
                 diff = time.perf_counter() - start
                 script = create_bgw_script(bgw)
-                proc = await asyncio.create_subprocess_exec(
-                    *script,
-                    stdout=asyncio.subprocess.PIPE,
-                    stderr=asyncio.subprocess.PIPE
-                )
-                logger.debug(f"Created process PID {proc.pid} in {name}")
-                
-                try:
-                    stdout, stderr = await asyncio.wait_for(
-                        proc.communicate(), timeout
-                    )
+                stdout = await exec_script(*script, timeout=timeout, name=name)
 
-                    stdout_str = stdout.decode().strip()
-                    stderr_str = stderr.decode().strip()
-
-                    if proc.returncode != 0:
-                        caught_exception = CalledProcessError(
-                            returncode=proc.returncode,
-                            cmd=script,
-                            stderr=stderr_str,
-                            output=stdout_str,
-                        )
-                        logger.error(f"CalledProcessError with stderr={stderr_str} in {name}")
-
-                        if queue and stderr_str and proc.returncode == 255:
-                            pass
-                        else:
-                            raise caught_exception
-                    
-                    else:
-                        if not queue:
-                            return stdout_str
-                        else:
-                            queue.put_nowait(stdout_str)
-                
-                except asyncio.TimeoutError:
-                    logger.error(f"TimeoutError in {name}")
+                if stdout:
                     if not queue:
-                        raise
+                        return stdout
+                    queue.put_nowait(stdout)
 
                 sleep_secs = round(max(polling_secs - diff, 0), 2)
-                logger.debug(f"Sleeping {sleep_secs}s in {name}")
+                logger.info(f"Sleeping {sleep_secs}s in {name}")
                 await asyncio.sleep(sleep_secs)
 
         except asyncio.CancelledError:
             logger.error(f"CancelledError in {name}")
             raise
 
-        finally:
-            logger.debug(f"Released semaphore in {name}, free {semaphore._value}")
-            if proc and proc.returncode is None:
-                logger.debug(f"Terminating PID {proc.pid} in '{name}'")
-                proc.kill()
-                #proc._transport.close()
-                try:
-                    await proc.wait()
-                except Exception as e:
-                    logger.error(f"{repr(e)} for PID {proc.pid} in {name}")
+        except asyncio.TimeoutError:
+            logger.error(f"TimeoutError in {name}")
+            if not queue:
+                raise
+
+        except Exception as e:
+            logger.error(f"{repr(e)} in {name}")
+            if not queue:
+                raise
 
 
 async def discover_gateways(
@@ -194,7 +167,7 @@ if __name__ == "__main__":
                     if host:
                         GATEWAYS[host].update(data)
                         print(f"Got from {data.get('gw_name'):12} {len(item):>4} in cycle {c:>6}  @{datetime.now()}")
-                        print(f"Voip-dsp usage in {host}: {GATEWAYS[host].voip_dsp}")
+                        #print(f"Voip-dsp usage in {host}: {GATEWAYS[host].voip_dsp}")
 
         queue = Queue()
         semaphore = Semaphore(20)

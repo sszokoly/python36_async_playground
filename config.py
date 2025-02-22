@@ -276,7 +276,7 @@ puts [to_json]
 send "exit\\n"
 '''
 
-script_template_test = '''
+script_template = '''
 set host {host}
 set username {username}
 set passwd {passwd}

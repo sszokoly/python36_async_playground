@@ -24,7 +24,7 @@ from typing import AsyncIterator, Iterable, Iterator, Optional, Tuple, Union, Ty
 logger = logging.getLogger(__name__)
 FORMAT = "%(asctime)s - %(levelname)8s - %(message)s [%(filename)s:%(lineno)s]"
 logging.basicConfig(format=FORMAT)
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 
 ############################ CONSTATS, VARIABLES ############################
 
@@ -37,7 +37,7 @@ config = {
     "polling_secs": 5,
     "max_polling": 20,
     "lastn_secs": 30,
-    "loglevel": "ERROR",
+    "loglevel": "INFO",
     "logfile": "bgw.log",
     "expect_log": "expect_log",
     "ip_filter": None,
@@ -308,7 +308,7 @@ puts [to_json]
 send "exit\\n"
 '''
 
-script_template_test = '''
+script_template = '''
 set host {host}
 set username {username}
 set passwd {passwd}
@@ -437,7 +437,7 @@ class BGW():
         self._capture = None
         self._model = None
         self._hw = None
-        self._firmware = None
+        self._fw = None
         self._slamon = None
         self._serial = None
         self._rtp_stat = None
@@ -465,11 +465,11 @@ class BGW():
         return self._hw
 
     @property
-    def firmware(self):
-        if not self._firmware:
+    def fw(self):
+        if not self._fw:
             m = re.search(r'FW Vintage\s+:\s+(\S+)', self.show_system)
-            self._firmware = m.group(1) if m else "?"
-        return self._firmware
+            self._fw = m.group(1) if m else "?"
+        return self._fw
 
     @property
     def slamon(self):
@@ -488,41 +488,30 @@ class BGW():
     @property
     def rtp_stat(self):
         if not self._rtp_stat:
-            if not self.show_running_config:
-                self._rtp_stat = "?"
-            else:
-                m = re.search(r'rtp-stat-service', self.show_running_config)
-                self._rtp_stat = "enabled" if m else 'disabled'
+            m = re.search(r'rtp-stat-service', self.show_running_config)
+            self._rtp_stat = "enabled" if m else "disabled"
         return self._rtp_stat
 
     @property
     def capture(self):
         if not self._capture:
             m = re.search(r'Capture service is (\w+) and (\w+)', self.show_capture)
-            if m:
-                config, state = m.group(1, 2)
-                self._capture = config if config == "disabled" else state
-            else:
-                self._capture = "?"
+            config, state = m.group(1, 2) if m else ("?", "?")
+            self._capture = config if config == "disabled" else state
         return self._capture
 
     @property
     def temp(self):
         if not self._temp:
             m = re.search(r'Temperature\s+:\s+(\S+) \((\S+)\)', self.show_temp)
-            if m:
-                cels, faren = m.group(1, 2)
-                self._temp = f"{cels}/{faren}"
-            else:
-                self._temp = "?"
+            cels, faren = m.group(1, 2) if m else ("?", "?")
+            self._temp = f"{cels}/{faren}"
         return self._temp
 
     @property
     def faults(self):
         if not self._faults:
-            if not self.show_faults:
-                self._faults = "?"
-            elif "No Fault Messages" in self.show_faults:
+            if "No Fault Messages" in self.show_faults:
                 self._faults = "none"
             else:
                 self._faults = "faulty"
@@ -538,7 +527,9 @@ class BGW():
     @property
     def voip_dsp(self):
         inuse, total = 0, 0
-        dsps = re.findall(r"In Use\s+:\s+(\d+) of (\d+) channels", self.show_voip_dsp)
+        dsps = re.findall(
+            r"In Use\s+:\s+(\d+) of (\d+) channels", self.show_voip_dsp
+        )
         for dsp in dsps:
             try:
                 dsp_inuse, dsp_total = dsp
@@ -553,7 +544,9 @@ class BGW():
     @property
     def sla_server(self):
         if not self._sla_server:
-            m = re.search(r'Registered Server IP Address:\s+(\S+)', self.show_sla_monitor)
+            m = re.search(
+                r'Registered Server IP Address:\s+(\S+)', self.show_sla_monitor
+            )
             self._sla_server = m.group(1) if m.group(1) != "0.0.0.0" else ""
         return self._sla_server
 
@@ -562,13 +555,10 @@ class BGW():
         self.gw_name = data.get("gw_name", self.gw_name)
         self.gw_number = data.get("gw_number", self.gw_number)
         commands = data.get("commands", {})
-        self.show_running_config = commands.get("show running-config", self.show_running_config)
-        self.show_system = commands.get("show system", self.show_system)
-        self.show_faults = commands.get("show faults", self.show_faults)
-        self.show_capture = commands.get("show capture", self.show_capture)
-        self.show_voip_dsp = commands.get("show voip-dsp", self.show_voip_dsp)
-        self.show_temp = commands.get("show temp", self.show_temp)
-        self.show_sla_monitor = commands.get("show sla-monitor", self.show_sla_monitor)
+        if commands:
+            for cmd, value in commands.items():
+                bgw_attr = cmd.replace(" ", "_").replace("-", "_")
+                setattr(self, bgw_attr, value)
 
     def __str__(self):
         return f"BGW({self.host})"
@@ -1017,6 +1007,56 @@ def custom_exception_handler(loop, context):
         return
     loop.default_exception_handler(context)
 
+
+async def exec_script(
+    *args,
+    timeout: Optional[int] = None,
+    name: Optional[str] = None
+) -> Tuple[str, str]:
+    """
+    Runs command asynchronously with support for timeouts and error handling.
+
+    Args:
+        args (List[str]): The command arguments to execute.
+        timeout (Optional[int]): Duration (in secs) before the process is terminated.
+        name (Optional[str]): The name of the process for logging purposes.
+
+    Returns:
+        Tuple[str, str]: A tuple containing stdout and stderr. If timeout occurs 
+        or process is cancelled, appropriate messages are returned.
+    """
+    name = name or 'exec_script()'
+    proc: Optional[asyncio.subprocess.Process] = None
+
+    try:
+        proc = await asyncio.create_subprocess_exec(
+            *args,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+        )
+        logger.info(f"Created process PID {proc.pid} in {name}")
+        
+        stdout, stderr = await asyncio.wait_for(proc.communicate(), timeout)
+        stdout_str = stdout.decode().strip()
+        stderr_str = stderr.decode().strip()
+
+        if proc.returncode == 0 and not stderr_str:
+            logger.debug(f"Got '{stdout_str}' from PID {proc.pid} in {name}")
+            return stdout_str
+
+        logger.error(f"{stderr_str} for PID {proc.pid} in {name}")
+        return ""
+
+    finally:
+        if proc and proc.returncode is None:
+            logger.info(f"Terminating PID {proc.pid} in {name}")
+            try:
+                proc._transport.close()
+                proc.kill()
+                await proc.wait()
+            except Exception as e:
+                logger.error(f"{repr(e)} for PID {proc.pid} in {name}")
+
 def create_bgw_script(bgw: BGW) -> List[str]:
     """
     Create the script passed to expect to connect to the BGW.
@@ -1087,10 +1127,10 @@ def connected_gateways(ip_filter: Optional[Set[str]] = None) -> Dict[str, str]:
                 proto = "encrypted"
             else:
                 proto = "unencrypted"
-            logging.debug(f"Found gateway {ip} using {proto} protocol")
+            logging.info(f"Found gateway {ip} using {proto} protocol")
             if not ip_filter or ip in ip_filter:
                 result[ip] = proto
-                logging.debug(f"Added gateway {ip} to result dictionary")
+                logging.info(f"Added gateway {ip} to result dictionary")
     
     if not result:
         return {"10.10.48.58": "unencrypted", "10.44.244.51": "encrypted"}
@@ -1100,94 +1140,67 @@ def connected_gateways(ip_filter: Optional[Set[str]] = None) -> Dict[str, str]:
 async def query_gateway(
     bgw: BGW,
     timeout: float = 2,
-    queue: Optional[Queue] = None,
+    queue: Optional[asyncio.Queue] = None,
     polling_secs: float = 5,
-    semaphore: Optional[Semaphore] = None,
+    semaphore: Optional[asyncio.Semaphore] = None,
     name: Optional[str] = None
-) -> str:
+) -> Optional[str]:
     """
-    Asynchronously runs a ping command and returns the output.
-    If `queue` is provided, the output is put onto the queue and the function
-    does not return. Otherwise, the output is returned directly.
+    Asynchronously queries a BGW and returns the command output.
 
-    :param ip: The IP address to ping
-    :param timeout: The timeout for the ping command
-    :param queue: The queue to put the output onto
-    :param polling_secs: The time to wait between pings
-    :param semaphore: The semaphore to use for limiting concurrency
-    :param name: The name of the task
-    :return: The output of the cmd
+    If a queue is provided, the output is placed onto the queue and the
+    function does not return a value.
+    Otherwise, the output is returned directly.
+
+    Args:
+        bgw (BGW): The BGW instance to query.
+        timeout (float, optional): The timeout for the command execution.
+        queue (Optional[asyncio.Queue], optional): A queue to place the output.
+        polling_secs (float, optional): The interval between polling attempts.
+        semaphore (Optional[asyncio.Semaphore], optional): A semaphore.
+        name (Optional[str], optional): The name of the task for logging.
+
+    Returns:
+        Optional[str]: The output of the command if no queue is provided.
     """
-    name = name if name else bgw.host
-    semaphore = semaphore if semaphore else Semaphore(1)
-    proc = None
+
+    name = name or f"query_gateway({bgw.host})"
+    semaphore = semaphore if semaphore else asyncio.Semaphore(1)
 
     while True:
         try:
             start = time.perf_counter()
             async with semaphore:
-                logger.debug(f"Acquired semaphore in '{name}', free {semaphore._value}")
+                logger.info(
+                    f"Acquired semaphore in {name}, free {semaphore._value}"
+                )
                 
                 diff = time.perf_counter() - start
                 script = create_bgw_script(bgw)
-                proc = await asyncio.create_subprocess_exec(
-                    *script,
-                    stdout=asyncio.subprocess.PIPE,
-                    stderr=asyncio.subprocess.PIPE
-                )
-                logger.debug(f"Created process PID {proc.pid} in '{name}'")
-                
-                try:
-                    stdout, stderr = await asyncio.wait_for(
-                        proc.communicate(), timeout
-                    )
+                stdout = await exec_script(*script, timeout=timeout, name=name)
 
-                    stdout_str = stdout.decode().strip()
-                    stderr_str = stderr.decode().strip()
-
-                    if proc.returncode != 0:
-                        caught_exception = CalledProcessError(
-                            returncode=proc.returncode,
-                            cmd=script,
-                            stderr=stderr_str,
-                            output=stdout_str,
-                        )
-                        logger.error(f"CalledProcessError with stderr={stderr_str} in '{name}'")
-
-                        if queue and stderr_str and proc.returncode == 255:
-                            pass
-                        else:
-                            raise caught_exception
-                    
-                    else:
-                        if not queue:
-                            return stdout_str
-                        else:
-                            queue.put_nowait(stdout_str)
-                
-                except asyncio.TimeoutError:
-                    logger.error(f"TimeoutError in '{name}'")
+                if stdout:
                     if not queue:
-                        raise
+                        return stdout
+                    queue.put_nowait(stdout)
 
                 sleep_secs = round(max(polling_secs - diff, 0), 2)
-                logger.debug(f"Sleeping {sleep_secs}s in '{name}'")
+                logger.info(f"Sleeping {sleep_secs}s in {name}")
                 await asyncio.sleep(sleep_secs)
 
         except asyncio.CancelledError:
-            logger.error(f"CancelledError in '{name}'")
+            logger.error(f"CancelledError in {name}")
             raise
 
-        finally:
-            logger.debug(f"Released semaphore in {name}, free {semaphore._value}")
-            if proc and proc.returncode is None:
-                logger.debug(f"Terminating PID {proc.pid} in '{name}'")
-                proc.kill()
-                #proc._transport.close()
-                try:
-                    await proc.wait()
-                except Exception as e:
-                    logger.error(f"{repr(e)} for PID {proc.pid} in '{name}'")
+        except asyncio.TimeoutError:
+            logger.error(f"TimeoutError in {name}")
+            if not queue:
+                raise
+
+        except Exception as e:
+            logger.error(f"{repr(e)} in {name}")
+            if not queue:
+                raise
 
 async def discover_gateways(
     loop,
@@ -1261,25 +1274,58 @@ def discover_callback(ok, ex, total):
 def poll_callback(bgw):
     print(f"{bgw.gw_name:15} last_seen:{bgw.last_seen}")
 
-async def process_queue(queue, callback=None, name=None):
+async def process_queue(
+    queue: asyncio.Queue,
+    callback: Optional[Callable[[BGW], None]] = None,
+    name: str = "process_queue()"
+) -> None:
+    """
+    Asynchronously processes items from a queue.
+
+    Args:
+        queue (asyncio.Queue): The queue to process.
+        callback (Optional[Callable[[BGW], None]], optional): A callback.
+        name (str, optional): The name of the task for logging.
+
+    Returns:
+        None
+    """
     c = 0
     while True:
         data = await queue.get()
-        update_gateway(data, callback=callback)
+        update_gateway(data, callback)
         c += 1
-        logging.debug(f"Processed {c} data in '{name}'")
+        logger.info(f"Processed {c} items from queue in {name}")
 
-def update_gateway(data, callback=None):
+
+def update_gateway(
+    data: str,
+    callback: Optional[Callable[[BGW], None]] = None,
+    name: str = "update_gateway()"
+) -> None:
+    """
+    Updates a BGW object with data from a JSON string.
+
+    Args:
+        data (str): The JSON string containing the data.
+        callback (Optional[Callable[[BGW], None]], optional): A callback.
+        name (str, optional): The name of the function for logging.
+
+    Returns:
+        None
+    """
     try:
         data = json.loads(data, strict=False)
     except json.JSONDecodeError:
-        logging.error("JSONDecodeError")
+        logger.error(f"JSONDecodeError in {name}")
     else:
         host = data.get("host")
-        if host:
-            GATEWAYS[host].update(data)
+        if host in GATEWAYS:
+            bgw = GATEWAYS[host]
+            bgw.update(data)
             if callback:
-                callback(GATEWAYS[host])
+                logger.info(f"Calling {callback.__name__}({bgw}) in {name}")
+                callback(bgw)
 
 def _create_task(
     loop: asyncio.AbstractEventLoop, 
@@ -1372,7 +1418,7 @@ if __name__ == "__main__":
     parser.add_argument('-p', dest='passwd', default='', help='BGW password')
     parser.add_argument('-n', dest='lastn_secs', default=30, help='secs to look back in RTP statistics, default 30secs')
     parser.add_argument('-m', dest='max_polling', default=20, help='max simultaneous polling sessons, default 20')
-    parser.add_argument('-l', dest='loglevel', default="ERROR", help='loglevel')
+    parser.add_argument('-l', dest='loglevel', default="INFO", help='loglevel')
     parser.add_argument('-t', dest='timeout', default=10, help='timeout in secs, default 10secs')
     parser.add_argument('-f', dest='polling_secs', default=5, help='polling frequency in seconds, default 5secs')
     parser.add_argument('-i', dest='ip_filter', default=None, nargs='+', help='BGW IP filter')

@@ -357,7 +357,8 @@ class BGW():
         show_capture: str = '',
         show_voip_dsp: str = '',
         show_temp: str = '',
-    ) -> None:   
+        show_sla_monitor: str = '',
+    ) -> None:
         self.host = host
         self.proto = proto
         self.last_seen = last_seen
@@ -369,12 +370,13 @@ class BGW():
         self.show_capture = show_capture
         self.show_voip_dsp = show_voip_dsp
         self.show_temp = show_temp
+        self.show_sla_monitor = show_sla_monitor
         self.queue = Queue()
         self._faults = None
         self._capture = None
         self._model = None
         self._hw = None
-        self._firmware = None
+        self._fw = None
         self._slamon = None
         self._serial = None
         self._rtp_stat = None
@@ -382,6 +384,7 @@ class BGW():
         self._temp = None
         self._uptime = None
         self._voip_dsp = None
+        self._sla_server = None
 
     @property
     def model(self):
@@ -401,11 +404,11 @@ class BGW():
         return self._hw
 
     @property
-    def firmware(self):
-        if not self._firmware:
+    def fw(self):
+        if not self._fw:
             m = re.search(r'FW Vintage\s+:\s+(\S+)', self.show_system)
-            self._firmware = m.group(1) if m else "?"
-        return self._firmware
+            self._fw = m.group(1) if m else "?"
+        return self._fw
 
     @property
     def slamon(self):
@@ -424,41 +427,30 @@ class BGW():
     @property
     def rtp_stat(self):
         if not self._rtp_stat:
-            if not self.show_running_config:
-                self._rtp_stat = "?"
-            else:
-                m = re.search(r'rtp-stat-service', self.show_running_config)
-                self._rtp_stat = "enabled" if m else 'disabled'
+            m = re.search(r'rtp-stat-service', self.show_running_config)
+            self._rtp_stat = "enabled" if m else "disabled"
         return self._rtp_stat
 
     @property
     def capture(self):
         if not self._capture:
             m = re.search(r'Capture service is (\w+) and (\w+)', self.show_capture)
-            if m:
-                config, state = m.group(1, 2)
-                self._capture = config if config == "disabled" else state
-            else:
-                self._capture = "?"
+            config, state = m.group(1, 2) if m else ("?", "?")
+            self._capture = config if config == "disabled" else state
         return self._capture
 
     @property
     def temp(self):
         if not self._temp:
             m = re.search(r'Temperature\s+:\s+(\S+) \((\S+)\)', self.show_temp)
-            if m:
-                cels, faren = m.group(1, 2)
-                self._temp = f"{cels}/{faren}"
-            else:
-                self._temp = "?"
+            cels, faren = m.group(1, 2) if m else ("?", "?")
+            self._temp = f"{cels}/{faren}"
         return self._temp
 
     @property
     def faults(self):
         if not self._faults:
-            if not self.show_faults:
-                self._faults = "?"
-            elif "No Fault Messages" in self.show_faults:
+            if "No Fault Messages" in self.show_faults:
                 self._faults = "none"
             else:
                 self._faults = "faulty"
@@ -474,7 +466,9 @@ class BGW():
     @property
     def voip_dsp(self):
         inuse, total = 0, 0
-        dsps = re.findall(r"In Use\s+:\s+(\d+) of (\d+) channels", self.show_voip_dsp)
+        dsps = re.findall(
+            r"In Use\s+:\s+(\d+) of (\d+) channels", self.show_voip_dsp
+        )
         for dsp in dsps:
             try:
                 dsp_inuse, dsp_total = dsp
@@ -486,16 +480,24 @@ class BGW():
         inuse = inuse if total > 0 else "?"
         return f"{inuse}/{total}"
 
+    @property
+    def sla_server(self):
+        if not self._sla_server:
+            m = re.search(
+                r'Registered Server IP Address:\s+(\S+)', self.show_sla_monitor
+            )
+            self._sla_server = m.group(1) if m.group(1) != "0.0.0.0" else ""
+        return self._sla_server
+
     def update(self, data):
         self.last_seen = data.get("last_seen", self.last_seen)
         self.gw_name = data.get("gw_name", self.gw_name)
         self.gw_number = data.get("gw_number", self.gw_number)
-        self.show_running_config = data.get("commands", {}).get("show running-config", self.show_running_config)
-        self.show_system = data.get("commands", {}).get("show system", self.show_system)
-        self.show_faults = data.get("commands", {}).get("show faults", self.show_faults)
-        self.show_capture = data.get("commands", {}).get("show capture", self.show_capture)
-        self.show_voip_dsp = data.get("commands", {}).get("show voip-dsp", self.show_voip_dsp)
-        self.show_temp = data.get("commands", {}).get("show temp", self.show_temp)
+        commands = data.get("commands", {})
+        if commands:
+            for cmd, value in commands.items():
+                bgw_attr = cmd.replace(" ", "_").replace("-", "_")
+                setattr(self, bgw_attr, value)
 
     def __str__(self):
         return f"BGW({self.host})"

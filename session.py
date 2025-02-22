@@ -736,7 +736,7 @@ def iter_session_detailed_attrs(
         text = f'{text:{attrs["format_spec"]}}'
         yield attrs['ypos'] + yoffset, attrs['xpos'] + xoffset, text, attrs['color']
 
-reDetailed = re.compile(r''.join(DETAILED_PATTERNS), re.M|re.S|re.I)
+reDetailed = re.compile(r''.join(RTP_DETAILED_PATTERNS), re.M|re.S|re.I)
 
 if __name__ == '__main__':
     d = {

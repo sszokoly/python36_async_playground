@@ -14,6 +14,7 @@ logger.setLevel(logging.DEBUG)
 GATEWAYS = {}
 
 async def cancel_tasks(tasks):
+    await asyncio.sleep(10)
     for task in tasks:
         task.cancel()
     return "Returned fine"
@@ -34,7 +35,7 @@ async def process_queue(queue):
                 if host:
                     GATEWAYS[host].update(data)
                     print(f"Got from {data.get('gw_name'):12} {len(item):>4} in cycle {c:>6}  @{datetime.now()}")
-                    print(f"Voip-dsp usage in {host}: {GATEWAYS[host].voip_dsp}")
+                    #print(f"Voip-dsp usage in {host}: {GATEWAYS[host].voip_dsp}")
         except asyncio.CancelledError:
             logger.error("CancelledError in process_queue")
             raise
@@ -51,7 +52,7 @@ async def main():
     task1 = loop.create_task(query_gateway(bgw1, timeout=10, name="bgw1", polling_secs=polling_secs, queue=queue))
     task2 = loop.create_task(query_gateway(bgw2, timeout=10, name="bgw2", polling_secs=polling_secs, queue=queue))
     task3 = loop.create_task(process_queue(queue=queue))
-    #task4 = loop.create_task(cancel_tasks([task1, task2, task3]))
+    task4 = loop.create_task(cancel_tasks([task1, task2, task3]))
 
     for fut in asyncio.as_completed([task1, task2, task3]):
         try:
