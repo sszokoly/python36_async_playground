@@ -49,6 +49,7 @@ async def query_gateway(
 
     name = name or f"query_gateway({bgw.host})"
     semaphore = semaphore if semaphore else asyncio.Semaphore(1)
+    avg_sleep = polling_secs
 
     while True:
         try:
@@ -65,11 +66,12 @@ async def query_gateway(
                 if stdout:
                     if not queue:
                         return stdout
-                    queue.put_nowait(stdout)
-
-                sleep_secs = round(max(polling_secs - diff, 0), 2)
-                logger.info(f"Sleeping {sleep_secs}s in {name}")
-                await asyncio.sleep(sleep_secs)
+                    await queue.put(stdout)
+                
+                sleep = round(max(polling_secs - diff, 0), 2)
+                avg_sleep = round((avg_sleep + sleep) / 2, 2)
+                logger.info(f"Sleeping {sleep}s (avg {avg_sleep}s) in {name}")
+                await asyncio.sleep(sleep)
 
         except asyncio.CancelledError:
             logger.error(f"CancelledError in {name}")
@@ -81,7 +83,7 @@ async def query_gateway(
                 raise
 
         except Exception as e:
-            logger.error(f"{repr(e)} in {name}")
+            logger.exception(f"{repr(e)} in {name}")
             if not queue:
                 raise
 

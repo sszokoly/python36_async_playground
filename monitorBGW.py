@@ -34,10 +34,10 @@ config = {
     "username": "root",
     "passwd": "cmb@Dm1n",
     "timeout": 10,
-    "polling_secs": 5,
+    "polling_secs": 10,
     "max_polling": 20,
     "lastn_secs": 30,
-    "loglevel": "INFO",
+    "loglevel": "ERROR",
     "logfile": "bgw.log",
     "expect_log": "expect_log",
     "ip_filter": None,
@@ -322,9 +322,9 @@ set randomInt [expr {{int(rand() * 4)}}]
 sleep 2
 set last_seen [exec date "+%Y-%m-%d,%H:%M:%S"]
 
-#if {{$randomInt == 1}} {{
-#    puts -nonewline stderr "ExpectTimeout"; exit 255
-#}}
+if {{$randomInt == 1}} {{
+    puts -nonewline stderr "ExpectTimeout"; exit 255
+}}
 puts "{{\\"gw_number\\": \\"001\\", \\"gw_name\\": \\"$host\\", \\"host\\": \\"$host\\", \\"last_seen\\": \\"$last_seen\\", \\"commands\\": {{\\"show system\\": \\"location: 1\\", \\"show running-config\\": \\"location: 1\\"}}, \\"rtp_sessions\\": {{\\"2024-12-30,11:06:15,$host,000$randomInt\\": \\"session 000$randomInt\\"}}}}"
 '''
 
@@ -1007,56 +1007,6 @@ def custom_exception_handler(loop, context):
         return
     loop.default_exception_handler(context)
 
-
-async def exec_script(
-    *args,
-    timeout: Optional[int] = None,
-    name: Optional[str] = None
-) -> Tuple[str, str]:
-    """
-    Runs command asynchronously with support for timeouts and error handling.
-
-    Args:
-        args (List[str]): The command arguments to execute.
-        timeout (Optional[int]): Duration (in secs) before the process is terminated.
-        name (Optional[str]): The name of the process for logging purposes.
-
-    Returns:
-        Tuple[str, str]: A tuple containing stdout and stderr. If timeout occurs 
-        or process is cancelled, appropriate messages are returned.
-    """
-    name = name or 'exec_script()'
-    proc: Optional[asyncio.subprocess.Process] = None
-
-    try:
-        proc = await asyncio.create_subprocess_exec(
-            *args,
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE,
-        )
-        logger.info(f"Created process PID {proc.pid} in {name}")
-        
-        stdout, stderr = await asyncio.wait_for(proc.communicate(), timeout)
-        stdout_str = stdout.decode().strip()
-        stderr_str = stderr.decode().strip()
-
-        if proc.returncode == 0 and not stderr_str:
-            logger.debug(f"Got '{stdout_str}' from PID {proc.pid} in {name}")
-            return stdout_str
-
-        logger.error(f"{stderr_str} for PID {proc.pid} in {name}")
-        return ""
-
-    finally:
-        if proc and proc.returncode is None:
-            logger.info(f"Terminating PID {proc.pid} in {name}")
-            try:
-                proc._transport.close()
-                proc.kill()
-                await proc.wait()
-            except Exception as e:
-                logger.error(f"{repr(e)} for PID {proc.pid} in {name}")
-
 def create_bgw_script(bgw: BGW) -> List[str]:
     """
     Create the script passed to expect to connect to the BGW.
@@ -1137,13 +1087,61 @@ def connected_gateways(ip_filter: Optional[Set[str]] = None) -> Dict[str, str]:
     
     return {ip: result[ip] for ip in sorted(result)}
 
+async def exec_script(
+    *args,
+    timeout: Optional[int] = None,
+    name: Optional[str] = None
+) -> Tuple[str, str]:
+    """
+    Runs command asynchronously with support for timeouts and error handling.
+
+    Args:
+        args (List[str]): The command arguments to execute.
+        timeout (Optional[int]): Duration (in secs) before the process is terminated.
+        name (Optional[str]): The name of the process for logging purposes.
+
+    Returns:
+        Tuple[str, str]: A tuple containing stdout and stderr. If timeout occurs 
+        or process is cancelled, appropriate messages are returned.
+    """
+    name = name if name else "coro exec_script()"
+    proc: Optional[asyncio.subprocess.Process] = None
+
+    try:
+        proc = await asyncio.create_subprocess_exec(
+            *args,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+        )
+        logger.info(f"Created process PID {proc.pid} in {name}")
+        
+        stdout, stderr = await asyncio.wait_for(proc.communicate(), timeout)
+        stdout_str = stdout.decode().strip()
+        stderr_str = stderr.decode().strip()
+
+        if proc.returncode == 0 and not stderr_str:
+            logger.debug(f"Got '{stdout_str}' from PID {proc.pid} in {name}")
+            return stdout_str
+
+        logger.error(f"{stderr_str} for PID {proc.pid} in {name}")
+        return ""
+
+    finally:
+        if proc and proc.returncode is None:
+            logger.info(f"Terminating PID {proc.pid} in {name}")
+            try:
+                proc._transport.close()
+                proc.kill()
+                await proc.wait()
+            except Exception as e:
+                logger.error(f"{repr(e)} for PID {proc.pid} in {name}")
+
 async def query_gateway(
     bgw: BGW,
     timeout: float = 2,
     queue: Optional[asyncio.Queue] = None,
     polling_secs: float = 5,
     semaphore: Optional[asyncio.Semaphore] = None,
-    name: Optional[str] = None
 ) -> Optional[str]:
     """
     Asynchronously queries a BGW and returns the command output.
@@ -1164,8 +1162,9 @@ async def query_gateway(
         Optional[str]: The output of the command if no queue is provided.
     """
 
-    name = name or f"query_gateway({bgw.host})"
+    name = f"coro query_gateway() for {bgw.host}"
     semaphore = semaphore if semaphore else asyncio.Semaphore(1)
+    avg_sleep = polling_secs
 
     while True:
         try:
@@ -1177,16 +1176,17 @@ async def query_gateway(
                 
                 diff = time.perf_counter() - start
                 script = create_bgw_script(bgw)
+                name = f"coro exec_script() for {bgw.host}"
                 stdout = await exec_script(*script, timeout=timeout, name=name)
 
-                if stdout:
-                    if not queue:
-                        return stdout
-                    queue.put_nowait(stdout)
+                if not queue:
+                    return stdout
+                await queue.put(stdout)
 
-                sleep_secs = round(max(polling_secs - diff, 0), 2)
-                logger.info(f"Sleeping {sleep_secs}s in {name}")
-                await asyncio.sleep(sleep_secs)
+                sleep = round(max(polling_secs - diff, 0), 2)
+                avg_sleep = round((avg_sleep + sleep) / 2, 2)
+                logger.info(f"Sleeping {sleep}s (avg {avg_sleep}s) in {name}")
+                await asyncio.sleep(sleep)
 
         except asyncio.CancelledError:
             logger.error(f"CancelledError in {name}")
@@ -1198,78 +1198,135 @@ async def query_gateway(
                 raise
 
         except Exception as e:
-            logger.error(f"{repr(e)} in {name}")
+            logger.exception(f"{repr(e)} in {name}")
             if not queue:
                 raise
 
-async def discover_gateways(
-    loop,
-    timeout=10,
-    max_polling=20,
-    callback=None,
-    ip_filter=None,
-) -> None:
-    global GATEWAYS
-    GATEWAYS = {}
-    semaphore = Semaphore(max_polling)
+
+def create_query_tasks(
+    timeout: float = 10,
+    queue: Optional[asyncio.Queue] = None,
+    polling_secs: float = 10,
+    max_polling: int = 20,
+) -> List[asyncio.Task]:
+    """
+    Create tasks that query all gateways in GATEWAYS.
+
+    Args:
+        timeout: The timeout for each query.
+        queue: The queue to put the output onto.
+        polling_secs: The interval between polling attempts.
+        max_polling: The maximum number of concurrent queries.
+
+    Returns:
+        A list of Tasks.
+    """
     
+    semaphore = Semaphore(max_polling)
+    tasks = []
+    
+    for bgw in GATEWAYS.values():
+        task = create_task(query_gateway(
+            bgw,
+            timeout=timeout,
+            queue=queue,
+            polling_secs=polling_secs,
+            semaphore=semaphore,
+        ), name=f"coro query_gateway() for {bgw.host}")
+        tasks.append(task)
+    
+    return tasks
+
+
+async def discover_gateways(
+    timeout: float = 10,
+    max_polling: int = 20,
+    callback: Optional[Callable[[int, int, int], None]] = None,
+    ip_filter: Optional[Set[str]] = None,
+    name: str = "coro discover_gateways()"
+) -> Tuple[int, int, int]:
+    """Discover all connected gateways and query them.
+
+    The function will discover all connected gateways, query each of them and
+    store the result in the global GATEWAYS dictionary.
+
+    Args:
+        timeout: The timeout for each query.
+        max_polling: The maximum number of concurrent queries.
+        callback: A callback function that will be called with the number of
+            successful queries, the number of failed queries and the total
+            number of queries.
+        ip_filter: An optional set of IP addresses to filter the gateways.
+
+    Returns:
+        A tuple with the number of successful queries, the number of failed
+        queries and the total number of queries.
+    """
+
+    global GATEWAYS    
     GATEWAYS = {ip: BGW(ip, proto) for ip, proto in
         connected_gateways(ip_filter).items()}
 
-    tasks = []
-    for bgw in GATEWAYS.values():
-        name = f"query_gateway({bgw.host})"
-        task = loop.create_task(query_gateway(
-            bgw,
-            timeout=timeout,
-            semaphore=semaphore,
-            name=name
-        ), name=name)
-        tasks.append(task)
-
-    ok, ex, total = 0, 0, len(tasks)
-    for fut in asyncio.as_completed(tasks):
+    tasks = create_query_tasks(timeout=timeout, max_polling=max_polling)
+    ok, total = 0, len(tasks)
+    logger.info(f"Scheduled {total} tasks in {name}")
+    
+    for idx, fut in enumerate(asyncio.as_completed(tasks), start=1):
         try:
             result = await fut
-            update_gateway(result)
-            ok += 1
+            if result:
+                bgw = update_gateway(result)
+                if bgw:
+                    ok += 1
+                    logger.info(f"Discovery {bgw.host} successful in {name}")
         except Exception:
-            ex += 1
+            pass
+        
         if callback:
-            callback(ok, ex, total)
+            callback(idx, ok, total)
     
-    return (ok, ex, total)
+    return (ok, total)
 
-
-async def poll_gateways(
-    loop,
-    timeout=10,
-    max_polling=20,
-    callback=None,
+def poll_gateways(
+    timeout: float = 10,
+    polling_secs: float = 10,
+    max_polling: int = 20,
+    callback: Optional[Callable[[BGW], None]] = None,
+    name: str = "poll_gateways()"
 ) -> None:
-    semaphore = Semaphore(max_polling)
-    queue = asyncio.Queue(loop=loop)
+    """
+    Creates tasks that poll all connected gateways.
 
-    tasks = []
-    for bgw in GATEWAYS.values():
-        name = f"query_gateway({bgw.host})"
-        task = loop.create_task(query_gateway(
-            bgw,
-            timeout=timeout,
-            semaphore=semaphore,
-            queue=queue,
-            name=name
-        ), name=name)
-        tasks.append(task)
+    Args:
+        timeout (float, optional): The timeout for each query.
+        polling_secs (float, optional): The interval between polling attempts.
+        max_polling (int, optional): The maximum number of concurrent queries.
+        callback (Optional[Callable[[BGW], None]], optional): A callback.
 
-    name = "process_queue()"
-    task = loop.create_task(process_queue(
-        queue=queue, callback=callback, name=name,
-    ), name=name)
+    Returns:
+        None
+    """
+
+    queue = asyncio.Queue()
+
+    tasks = create_query_tasks(
+        timeout=timeout,
+        queue=queue,
+        polling_secs=polling_secs,
+        max_polling=max_polling,
+    )
+
+    task = create_task(
+        process_queue(queue=queue, callback=callback),
+        name="coro process_queue()",
+    )
     tasks.append(task)
 
-def discover_callback(ok, ex, total):
-    print(f"ok:{ok}/ex:{ex}/total:{total}")
+    logger.info(f"Started {len(tasks)} tasks in {name}")
+
+
+def discover_callback(idx, ok, total):
+    print(f"idx:{idx}/ok:{ok}/total:{total}")
 
 def poll_callback(bgw):
     print(f"{bgw.gw_name:15} last_seen:{bgw.last_seen}")
@@ -1277,7 +1334,7 @@ def poll_callback(bgw):
 async def process_queue(
     queue: asyncio.Queue,
     callback: Optional[Callable[[BGW], None]] = None,
-    name: str = "process_queue()"
+    name: str = "coro process_queue()"
 ) -> None:
     """
     Asynchronously processes items from a queue.
@@ -1292,22 +1349,23 @@ async def process_queue(
     """
     c = 0
     while True:
-        data = await queue.get()
-        update_gateway(data, callback)
+        item = await queue.get()
+        if item:
+            update_gateway(item, callback)
         c += 1
-        logger.info(f"Processed {c} items from queue in {name}")
+        logger.info(f"Pulled {c} items from queue in {name}")
 
 
 def update_gateway(
-    data: str,
+    item: str,
     callback: Optional[Callable[[BGW], None]] = None,
     name: str = "update_gateway()"
 ) -> None:
     """
-    Updates a BGW object with data from a JSON string.
+    Updates a BGW object with item from a JSON string.
 
     Args:
-        data (str): The JSON string containing the data.
+        item (str): The JSON string containing the data.
         callback (Optional[Callable[[BGW], None]], optional): A callback.
         name (str, optional): The name of the function for logging.
 
@@ -1315,7 +1373,7 @@ def update_gateway(
         None
     """
     try:
-        data = json.loads(data, strict=False)
+        data = json.loads(item, strict=False)
     except json.JSONDecodeError:
         logger.error(f"JSONDecodeError in {name}")
     else:
@@ -1326,11 +1384,12 @@ def update_gateway(
             if callback:
                 logger.info(f"Calling {callback.__name__}({bgw}) in {name}")
                 callback(bgw)
+            return bgw
 
-def _create_task(
-    loop: asyncio.AbstractEventLoop, 
+def create_task(
     coro: Coroutine[Any, Any, Any], 
-    name: Optional[str] = None
+    name: Optional[str] = None,
+    loop: asyncio.AbstractEventLoop = None,
 ) -> asyncio.Task:
     """Patched version of create_task that assigns a name to the task.
 
@@ -1348,18 +1407,18 @@ def _create_task(
     asyncio.Task
         The newly created task.
     """
+    loop = loop if loop else asyncio.get_event_loop()
     task = asyncio.tasks.Task(coro, loop=loop)
     task.name = name
     return task
 
+
 async def main():
     loop = asyncio.get_event_loop()
-    loop.create_task = lambda coro, name=None: _create_task(loop, coro, name)
     ip_filter = config["ip_filter"]
 
     print("##### DISCOVER GATEWAYS #####")
-    discover_task = loop.create_task(discover_gateways(
-        loop=loop,
+    discover_task = create_task(discover_gateways(
         timeout=config["timeout"],
         max_polling=config["max_polling"],
         callback=discover_callback,
@@ -1369,18 +1428,17 @@ async def main():
     await asyncio.gather(discover_task)
 
     print("##### POLLING  GATEWAYS #####")
-    loop.create_task(poll_gateways(
-        loop=loop,
+    poll_gateways(
         timeout=config["timeout"],
         max_polling=config["max_polling"],
         callback=poll_callback,
-    ), name="poll_gateways()")
+    )
     
-    await asyncio.sleep(20)
+    await asyncio.sleep(30)
     print("##### SHUTTING DOWN #####")
     cancel_tasks = []
     for task in asyncio.Task.all_tasks(loop):
-        if hasattr(task, "name") and task.name and not task.done():
+        if hasattr(task, "name") and task.name.startswith("coro"):
             print(f"Canceling task '{task.name}'")
             task.cancel()
             cancel_tasks.append(task)
@@ -1418,7 +1476,7 @@ if __name__ == "__main__":
     parser.add_argument('-p', dest='passwd', default='', help='BGW password')
     parser.add_argument('-n', dest='lastn_secs', default=30, help='secs to look back in RTP statistics, default 30secs')
     parser.add_argument('-m', dest='max_polling', default=20, help='max simultaneous polling sessons, default 20')
-    parser.add_argument('-l', dest='loglevel', default="INFO", help='loglevel')
+    parser.add_argument('-l', dest='loglevel', default="ERROR", help='loglevel')
     parser.add_argument('-t', dest='timeout', default=10, help='timeout in secs, default 10secs')
     parser.add_argument('-f', dest='polling_secs', default=5, help='polling frequency in seconds, default 5secs')
     parser.add_argument('-i', dest='ip_filter', default=None, nargs='+', help='BGW IP filter')
