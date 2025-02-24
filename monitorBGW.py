@@ -34,7 +34,7 @@ config = {
     "username": "root",
     "passwd": "cmb@Dm1n",
     "timeout": 5,
-    "polling_secs": 10,
+    "polling_secs": 5,
     "max_polling": 20,
     "lastn_secs": 30,
     "loglevel": "INFO",
@@ -1328,10 +1328,10 @@ def poll_gateways(
 
 
 def discover_callback(idx, ok, total):
-    print(f"idx:{idx}/ok:{ok}/total:{total}")
+    print(f"discover_callback(): idx:{idx}/ok:{ok}/total:{total}")
 
 def poll_callback(bgw):
-    print(f"{bgw.gw_name:15} last_seen:{bgw.last_seen}")
+    print(f"poll_callback(): {bgw.gw_name:15} last_seen:{bgw.last_seen}")
 
 async def process_queue(
     queue: asyncio.Queue,
