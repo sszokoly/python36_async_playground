@@ -33,11 +33,11 @@ GATEWAYS = {}
 config = {
     "username": "root",
     "passwd": "cmb@Dm1n",
-    "timeout": 10,
+    "timeout": 5,
     "polling_secs": 10,
     "max_polling": 20,
     "lastn_secs": 30,
-    "loglevel": "ERROR",
+    "loglevel": "INFO",
     "logfile": "bgw.log",
     "expect_log": "expect_log",
     "ip_filter": None,
@@ -308,7 +308,7 @@ puts [to_json]
 send "exit\\n"
 '''
 
-script_template = '''
+script_template_test = '''
 set host {host}
 set username {username}
 set passwd {passwd}
@@ -325,7 +325,7 @@ set last_seen [exec date "+%Y-%m-%d,%H:%M:%S"]
 if {{$randomInt == 1}} {{
     puts -nonewline stderr "ExpectTimeout"; exit 255
 }}
-puts "{{\\"gw_number\\": \\"001\\", \\"gw_name\\": \\"$host\\", \\"host\\": \\"$host\\", \\"last_seen\\": \\"$last_seen\\", \\"commands\\": {{\\"show system\\": \\"location: 1\\", \\"show running-config\\": \\"location: 1\\"}}, \\"rtp_sessions\\": {{\\"2024-12-30,11:06:15,$host,000$randomInt\\": \\"session 000$randomInt\\"}}}}"
+puts "{{\\"gw_number\\": \\"001\\", \\"gw_name\\": \\"$host\\", \\"host\\": \\"$host\\", \\"last_seen\\": \\"$last_seen\\", \\"commands\\": {{\\"show system\\": \\"location: 1\\", \\"show running-config\\": \\"location: 1\\"}}, \\"rtp_sessions\\": {{\\"2024-12-30,11:06:15,$host,0000$randomInt\\": \\"session 0000$randomInt\\"}}}}"
 '''
 
 RTP_DETAILED_PATTERNS = (
@@ -1241,6 +1241,7 @@ def create_query_tasks(
 async def discover_gateways(
     timeout: float = 10,
     max_polling: int = 20,
+    storage: Optional[AsyncMemoryStorage] = AsyncMemoryStorage(),
     callback: Optional[Callable[[int, int, int], None]] = None,
     ip_filter: Optional[Set[str]] = None,
     name: str = "coro discover_gateways()"
@@ -1275,7 +1276,7 @@ async def discover_gateways(
         try:
             result = await fut
             if result:
-                bgw = await process_item(result)
+                bgw = await process_item(result, storage=storage, callback=callback)
                 if bgw:
                     ok += 1
                     logger.info(f"Discovery {bgw.host} successful in {name}")
@@ -1291,6 +1292,7 @@ def poll_gateways(
     timeout: float = 10,
     polling_secs: float = 10,
     max_polling: int = 20,
+    storage: Optional[AsyncMemoryStorage] = AsyncMemoryStorage(),
     callback: Optional[Callable[[BGW], None]] = None,
     name: str = "poll_gateways()"
 ) -> None:
@@ -1317,7 +1319,7 @@ def poll_gateways(
     )
 
     task = create_task(
-        process_queue(queue=queue, callback=callback),
+        process_queue(queue=queue, storage=storage, callback=callback),
         name="coro process_queue()",
     )
     tasks.append(task)
@@ -1333,6 +1335,7 @@ def poll_callback(bgw):
 
 async def process_queue(
     queue: asyncio.Queue,
+    storage: Optional[AsyncMemoryStorage] = AsyncMemoryStorage(),
     callback: Optional[Callable[[BGW], None]] = None,
     name: str = "coro process_queue()"
 ) -> None:
@@ -1351,10 +1354,9 @@ async def process_queue(
     while True:
         item = await queue.get()
         if item:
-            await process_item(item, callback)
-        c += 1
-        logger.info(f"Pulled {c} items from queue in {name}")
-
+            await process_item(item, storage=storage, callback=callback)
+            c += 1
+        logger.info(f"Got {c} items from queue in {name}")
 
 async def process_item(
     item: str,
@@ -1383,6 +1385,9 @@ async def process_item(
             rtp_sessions = data.get("rtp_sessions")
             if rtp_sessions:
                 await storage.put(rtp_sessions)
+                logger.info(
+                    f"Put {len(rtp_sessions)} rtp-stats in storage in {name}"
+                )
             
             bgw = GATEWAYS[host]
             bgw.update(data)
@@ -1418,7 +1423,6 @@ def create_task(
     task.name = name
     return task
 
-
 async def main():
     loop = asyncio.get_event_loop()
     ip_filter = config["ip_filter"]
@@ -1440,7 +1444,7 @@ async def main():
         callback=poll_callback,
     )
     
-    await asyncio.sleep(30)
+    await asyncio.sleep(60)
     print("##### SHUTTING DOWN #####")
     cancel_tasks = []
     for task in asyncio.Task.all_tasks(loop):
@@ -1482,7 +1486,7 @@ if __name__ == "__main__":
     parser.add_argument('-p', dest='passwd', default='', help='BGW password')
     parser.add_argument('-n', dest='lastn_secs', default=30, help='secs to look back in RTP statistics, default 30secs')
     parser.add_argument('-m', dest='max_polling', default=20, help='max simultaneous polling sessons, default 20')
-    parser.add_argument('-l', dest='loglevel', default="ERROR", help='loglevel')
+    parser.add_argument('-l', dest='loglevel', default="INFO", help='loglevel')
     parser.add_argument('-t', dest='timeout', default=10, help='timeout in secs, default 10secs')
     parser.add_argument('-f', dest='polling_secs', default=5, help='polling frequency in seconds, default 5secs')
     parser.add_argument('-i', dest='ip_filter', default=None, nargs='+', help='BGW IP filter')
