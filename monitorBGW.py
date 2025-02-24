@@ -1275,7 +1275,7 @@ async def discover_gateways(
         try:
             result = await fut
             if result:
-                bgw = update_gateway(result)
+                bgw = await process_item(result)
                 if bgw:
                     ok += 1
                     logger.info(f"Discovery {bgw.host} successful in {name}")
@@ -1351,15 +1351,16 @@ async def process_queue(
     while True:
         item = await queue.get()
         if item:
-            update_gateway(item, callback)
+            await process_item(item, callback)
         c += 1
         logger.info(f"Pulled {c} items from queue in {name}")
 
 
-def update_gateway(
+async def process_item(
     item: str,
+    storage: Optional[AsyncMemoryStorage] = AsyncMemoryStorage(),
     callback: Optional[Callable[[BGW], None]] = None,
-    name: str = "update_gateway()"
+    name: str = "process_item()"
 ) -> None:
     """
     Updates a BGW object with item from a JSON string.
@@ -1379,8 +1380,13 @@ def update_gateway(
     else:
         host = data.get("host")
         if host in GATEWAYS:
+            rtp_sessions = data.get("rtp_sessions")
+            if rtp_sessions:
+                await storage.put(rtp_sessions)
+            
             bgw = GATEWAYS[host]
             bgw.update(data)
+            
             if callback:
                 logger.info(f"Calling {callback.__name__}({bgw}) in {name}")
                 callback(bgw)
