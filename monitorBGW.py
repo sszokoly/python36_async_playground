@@ -33,7 +33,7 @@ GATEWAYS = {}
 config = {
     "username": "root",
     "passwd": "cmb@Dm1n",
-    "timeout": 5,
+    "timeout": 15,
     "polling_secs": 5,
     "max_polling": 20,
     "lastn_secs": 30,
@@ -1486,7 +1486,7 @@ if __name__ == "__main__":
     parser.add_argument('-p', dest='passwd', default='', help='BGW password')
     parser.add_argument('-n', dest='lastn_secs', default=30, help='secs to look back in RTP statistics, default 30secs')
     parser.add_argument('-m', dest='max_polling', default=20, help='max simultaneous polling sessons, default 20')
-    parser.add_argument('-l', dest='loglevel', default="INFO", help='loglevel')
+    parser.add_argument('-l', dest='loglevel', default="DEBUG", help='loglevel')
     parser.add_argument('-t', dest='timeout', default=10, help='timeout in secs, default 10secs')
     parser.add_argument('-f', dest='polling_secs', default=5, help='polling frequency in seconds, default 5secs')
     parser.add_argument('-i', dest='ip_filter', default=None, nargs='+', help='BGW IP filter')

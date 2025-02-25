@@ -1,0 +1,49 @@
+parent: waiting for sync byte
+parent: telling child to go ahead
+parent: now unsynchronized from child
+spawn: returns {26097}
+
+expect: does "" (spawn_id exp5) match glob pattern "Password: "? no
+Password: 
+expect: does "\rPassword: " (spawn_id exp5) match glob pattern "Password: "? yes
+expect: set expect_out(0,string) "Password: "
+expect: set expect_out(spawn_id) "exp5"
+expect: set expect_out(buffer) "\rPassword: "
+send: sending "cmb@Dm1n\n" to { exp5 }
+
+expect: does "" (spawn_id exp5) match glob pattern "*Permission denied*"? no
+")# "? no
+
+
+expect: does "\r\n" (spawn_id exp5) match glob pattern "*Permission denied*"? no
+")# "? no
+
+expect: does "\r\n\r" (spawn_id exp5) match glob pattern "*Permission denied*"? no
+")# "? no
+
+
+
+
+Last login: 24-Feb-2025 12:46:26
+
+Survivable-call-engine is disabled
+
+AvayaG450A-001(super)# 
+expect: does "\r\n\r\n\r\n\r\n\r\nLast login: 24-Feb-2025 12:46:26\r\n\r\nSurvivable-call-engine is disabled\r\n\r\nAvayaG450A-001(super)# " (spawn_id exp5) match glob pattern "*Permission denied*"? no
+")# "? yes
+expect: set expect_out(0,string) ")# "
+expect: set expect_out(spawn_id) "exp5"
+expect: set expect_out(buffer) "\r\n\r\n\r\n\r\n\r\nLast login: 24-Feb-2025 12:46:26\r\n\r\nSurvivable-call-engine is disabled\r\n\r\nAvayaG450A-001(super)# "
+send: sending "show rtp-stat sessions last 20\n" to { exp5 }
+
+expect: does "" (spawn_id exp5) match glob pattern ")# "? no
+"*continue-- "? no
+"*to continue."? no
+"*."? no
+s
+expect: does "s" (spawn_id exp5) match glob pattern ")# "? no
+"*continue-- "? no
+"*to continue."? no
+"*."? no
+sighandler: handling signal(2)
+async event handler: Tcl_Eval(exit 130)
