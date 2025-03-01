@@ -1242,10 +1242,10 @@ async def discover_gateways(
     timeout: float = 10,
     max_polling: int = 20,
     storage: Optional[AsyncMemoryStorage] = AsyncMemoryStorage(),
-    callback: Optional[Callable[[int, int, int], None]] = None,
+    callback: Optional[Callable[[int, int], None]] = None,
     ip_filter: Optional[Set[str]] = None,
     name: str = "coro discover_gateways()"
-) -> Tuple[int, int, int]:
+) -> Tuple[int, int]:
     """Discover all connected gateways and query them.
 
     The function will discover all connected gateways, query each of them and
@@ -1255,13 +1255,12 @@ async def discover_gateways(
         timeout: The timeout for each query.
         max_polling: The maximum number of concurrent queries.
         callback: A callback function that will be called with the number of
-            successful queries, the number of failed queries and the total
-            number of queries.
+            queries performed and the total number of queries.
         ip_filter: An optional set of IP addresses to filter the gateways.
 
     Returns:
-        A tuple with the number of successful queries, the number of failed
-        queries and the total number of queries.
+        A tuple with the number of successful queries, and the
+        total number of queries.
     """
 
     global GATEWAYS    
@@ -1284,7 +1283,7 @@ async def discover_gateways(
             pass
         
         if callback:
-            callback(idx, ok, total)
+            callback(idx, total)
     
     return (ok, total)
 
@@ -1326,9 +1325,8 @@ def poll_gateways(
 
     logger.info(f"Started {len(tasks)} tasks in {name}")
 
-
-def discover_callback(idx, ok, total):
-    print(f"discover_callback(): idx:{idx}/ok:{ok}/total:{total}")
+def discover_callback(idx, total):
+    print(f"discover_callback(): idx:{idx}/total:{total}")
 
 def poll_callback(bgw):
     print(f"poll_callback(): {bgw.gw_name:15} last_seen:{bgw.last_seen}")
@@ -1486,7 +1484,7 @@ if __name__ == "__main__":
     parser.add_argument('-p', dest='passwd', default='', help='BGW password')
     parser.add_argument('-n', dest='lastn_secs', default=30, help='secs to look back in RTP statistics, default 30secs')
     parser.add_argument('-m', dest='max_polling', default=20, help='max simultaneous polling sessons, default 20')
-    parser.add_argument('-l', dest='loglevel', default="DEBUG", help='loglevel')
+    parser.add_argument('-l', dest='loglevel', default="INFO", help='loglevel')
     parser.add_argument('-t', dest='timeout', default=10, help='timeout in secs, default 10secs')
     parser.add_argument('-f', dest='polling_secs', default=5, help='polling frequency in seconds, default 5secs')
     parser.add_argument('-i', dest='ip_filter', default=None, nargs='+', help='BGW IP filter')
