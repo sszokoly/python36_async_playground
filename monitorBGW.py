@@ -3,12 +3,17 @@
 # -*- encoding: utf-8 -*-
 import argparse
 import asyncio
+import atexit
+import _curses, curses, curses.ascii, curses.panel
+import enum
+import functools
 import json
 import logging
 import os
 import re
 import sys
 import time
+from abc import ABC, abstractmethod
 from asyncio import coroutines
 from asyncio import events
 from asyncio import tasks
@@ -28,9 +33,7 @@ logger.setLevel(logging.INFO)
 
 ############################ CONSTATS, VARIABLES ############################
 
-GATEWAYS = {}
-
-config = {
+CONFIG = {
     "username": "root",
     "passwd": "cmb@Dm1n",
     "timeout": 15,
@@ -54,6 +57,36 @@ config = {
         "show voip-dsp",
         "show capture",
     ]
+}
+
+WORKSPACES = {
+    "rtp_stats": Workspace(
+        stdscr,
+        column_attrs=[
+            "start_time", "end_time", "gw_number",
+            "local_addr", "local_port", "remote_addr",
+            "remote_port", "codec", "qos",
+        ],
+        column_names=[
+            "Start", "End", "BGW", "Local-Address", "LPort",
+            "Remote-Address", "RPort", "Codec", "QoS",
+        ],
+        column_widths=[8, 8, 3, 15, 5, 15, 5, 5, 3],
+        storage = STORAGE,
+    )       
+    ws2 = Workspace(
+        stdscr,
+        column_attrs=[
+            "gw_number", "model", "firmware", "hw",
+            "host", "slamon", "rtp_stat", "faults",
+        ],
+        column_names=[
+            "BGW", "Model", "FW", "HW", "LAN IP",
+            "SLAMon IP", "RTP-Stat", "Faults",
+        ],
+        column_widths=[3, 5, 8, 2, 15, 15, 8, 6],
+        storage = GATEWAYS,
+    )
 }
 
 script_template = '''
@@ -933,6 +966,584 @@ class AsyncMemoryStorage(SlicableOrderedDict):
         async with self._lock:
             super().clear()
 
+class Tab:
+    def __init__(self,
+        stdscr,
+        tab_names,
+        nlines=2,
+        yoffset=0,
+        xoffset=0,
+        color_pair=None,
+    ):
+        self._stdscr = stdscr
+        self._tab_names = tab_names
+        self._tab_width = max(len(x) for x in self._tab_names) + 2
+        self._yoffset = yoffset
+        self._xoffset = xoffset
+        self._color_pair = color_pair if color_pair else curses.color_pair(0)
+        self._active_tab_idx = 0
+        self.maxy = nlines
+        self.maxx = self._stdscr.getmaxyx()[1]
+        self.win = self._stdscr.subwin(nlines, self.maxx, yoffset, xoffset)
+
+    def draw(self):
+        xpos = self._xoffset
+        for idx, tab_names in enumerate(self._tab_names):
+            active = bool(idx == self._active_tab_idx)
+            self._draw_tab(tab_names, self._yoffset, xpos, active)
+            xpos += self._tab_width + 2
+        self.win.refresh()
+
+    def _draw_tab(self, tab_name, ypos, xpos, active):
+        border1 = "╭" + self._tab_width * "─" + "╮"
+        border2 = "│" + " " * self._tab_width + "│"
+        self.win.addstr(ypos, xpos, border1, self._color_pair)
+        for linen in range(1, self.maxy):
+            self.win.addstr(ypos + linen, xpos, border2, self._color_pair)
+        text = tab_name.center(self._tab_width)
+        if not active:
+            text_color_pair = self._color_pair
+        else:
+            text_color_pair = self._color_pair|curses.A_REVERSE
+        self.win.addstr(ypos + 1, xpos+1, text, text_color_pair)
+
+    def handle_char(self, char):
+        if chr(char) == "\t":
+            if self._active_tab_idx < len(self._tab_names) - 1:
+                self._active_tab_idx += 1
+            else:
+                self._active_tab_idx = 0
+            self.draw()
+
+class Workspace:
+    def __init__(self,
+        stdscr,
+        column_attrs,
+        column_names=None,
+        column_widths=None,
+        storage=None,
+        menu_window=None,
+        color_pair=None,
+        yoffset=2,
+        xoffset=0,
+    ):
+        self._stdscr = stdscr
+        self._column_attrs = column_attrs
+        self._column_names = column_names if column_names else column_attrs
+        self._column_widths = column_widths if column_widths else [
+            len(x) for x in column_attrs]
+        self._storage = storage if storage else []
+        self._menuwin = menu_window
+        self._yoffset = yoffset
+        self._xoffset = xoffset
+        self._color_pair = color_pair if color_pair else curses.color_pair(0)
+        self.posy = 0
+        self.posx = 0
+        self.row_pos = 0
+        self.maxy = self._stdscr.getmaxyx()[0] - yoffset
+        self.maxx = sum(x + 1 for x in self._column_widths) + 1
+        self.title = self._stdscr.subwin(3, self.maxx, yoffset, xoffset)
+        self.body = self._stdscr.subwin(
+            self.maxy - 3, self.maxx, yoffset + 3, xoffset)
+        self._colors_pairs = Display.init_color_pairs()
+
+    def draw(self):
+        self._draw_title()
+        self._draw_body()
+
+    def _draw_title(self):
+        self.title.attron(self._color_pair)
+        self.title.box()
+        self.title.attroff(self._color_pair)
+        offset = 0
+        for idx, (cname, cwidth) in enumerate(zip(self._column_names,
+                                                  self._column_widths)):
+            cname = f"│{cname:^{cwidth}}"
+            xpos = self._xoffset if idx == 0 else offset
+            offset = xpos + len(cname)
+            self.title.addstr(1, xpos, cname, self._color_pair)
+            if idx > 0:
+                self.title.addstr(0, xpos, "┬", self._color_pair)
+                self.title.addstr(2, xpos, "┼", self._color_pair)
+        try:
+            self.title.addstr(2, self._xoffset, "├", self._color_pair)
+            self.title.addstr(2, self.maxx - 1, "┤", self._color_pair)
+        except curses.error:
+            pass
+        self.title.refresh()
+
+    def _draw_body(self):
+        start_row = self.row_pos
+        end_row = min(self.row_pos + (self.maxy - 3), len(self._storage))
+        for ridx, row in enumerate(self._storage[start_row:end_row]):
+            offset = 0
+            try:
+                for cidx, (attr, width) in enumerate(zip(self._column_attrs,
+                                                         self._column_widths)):
+                    xpos = self._xoffset if cidx == 0 else offset
+                    
+                    if hasattr(row, attr):
+                        item = getattr(row, attr)
+                    else:
+                        item = row.get(attr)
+                    item = f"│{str(item)[-width:]:>{width}}"
+                    
+                    if hasattr(item, "color_pair"):
+                        cpair = getattr(row, "color_pair")
+                    elif hasattr(item, "get"):
+                        cpair = item.get("color_pair", self._color_pair)
+                    else:
+                        cpair = self._color_pair
+                    if ridx == self.posy:
+                        cpair = cpair|curses.A_REVERSE
+                    
+                    offset = xpos + len(item)
+                    self.body.addstr(ridx, xpos, item, cpair)
+                self.body.addstr(ridx, xpos + len(item), "│", cpair)
+            except curses.error:
+                pass
+        self.body.refresh()
+
+    def handle_char(self, char):
+        if char == curses.KEY_DOWN:
+            self.row_pos = self.row_pos + 1 if self.posy == (self.maxy - 4) and self.row_pos + 1 <= len(self._storage) - (self.maxy - 3) else self.row_pos
+            self.posy = self.posy + 1 if self.posy < (self.maxy - 4) and len(self._storage) - 1 > self.posy else self.posy
+        elif char == curses.KEY_UP:
+            self.row_pos = self.row_pos - 1 if self.row_pos > 0 and self.posy == 0 else self.row_pos
+            self.posy =  self.posy - 1 if self.posy > 0 else self.posy
+        elif char == curses.KEY_HOME:
+            self.row_pos = 0
+            self.posy = 0
+        elif char == curses.KEY_END:
+            self.posy = min(self.maxy - 4, len(self._storage) - 1)
+            self.row_pos = max(0, len(self._storage) - (self.maxy - 3))
+        elif char == curses.KEY_NPAGE:
+            self.row_pos = min(self.row_pos + (self.maxy - 3), max(0, len(self._storage) - (self.maxy - 3)))
+            self.posy = 0 if self.row_pos + (self.maxy - 3) <= len(self._storage) - 1 else min(len(self._storage) - 1, (self.maxy - 3) - 1)
+        elif char == curses.KEY_PPAGE:
+            self.posy = 0
+            self.row_pos = max(self.row_pos - (self.maxy - 3), 0)
+        self._draw_body()
+
+class MyPanel:
+    def __init__(
+        self,
+        stdscr,
+        body,
+        attr=None,
+        offset_y=1,
+        offset_x=1,
+        margin=1,
+    ) -> None:
+        self.stdscr = stdscr
+        self.body = body
+        self.attr = attr
+        self.offset_y = offset_y
+        self.offset_x = offset_x
+        self.margin = margin
+        self._initialize()
+
+    def _initialize(self):
+        maxy, maxx = self.stdscr.getmaxyx()
+        nlines = maxy - (2 * self.margin)
+        ncols = maxx - (2 * self.margin)
+        begin_y = self.offset_y
+        begin_x = self.offset_x
+        self.win = curses.newwin(nlines, ncols, begin_y, begin_x)
+        self.panel = curses.panel.new_panel(self.win)
+        self.attr = self.attr if self.attr else curses.color_pair(0)
+
+    def draw(self, body=None):
+        if body:
+            self.win.erase()
+            self.body = body
+        self.win.box()
+        self.win.addstr(self.margin, self.margin, self.body, self.attr)
+        self.win.refresh()
+        return self
+
+    def erase(self):
+        self.win.erase()
+        self.win.refresh()
+        return self
+
+class ProgressBar:
+    def __init__(
+        self,
+        stdscr,
+        fraction,
+        width=21,
+        attr_fg=None,
+        attr_bg=None,
+        offset_y=2,
+    ) -> None:
+        self.stdscr = stdscr
+        self.fraction = fraction
+        self.width = width
+        self.attr_fg = attr_fg or curses.color_pair(221)|curses.A_REVERSE
+        self.attr_bg = attr_bg or curses.color_pair(239)|curses.A_REVERSE
+        self.offset_y = offset_y
+        self._initialize()
+
+    def _initialize(self):
+        maxy, maxx = self.stdscr.getmaxyx()
+        begin_y = maxy // 2 + self.offset_y
+        begin_x = maxx // 2 - (self.width // 2)
+        self.win = curses.newwin(1, self.width, begin_y, begin_x)
+        curses.panel.new_panel(self.win)
+        self.win.attron(self.attr_bg)
+
+    def draw(self, fraction=None):
+        if fraction:
+            self.win.erase()
+            self.fraction = fraction
+        lwidth = int(self.fraction * self.width)
+        rwidth = self.width - lwidth
+        try:
+            self.win.addstr(0, 0, lwidth * " ", self.attr_fg)
+            self.win.addstr(0, lwidth, rwidth * " ", self.attr_bg)
+        except _curses.error:
+            pass
+        self.win.refresh()
+        return self
+
+class Popup:
+    def __init__(
+        self,
+        stdscr,
+        body,
+        attr=None,
+        offset_y=-1,
+        margin=1,
+    ) -> None:
+        self.stdscr = stdscr
+        self.body = body
+        self.attr = attr if attr else curses.color_pair(0)
+        self.offset_y = offset_y
+        self.margin = margin
+        self._initialize()
+    
+    def draw(self, body=None):
+        if body:
+            self.win.erase()
+            self.body = body
+        self.win.box()
+        self.win.addstr(self.margin + 1, self.margin + 1, self.body, self.attr)
+        self.win.refresh()
+        return self
+
+    def erase(self):
+        self.win.erase()
+        self.win.refresh()
+        return self
+
+    def _initialize(self):
+        maxy, maxx = self.stdscr.getmaxyx()
+        nlines = 3 + (2 * self.margin)
+        ncols = len(self.body) + (2 * self.margin) + 2
+        begin_y = maxy // 2 + self.offset_y - (self.margin + 1)
+        begin_x = maxx // 2 - (len(self.body) // 2) - (self.margin + 1)
+        self.win = curses.newwin(nlines, ncols, begin_y, begin_x)
+        curses.panel.new_panel(self.win)
+        self.win.attron(self.attr)
+
+class Menubar:
+    def __init__(
+        self,
+        stdscr,
+        buttons=None,
+        button_offset=20,
+        button_gap=1,
+        nlines=1,
+        offset_x=0,
+        status_width=10,
+        attr=None,
+    ) -> None:
+        self.stdscr = stdscr
+        self.buttons = buttons if buttons else []
+        self.button_offset = button_offset
+        self.button_gap = button_gap
+        self.nlines = nlines
+        self.offset_x = offset_x
+        self.status_width = status_width
+        self.attr = attr or curses.color_pair(224)|curses.A_REVERSE
+        self._initialize()
+
+    def draw(self):
+        try:
+            self.win.addstr(0, 0, " " * (self.maxx), self.attr)
+        except _curses.error:
+            pass
+        self._draw_status_bar()
+        self._draw_buttons()
+        self.win.refresh()
+
+    def _draw_status_bar(self):
+        offset = 1
+        for b in self.buttons:
+            label, button_attr = b.status()
+            if not label:
+                continue
+            label = f"│{label:^{self.status_width}}│"
+            self.win.addstr(0, offset, label, button_attr)
+            offset += len(label)
+    
+    def _draw_buttons(self):
+        offset = self.button_offset
+        for b in self.buttons:
+            label = f"{str(b):{self._button_width}}"
+            self.win.addstr(0, offset, label, self.attr)
+            offset += len(label) + self.button_gap
+
+    def register_button(self, button):
+        self.buttons.append(button)
+        self._button_chars.append(button.char)
+        self._button_width = max(len(l) for b in self.buttons
+            for l in b.labels) + 2
+        self.status_width = max(len(l) for b in self.buttons
+            for l in b.status_labels + b.tempstatus_labels)
+
+    def handle_char(self, char):
+        char = chr(char)
+        if char in self._button_chars:
+            idx = self._button_chars.index(char)
+            self.buttons[idx].press()
+            self.draw()
+
+    @classmethod
+    def init_color_pairs(cls):
+        for i in range(0, curses.COLORS):
+            curses.init_pair(i + 1, i, -1)
+        
+        return {
+            "RED": curses.color_pair(2),
+            "RED_LIGHT": curses.color_pair(197),
+            "GREEN": curses.color_pair(42),
+            "GREEN_LIGHT": curses.color_pair(156),
+            "YELLOW": curses.color_pair(12),
+            "YELLOW_LIGHT": curses.color_pair(230),
+        }
+
+    def _initialize(self):
+        self.maxy = nlines = self.nlines
+        self.maxx = ncols = self.stdscr.getmaxyx()[1]
+        begin_y = self.stdscr.getmaxyx()[0] - nlines
+        begin_x = self.offset_x
+        self._button_chars = [x.char for x in self.buttons]
+        self.attr = self.attr or curses.color_pair(0)|curses.A_REVERSE
+        self.color_pairs = self.init_color_pairs()
+        self.win = self.stdscr.subwin(nlines, ncols, begin_y, begin_x)
+
+class Button:
+
+    button_map = {"d": "🅳 ", "f": "🅵 ", "r": "🆁 ", "s": "🆂 "}
+    
+    def __init__(
+        self,
+        stdscr,
+        char,
+        labels,
+        funcs,
+        callback=None,
+        status_labels=[],
+        status_attrs=[],
+        tempstatus_labels=[],
+        temp_attrs=[],
+    ) -> None:
+        self.stdscr = stdscr
+        self.char = char
+        self.labels = labels
+        self.funcs = funcs
+        self.callback = callback
+        self.status_labels = status_labels
+        self.status_attrs = status_attrs
+        self.tempstatus_labels = tempstatus_labels
+        self.temp_attrs = temp_attrs
+        self._initialize()
+
+    def _initialize(self):
+        self.state_idx = 0
+        
+        self.status_attrs = self.status_attrs or [
+                curses.color_pair(3)|curses.A_REVERSE,
+                curses.color_pair(197)|curses.A_REVERSE]
+        
+        self.temp_attrs = self.temp_attrs or [
+                curses.color_pair(4)|curses.A_REVERSE,
+                curses.color_pair(4)|curses.A_REVERSE]
+
+        if self.status_labels:
+            self.status_label = self.status_labels[self.state_idx]
+        else:
+            self.status_label = None
+
+        if self.tempstatus_labels:
+            self.tempstatus_label = self.tempstatus_labels[self.state_idx]
+        else:
+            self.tempstatus_label = None
+
+        self.status_attr = self.status_attrs[self.state_idx]
+
+    def press(self):
+        pop = Popup(self.stdscr, body="Please wait").draw()
+        
+        if self.tempstatus_labels:
+            self._update_status(temp_labels=True)
+        
+        if self.funcs[self.state_idx]():
+            self.state_idx = (self.state_idx + 1) % len(self.labels)
+        
+        if self.tempstatus_labels:
+            self._update_status(temp_labels=False)
+        
+        pop.erase()
+        curses.flushinp()
+
+    def _update_status(self, temp_labels):
+        if temp_labels:
+            label = self.tempstatus_labels[self.state_idx]
+            attr = self.temp_attrs[self.state_idx]
+        else:
+            label = self.status_labels[self.state_idx]
+            attr = self.status_attrs[self.state_idx]
+        
+        self.status_label = label
+        self.status_attr = attr
+        self.callback()
+
+    def __str__(self):
+        char = self.button_map.get(self.char, self.char)
+        return f"{char}={self.labels[self.state_idx]}"
+
+    def status(self):
+        return self.status_label, self.status_attr
+
+class MyDisplay():
+    def __init__(self,
+        stdscr: "_curses._CursesWindow",
+        miny: int = 24,
+        minx: int = 80,
+        workspaces = None,
+        tabwin = None,
+    ) -> None:
+        self._stdscr = stdscr
+        self.miny = miny
+        self.minx = minx
+        self.workspaces = workspaces if workspaces else []
+        self.tabwin = tabwin
+        self.done: bool = False
+        self.posx = 1
+        self.posy = 1
+        self.maxy, self.maxx = self._stdscr.getmaxyx()
+        self.active_ws_idx = 0
+        self.color_pairs = self.init_color_pairs()
+
+    def set_exit(self) -> None:
+        self.done = True
+
+    @classmethod
+    def init_color_pairs(cls):
+        for i in range(0, curses.COLORS):
+            curses.init_pair(i + 1, i, -1)
+        
+        return {
+            "RED": curses.color_pair(2),
+            "RED_LIGHT": curses.color_pair(197),
+            "GREEN": curses.color_pair(42),
+            "GREEN_LIGHT": curses.color_pair(156),
+            "YELLOW": curses.color_pair(12),
+            "YELLOW_LIGHT": curses.color_pair(230),
+            "BLUE": curses.color_pair(13),
+            "BLUE_LIGHT": curses.color_pair(34),
+            "MAGENTA": curses.color_pair(6),
+            "MAGENTA_LIGHT": curses.color_pair(14),
+            "CYAN": curses.color_pair(46),
+            "CYAN_LIGHT": curses.color_pair(15),
+            "GREY": curses.color_pair(246),    
+            "GREY_LIGHT": curses.color_pair(252),        
+            "ORANGE": curses.color_pair(203),
+            "ORANGE_LIGHT": curses.color_pair(209),
+            "PINK": curses.color_pair(220),
+            "PINK_LIGHT": curses.color_pair(226),
+            "PURPLE": curses.color_pair(135),
+            "PURPLE_LIGHT": curses.color_pair(148),
+        }
+
+    def run(self) -> None:
+        self._stdscr.nodelay(True)
+        self.make_display()
+        
+        while not self.done:
+            char = self._stdscr.getch()
+            if char == curses.ERR:
+                time.sleep(0.1)
+            elif char == curses.KEY_RESIZE:
+                self.maxy, self.maxx = self._stdscr.getmaxyx()
+                if self.maxy >= self.miny and self.maxx >= self.minx:
+                    self.make_display()
+                else:
+                    self._stdscr.erase()
+                    break
+            else:
+                self.handle_char(char)
+
+    def make_display(self):
+        self.maxy, self.maxx = self._stdscr.getmaxyx()
+        self._stdscr.erase()  
+        if self.tabwin:
+            self.tabwin.draw()
+        self.workspaces[self.active_ws_idx].draw()
+
+    def handle_char(self, char: int) -> None:
+        if chr(char) in ("q", "Q"):
+            self.set_exit()
+        elif chr(char) == "\t":
+            self.active_ws_idx = (self.active_ws_idx + 1) % len(self.workspaces)
+            self._stdscr.erase()
+            self.workspaces[self.active_ws_idx].draw()
+            self.tabwin.handle_char(char)
+        else:
+            self.workspaces[self.active_ws_idx].handle_char(char)
+
+    def draw_maxyx(self, stdscr, maxy, maxx, ypos):
+            text = f"{maxy}x{maxx} ypos={ypos}"
+            attr = curses.color_pair(3)
+            stdscr.addstr(maxy // 2, maxx // 2 - 6, (len(text)+2) * " ", attr)
+            stdscr.addstr(maxy // 2, maxx // 2 - 6, text, attr)
+            stdscr.refresh()
+
+    def start(self):
+        time.sleep(1)
+        return True
+
+    def stop(self):
+        time.sleep(1)
+        return True
+
+    def draw_rtppanel(self, stdscr, maxy, maxx, ypos):
+        rtppanel = MyPanel(stdscr, body="whatever")
+        time.sleep(0.2)
+        rtppanel.draw()
+        curses.panel.update_panels()
+        return True
+
+    def erase_rtppanel(self, ypos, rtppanel, stdpanel):
+        time.sleep(0.2)
+        rtppanel.erase()
+        return True
+
+    def discover_start(self, stdscr):
+        fraction = 0
+        progbar = ProgressBar(stdscr, fraction=fraction)
+        for _ in range(20):
+            fraction += 0.05
+            progbar.draw(fraction)
+            time.sleep(0.2)
+
+    def discover_stop():
+        curses.panel.update_panels()
+
+
 ################################# FUNCTIONS ################################# 
 
 def asyncio_run(
@@ -1202,7 +1813,6 @@ async def query_gateway(
             if not queue:
                 raise
 
-
 def create_query_tasks(
     timeout: float = 10,
     queue: Optional[asyncio.Queue] = None,
@@ -1236,7 +1846,6 @@ def create_query_tasks(
         tasks.append(task)
     
     return tasks
-
 
 async def discover_gateways(
     timeout: float = 10,
@@ -1421,64 +2030,160 @@ def create_task(
     task.name = name
     return task
 
-async def main():
-    loop = asyncio.get_event_loop()
-    ip_filter = config["ip_filter"]
+def change_terminal(to_type="xterm-256color"):
+    old_term = os.environ.get("TERM")
+    types = os.popen("toe -a").read().splitlines()
+    if any(x for x in types if x.startswith(to_type)):
+        os.environ["TERM"] = to_type
+    return old_term
 
-    print("##### DISCOVER GATEWAYS #####")
-    discover_task = create_task(discover_gateways(
-        timeout=config["timeout"],
-        max_polling=config["max_polling"],
-        callback=discover_callback,
-        ip_filter=ip_filter,
-    ), name="discover_gateways()")
+def startup():
+    orig_term = change_terminal()
+    orig_stty = os.popen("stty -g").read().strip()
+    atexit.register(shutdown, orig_term, orig_stty)
+
+def shutdown(term, stty):
+    print("Shutting down")
+    _ = change_terminal(term)
+    os.system(f"stty {stty}")
+
+def get_username() -> str:
+    """Prompt user for SSH username of gateways.
+
+    Returns:
+        str: The input string of SSH username.
+    """
+    while True:
+        username = input("Enter SSH username of media-gateways: ")
+        confirm = input("Is this correct (Y/N)?: ")
+        if confirm.lower().startswith("y"):
+            break
+    return username.strip()
+
+def get_passwd() -> str:
+    """Prompt user for SSH password of gateways.
+
+    Returns:
+        str: The input string of SSH password.
+    """
+    while True:
+        passwd = input("Enter SSH password of media-gateways: ")
+        confirm = input("Is this correct (Y/N)?: ")
+        if confirm.lower().startswith("y"):
+            break
+    return passwd.strip()
+
+def must_resize(stdscr, miny, minx):
+    maxy, maxx = stdscr.getmaxyx()
+    msgs = [f"Resize screen to at least {miny:>3} x {minx:>3}",
+            f"             Current size {maxy:>3} x {maxx:>3}",
+            "Press 'q' to exit"]
+    for i, msg in enumerate(msgs, start=-1):
+        stdscr.addstr(maxy // 2 + 2*i, (maxx - len(msg)) // 2, msg)
+    stdscr.refresh()
     
-    await asyncio.gather(discover_task)
+    if maxy < miny or maxx < minx:
+        return True
+    return False
 
-    print("##### POLLING  GATEWAYS #####")
-    poll_gateways(
-        timeout=config["timeout"],
-        max_polling=config["max_polling"],
-        callback=poll_callback,
+def main(stdscr, miny: int = 24, minx: int = 80):
+    global STORAGE, GATEWAYS
+    curses.curs_set(0)
+    curses.noecho()
+    curses.start_color()
+    curses.use_default_colors()
+
+    ws1 = Workspace(
+        stdscr,
+        column_attrs=[
+            "start_time", "end_time", "gw_number",
+            "local_addr", "local_port", "remote_addr",
+            "remote_port", "codec", "qos",
+        ],
+        column_names=[
+            "Start", "End", "BGW", "Local-Address", "LPort",
+            "Remote-Address", "RPort", "Codec", "QoS",
+        ],
+        column_widths=[8, 8, 3, 15, 5, 15, 5, 5, 3],
+        storage = STORAGE,
+    )       
+    ws2 = Workspace(
+        stdscr,
+        column_attrs=[
+            "gw_number", "model", "firmware", "hw",
+            "host", "slamon", "rtp_stat", "faults",
+        ],
+        column_names=[
+            "BGW", "Model", "FW", "HW", "LAN IP",
+            "SLAMon IP", "RTP-Stat", "Faults",
+        ],
+        column_widths=[3, 5, 8, 2, 15, 15, 8, 6],
+        storage = GATEWAYS,
     )
-    
-    await asyncio.sleep(60)
-    print("##### SHUTTING DOWN #####")
-    cancel_tasks = []
-    for task in asyncio.Task.all_tasks(loop):
-        if hasattr(task, "name") and task.name.startswith("coro"):
-            print(f"Canceling task '{task.name}'")
-            task.cancel()
-            cancel_tasks.append(task)
-    await asyncio.gather(*cancel_tasks, return_exceptions=True)
+    tab = Tab(
+        stdscr,
+        tab_names=["RTP Stats", "Inventory"],
+    )
+
+    while must_resize(stdscr, miny, minx):
+        char = stdscr.getch()
+        if char == curses.ERR:
+            time.sleep(0.1)
+        elif char == curses.KEY_RESIZE:
+            stdscr.erase()
+        elif chr(char) in ("q", "Q"):
+            return
+
+    stdscr.erase()
+    stdscr.resize(miny, minx)
+    stdpanel = curses.panel.new_panel(stdscr)
+    display = MyDisplay(stdscr, workspaces=[ws1, ws2], tabwin=tab)
+    done = False
+    stdscr.box()
+    maxy, maxx = stdscr.getmaxyx()
+    ypos = 0
+    rtppanel = None
+
+    while not done:
+
+        menu = Menubar(stdscr)
+        menu.register_button(
+            Button(stdscr, "s", labels=["Start", "Stop"],
+                    funcs=[start, stop],
+                    callback=menu.draw,
+                    status_labels=["EventLoop", "EventLoop"],
+                    tempstatus_labels=["Starting", "Stopping"]))
+        menu.register_button(
+            Button(stdscr, "r", labels=["RTPstat", "RTPstat"],
+                    funcs=[draw_rtppanel, erase_rtppanel],
+                    callback=menu.draw))
+        menu.register_button(
+            Button(stdscr, "d", labels=["DiscoverStart", "DiscoverStop"],
+                    funcs=[discover_start, discover_stop],
+                    callback=menu.draw))
+        
+        menu.draw()
+        draw_maxyx()
+
+        while not done:
+            char = stdscr.getch()
+            if char == curses.ERR:
+                time.sleep(0.1)
+            elif char == curses.KEY_RESIZE:
+                stdscr.erase()
+                break
+            elif chr(char) == "q":
+                sys.exit()
+            elif char == curses.KEY_DOWN:
+                ypos = ypos + 1 if ypos < maxy - 1 else ypos
+                draw_maxyx()
+            elif char == curses.KEY_UP:
+                ypos = ypos - 1 if ypos > 0 else 0
+                draw_maxyx()
+            else:
+                menu.handle_char(char)
 
 if __name__ == "__main__":
-    def get_username() -> str:
-        """Prompt user for SSH username of gateways.
-
-        Returns:
-            str: The input string of SSH username.
-        """
-        while True:
-            username = input("Enter SSH username of media-gateways: ")
-            confirm = input("Is this correct (Y/N)?: ")
-            if confirm.lower().startswith("y"):
-                break
-        return username.strip()
-
-    def get_passwd() -> str:
-        """Prompt user for SSH password of gateways.
-
-        Returns:
-            str: The input string of SSH password.
-        """
-        while True:
-            passwd = input("Enter SSH password of media-gateways: ")
-            confirm = input("Is this correct (Y/N)?: ")
-            if confirm.lower().startswith("y"):
-                break
-        return passwd.strip()
-
     parser = argparse.ArgumentParser(description='Monitors Avaya Branch Gateways (BGW)')
     parser.add_argument('-u', dest='username', default='', help='BGW username')
     parser.add_argument('-p', dest='passwd', default='', help='BGW password')
@@ -1490,8 +2195,11 @@ if __name__ == "__main__":
     parser.add_argument('-i', dest='ip_filter', default=None, nargs='+', help='BGW IP filter')
     args = parser.parse_args()
 
-    args.username = args.username or (config.get("username") or get_username())
-    args.passwd = args.passwd or (config.get("passwd") or get_passwd())
-    config.update(args.__dict__)
+    args.username = args.username or (CONFIG.get("username") or get_username())
+    args.passwd = args.passwd or (CONFIG.get("passwd") or get_passwd())
+    CONFIG.update(args.__dict__)
+    GATEWAYS = {}
+    STORAGE = AsyncMemoryStorage()
     logger.setLevel(config["loglevel"].upper())
-    asyncio_run(main())
+    startup()
+    curses.wrapper(main)

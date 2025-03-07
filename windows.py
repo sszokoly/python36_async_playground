@@ -130,7 +130,6 @@ class Popup:
         curses.panel.new_panel(self.win)
         self.win.attron(self.attr)
 
-
 class Menubar:
     def __init__(
         self,
