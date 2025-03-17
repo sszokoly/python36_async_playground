@@ -22,17 +22,15 @@ from bisect import insort_left
 from collections import deque
 from collections.abc import MutableMapping
 from typing import Any, Callable, Coroutine, Optional, Tuple
-from subprocess import CalledProcessError
+from subprocess import CalledProcessError, call
 from datetime import datetime
 from typing import AsyncIterator, Iterable, Iterator, Optional, Tuple, Union, TypeVar, Any, Dict, List, Set
 
 logger = logging.getLogger(__name__)
-FORMAT = "%(asctime)s - %(levelname)8s - %(message)s [%(filename)s:%(lineno)s]"
-logging.basicConfig(format=FORMAT)
-logger.setLevel(logging.INFO)
 
 ############################ CONSTATS, VARIABLES ############################
-
+LOG_FORMAT = "%(asctime)s - %(levelname)8s - %(message)s [%(filename)s:%(lineno)s]"
+GATEWAYS = {}
 CONFIG = {
     "username": "root",
     "passwd": "cmb@Dm1n",
@@ -44,6 +42,8 @@ CONFIG = {
     "logfile": "bgw.log",
     "expect_log": "expect_log",
     "ip_filter": None,
+    "storage": None,
+    "storage_maxlen": None,
     "discovery_commands": [ 
         "show running-config",
         "show system",
@@ -59,35 +59,6 @@ CONFIG = {
     ]
 }
 
-WORKSPACES = {
-    "rtp_stats": Workspace(
-        stdscr,
-        column_attrs=[
-            "start_time", "end_time", "gw_number",
-            "local_addr", "local_port", "remote_addr",
-            "remote_port", "codec", "qos",
-        ],
-        column_names=[
-            "Start", "End", "BGW", "Local-Address", "LPort",
-            "Remote-Address", "RPort", "Codec", "QoS",
-        ],
-        column_widths=[8, 8, 3, 15, 5, 15, 5, 5, 3],
-        storage = STORAGE,
-    )       
-    ws2 = Workspace(
-        stdscr,
-        column_attrs=[
-            "gw_number", "model", "firmware", "hw",
-            "host", "slamon", "rtp_stat", "faults",
-        ],
-        column_names=[
-            "BGW", "Model", "FW", "HW", "LAN IP",
-            "SLAMon IP", "RTP-Stat", "Faults",
-        ],
-        column_widths=[3, 5, 8, 2, 15, 15, 8, 6],
-        storage = GATEWAYS,
-    )
-}
 
 script_template = '''
 #!/usr/bin/expect
@@ -341,7 +312,7 @@ puts [to_json]
 send "exit\\n"
 '''
 
-script_template_test = '''
+script_template = '''
 set host {host}
 set username {username}
 set passwd {passwd}
@@ -966,6 +937,203 @@ class AsyncMemoryStorage(SlicableOrderedDict):
         async with self._lock:
             super().clear()
 
+class Button:
+    def __init__(self, *chars_int: int,
+        win: "_curses._CursesWindow",
+        y: Optional[int] = 0,
+        x: Optional[int] = 0,
+        char_alt: Optional[str] = None,
+        label_on: Optional[str] = None,
+        label_off: Optional[str] = None,
+        attr_on: Optional[int] = None,
+        attr_off: Optional[int] = None,
+        callback_on: Optional[Callable[[], None]] = None,
+        callback_off: Optional[Callable[[], None]] = None,
+        done_callback_on: Optional[Callable[[], None]] = None,
+        done_callback_off: Optional[Callable[[], None]] = None,
+        status_label: Optional[str] = None,
+        status_attr_on: Optional[int] = None,
+        status_attr_off: Optional[int] = None,
+        **callback_kwargs: Any) -> None:
+        """
+        Initialize a Button.
+
+        Parameters
+        ----------
+        chars_int : int
+            A list of integer values of characters to listen for.
+        win : _curses._CursesWindow
+            The curses window where the button is displayed.
+        y : int, optional
+            The y-coordinate of the button. Defaults to 0.
+        x : int, optional
+            The x-coordinate of the button. Defaults to 0.
+        char_alt : str, optional
+            An alternative character to display instead of the first character
+            in chars_int. Defaults to None.
+        label_on : str, optional
+            The label to display when the button is on. Defaults to "On ".
+        label_off : str, optional
+            The label to display when the button is off. Defaults to "Off" if
+            not label_on else label_on.
+        attr_on : int, optional
+            The curses attribute to use when the button is on. Defaults to
+            curses.A_REVERSE.
+        attr_off : int, optional
+            The curses attribute to use when the button is off. Defaults to
+            curses.A_NORMAL.
+        callback_on : Callable[[], None], optional
+            The function to call when the button is turned on. Defaults to None.
+        callback_off : Callable[[], None], optional
+            The function to call when the button is turned off. Defaults to None.
+        done_callback_on : Callable[[], None], optional
+            The function to call when the on action is completed. Defaults to
+            None.
+        done_callback_off : Callable[[], None], optional
+            The function to call when the off action is completed. Defaults to
+            None.
+        status_label : str, optional
+            The label to display in the status bar when the button is on.
+            Defaults to "".
+        status_attr_on : int, optional
+            The curses attribute to use when the button is on in the status bar.
+            Defaults to the attribute_on value.
+        status_attr_off : int, optional
+            The curses attribute to use when the button is off in the status
+            bar. Defaults to the attribute_off value.
+        **callback_kwargs : Any
+            Additional keyword arguments to pass to the callbacks.
+
+        Returns
+        -------
+        None
+        """
+
+        self.chars_int = chars_int
+        self.win = win
+        self.y = y
+        self.x = x
+        self.char_alt = char_alt
+        self.label_on = label_on or "Off"
+        self.label_off = label_off or ("On" if not label_on else label_on)
+        self.attr_on = attr_on or curses.A_REVERSE
+        self.attr_off = attr_off or curses.A_REVERSE
+        self.callback_on = callback_on
+        self.callback_off = callback_off
+        self.done_callback_on = done_callback_on
+        self.done_callback_off = done_callback_off
+        self.status_label = status_label if status_label else ""
+        self.status_attr_on = status_attr_on or self.attr_on
+        self.status_attr_off = status_attr_off or self.attr_off
+        self.callback_kwargs = callback_kwargs or {}
+        self.callback_kwargs = {**self.callback_kwargs, **{"button": self}}
+        self.state = False
+        self.callback_on_task = None
+        self.callback_off_task = None
+
+    def draw(self) -> None:
+        """
+        Draw the button on the given curses window.
+
+        Returns
+        -------
+        None
+        """
+        if self.char_alt:
+            char = self.char_alt
+        elif any(chr(c).isalnum() for c in self.chars_int):
+            char = next(c for c in self.chars_int if chr(c).isalnum())
+        else:
+            char = repr(chr(self.chars_int[0]))
+
+        label = self.label_on if self.state else self.label_off
+        attr = self.attr_on if self.state else self.attr_off
+
+        try:
+            self.win.addstr(self.y, self.x, f"{char}={label}", attr)
+        except curses.error:
+            pass
+
+        self.win.refresh()
+
+    def toggle(self) -> None:
+        """
+        Toggle the button state.
+
+        Returns
+        -------
+        None
+        """
+        self.state = not self.state
+
+    def press(self) -> None:
+        """
+        Handle a button press synchronously:
+         - Toggle the state.
+         - Schedule the appropriate callback onto the event loop.
+
+        Returns
+        -------
+        None
+        """
+        self.toggle()
+
+        if self.state:
+            if self.callback_on:
+                if asyncio.iscoroutinefunction(self.callback_on):
+                    self.callback_on_task: asyncio.Task = create_task(
+                        self.callback_on(**self.callback_kwargs),
+                        name="callback_on")
+                    if self.done_callback_on:
+                        self.callback_on_task.add_done_callback(
+                            self.done_callback_on)
+                else:
+                    self.callback_on(**self.callback_kwargs)
+        else:
+            if self.callback_off:
+                if asyncio.iscoroutinefunction(self.callback_off):
+                    self.callback_off_task: asyncio.Task = create_task(
+                        self.callback_off(**self.callback_kwargs),
+                        name="callback_off")
+                    if self.done_callback_off:
+                        self.callback_off_task.add_done_callback(
+                            self.done_callback_off)
+                else:
+                    self.callback_off(**self.callback_kwargs)
+                
+                if self.callback_on_task and not self.callback_on_task.done():
+                    self.callback_on_task.remove_done_callback(
+                        self.done_callback_on)
+                    self.callback_on_task = None
+
+    async def handle_char(self, key: int) -> None:
+        """
+        Process a keypress.
+
+        Parameters
+        ----------
+        key : int
+            The character code of the key that was pressed.
+
+        Returns
+        -------
+        None
+        """
+        if key in self.chars_int:
+            self.press()
+
+    def status(self) -> str:
+        """
+        Get the current label of the button.
+
+        Returns
+        -------
+        str
+            The label of the button.
+        """
+        attr = self.status_attr_on if self.state else self.status_attr_off
+        return self.status_label, attr
+
 class Tab:
     def __init__(self,
         stdscr,
@@ -975,7 +1143,7 @@ class Tab:
         xoffset=0,
         color_pair=None,
     ):
-        self._stdscr = stdscr
+        self.stdscr = stdscr
         self._tab_names = tab_names
         self._tab_width = max(len(x) for x in self._tab_names) + 2
         self._yoffset = yoffset
@@ -983,8 +1151,8 @@ class Tab:
         self._color_pair = color_pair if color_pair else curses.color_pair(0)
         self._active_tab_idx = 0
         self.maxy = nlines
-        self.maxx = self._stdscr.getmaxyx()[1]
-        self.win = self._stdscr.subwin(nlines, self.maxx, yoffset, xoffset)
+        self.maxx = self.stdscr.getmaxyx()[1]
+        self.win = self.stdscr.subwin(nlines, self.maxx, yoffset, xoffset)
 
     def draw(self):
         xpos = self._xoffset
@@ -1007,80 +1175,85 @@ class Tab:
             text_color_pair = self._color_pair|curses.A_REVERSE
         self.win.addstr(ypos + 1, xpos+1, text, text_color_pair)
 
-    def handle_char(self, char):
+    async def handle_char(self, char):
         if chr(char) == "\t":
-            if self._active_tab_idx < len(self._tab_names) - 1:
+            if self._active_tab_idx < len(self._tab_names) - 1: 
                 self._active_tab_idx += 1
             else:
                 self._active_tab_idx = 0
             self.draw()
 
 class Workspace:
-    def __init__(self,
-        stdscr,
-        column_attrs,
+    def __init__(self, stdscr, column_attrs, *,
         column_names=None,
         column_widths=None,
+        menubar=None,
+        name=None,
         storage=None,
-        menu_window=None,
-        color_pair=None,
-        yoffset=2,
-        xoffset=0,
+        attr=None,
+        offset_y=2,
+        offset_x=0,
+        title_width=3,
+        colors_pairs=None,
     ):
-        self._stdscr = stdscr
-        self._column_attrs = column_attrs
-        self._column_names = column_names if column_names else column_attrs
-        self._column_widths = column_widths if column_widths else [
-            len(x) for x in column_attrs]
-        self._storage = storage if storage else []
-        self._menuwin = menu_window
-        self._yoffset = yoffset
-        self._xoffset = xoffset
-        self._color_pair = color_pair if color_pair else curses.color_pair(0)
+        self.stdscr = stdscr
+        self.column_attrs = column_attrs
+        self.column_names = column_names or column_attrs
+        self.column_widths = column_widths or [len(x) for x in column_attrs]
+        self.menubar = menubar
+        self.name = name
+        self.storage = storage or []
+        self.attr = attr or curses.color_pair(0)
+        self.offset_y = offset_y
+        self.offset_x = offset_x
+        self.colors_pairs = colors_pairs
+        self.title_width = title_width
         self.posy = 0
         self.posx = 0
         self.row_pos = 0
-        self.maxy = self._stdscr.getmaxyx()[0] - yoffset
-        self.maxx = sum(x + 1 for x in self._column_widths) + 1
-        self.title = self._stdscr.subwin(3, self.maxx, yoffset, xoffset)
-        self.body = self._stdscr.subwin(
-            self.maxy - 3, self.maxx, yoffset + 3, xoffset)
-        self._colors_pairs = Display.init_color_pairs()
+        self.maxy = self.stdscr.getmaxyx()[0] - offset_y
+        self.maxx = sum(x + 1 for x in self.column_widths) + 1
+        self.titlewin = stdscr.subwin(title_width, self.maxx,
+            offset_y, offset_x)
+        self.bodywin = self.stdscr.subwin(
+            self.maxy - title_width, self.maxx, offset_y + title_width,
+            offset_x)
 
     def draw(self):
-        self._draw_title()
-        self._draw_body()
+        self.draw_titlewin()
+        self.draw_bodywin()
+        self.draw_menubar()
 
-    def _draw_title(self):
-        self.title.attron(self._color_pair)
-        self.title.box()
-        self.title.attroff(self._color_pair)
+    def draw_titlewin(self):
+        self.titlewin.attron(self.attr)
+        self.titlewin.box()
+        self.titlewin.attroff(self.attr)
         offset = 0
-        for idx, (cname, cwidth) in enumerate(zip(self._column_names,
-                                                  self._column_widths)):
+        for idx, (cname, cwidth) in enumerate(zip(self.column_names,
+                                                self.column_widths)):
             cname = f"│{cname:^{cwidth}}"
-            xpos = self._xoffset if idx == 0 else offset
+            xpos = self.offset_x if idx == 0 else offset
             offset = xpos + len(cname)
-            self.title.addstr(1, xpos, cname, self._color_pair)
+            self.titlewin.addstr(1, xpos, cname, self.attr)
             if idx > 0:
-                self.title.addstr(0, xpos, "┬", self._color_pair)
-                self.title.addstr(2, xpos, "┼", self._color_pair)
+                self.titlewin.addstr(0, xpos, "┬", self.attr)
+                self.titlewin.addstr(2, xpos, "┼", self.attr)
         try:
-            self.title.addstr(2, self._xoffset, "├", self._color_pair)
-            self.title.addstr(2, self.maxx - 1, "┤", self._color_pair)
+            self.titlewin.addstr(2, self.offset_x, "├", self.attr)
+            self.titlewin.addstr(2, self.maxx - 1, "┤", self.attr)
         except curses.error:
             pass
-        self.title.refresh()
+        self.titlewin.refresh()
 
-    def _draw_body(self):
+    def draw_bodywin(self):
         start_row = self.row_pos
-        end_row = min(self.row_pos + (self.maxy - 3), len(self._storage))
-        for ridx, row in enumerate(self._storage[start_row:end_row]):
+        end_row = min(self.row_pos + (self.maxy - 3), len(self.storage))
+        for ridx, row in enumerate(self.storage[start_row:end_row]):
             offset = 0
             try:
-                for cidx, (attr, width) in enumerate(zip(self._column_attrs,
-                                                         self._column_widths)):
-                    xpos = self._xoffset if cidx == 0 else offset
+                for cidx, (attr, width) in enumerate(zip(self.column_attrs,
+                                                         self.column_widths)):
+                    xpos = self.offset_x if cidx == 0 else offset
                     
                     if hasattr(row, attr):
                         item = getattr(row, attr)
@@ -1088,26 +1261,30 @@ class Workspace:
                         item = row.get(attr)
                     item = f"│{str(item)[-width:]:>{width}}"
                     
-                    if hasattr(item, "color_pair"):
-                        cpair = getattr(row, "color_pair")
+                    if hasattr(item, "attr"):
+                        cpair = getattr(row, "attr")
                     elif hasattr(item, "get"):
-                        cpair = item.get("color_pair", self._color_pair)
+                        cpair = item.get("attr", self.attr)
                     else:
-                        cpair = self._color_pair
+                        cpair = self.attr
                     if ridx == self.posy:
                         cpair = cpair|curses.A_REVERSE
                     
                     offset = xpos + len(item)
-                    self.body.addstr(ridx, xpos, item, cpair)
-                self.body.addstr(ridx, xpos + len(item), "│", cpair)
+                    self.bodywin.addstr(ridx, xpos, item, cpair)
+                self.bodywin.addstr(ridx, xpos + len(item), "│", cpair)
             except curses.error:
                 pass
-        self.body.refresh()
+        self.bodywin.refresh()
 
-    def handle_char(self, char):
+    def draw_menubar(self):
+        if self.menubar:
+            self.menubar.draw()
+
+    async def handle_char(self, char):
         if char == curses.KEY_DOWN:
-            self.row_pos = self.row_pos + 1 if self.posy == (self.maxy - 4) and self.row_pos + 1 <= len(self._storage) - (self.maxy - 3) else self.row_pos
-            self.posy = self.posy + 1 if self.posy < (self.maxy - 4) and len(self._storage) - 1 > self.posy else self.posy
+            self.row_pos = self.row_pos + 1 if self.posy == (self.maxy - (self.title_width + 1)) and self.row_pos + 1 <= len(self.storage) - (self.maxy - self.title_width) else self.row_pos
+            self.posy = self.posy + 1 if self.posy < (self.maxy - (self.title_width + 1)) and len(self.storage) - 1 > self.posy else self.posy
         elif char == curses.KEY_UP:
             self.row_pos = self.row_pos - 1 if self.row_pos > 0 and self.posy == 0 else self.row_pos
             self.posy =  self.posy - 1 if self.posy > 0 else self.posy
@@ -1115,15 +1292,17 @@ class Workspace:
             self.row_pos = 0
             self.posy = 0
         elif char == curses.KEY_END:
-            self.posy = min(self.maxy - 4, len(self._storage) - 1)
-            self.row_pos = max(0, len(self._storage) - (self.maxy - 3))
+            self.posy = min(self.maxy - (self.title_width + 1), len(self.storage) - 1)
+            self.row_pos = max(0, len(self.storage) - (self.maxy - self.title_width))
         elif char == curses.KEY_NPAGE:
-            self.row_pos = min(self.row_pos + (self.maxy - 3), max(0, len(self._storage) - (self.maxy - 3)))
-            self.posy = 0 if self.row_pos + (self.maxy - 3) <= len(self._storage) - 1 else min(len(self._storage) - 1, (self.maxy - 3) - 1)
+            self.row_pos = min(self.row_pos + (self.maxy - self.title_width), max(0, len(self.storage) - (self.maxy - self.title_width)))
+            self.posy = 0 if self.row_pos + (self.maxy - self.title_width) <= len(self.storage) - 1 else min(len(self.storage) - 1, (self.maxy - self.title_width) - 1)
         elif char == curses.KEY_PPAGE:
             self.posy = 0
-            self.row_pos = max(self.row_pos - (self.maxy - 3), 0)
-        self._draw_body()
+            self.row_pos = max(self.row_pos - (self.maxy - self.title_width), 0)
+        else:
+            await self.menubar.handle_char(char)
+        self.draw_bodywin()
 
 class MyPanel:
     def __init__(
@@ -1168,44 +1347,85 @@ class MyPanel:
         return self
 
 class ProgressBar:
-    def __init__(
-        self,
-        stdscr,
-        fraction,
-        width=21,
-        attr_fg=None,
-        attr_bg=None,
-        offset_y=2,
-    ) -> None:
+    def __init__(self, stdscr: "_curses._CursesWindow",
+        fraction: float = 0,
+        width: int = 21,
+        attr_fg: Optional[int] = None,
+        attr_bg: Optional[int] = None,
+        offset_y: int = 0) -> None:
+        """
+        Initialize the progress bar.
+
+        Parameters
+        ----------
+        stdscr : _curses._CursesWindow
+            The curses window that the progress bar should be drawn on.
+        fraction : float, optional
+            The fraction of the bar that should be filled. Defaults to 0.
+        width : int, optional
+            The width of the progress bar. Defaults to 21.
+        attr_fg : Optional[int], optional
+            The curses attribute to use for the foreground. Defaults to
+            curses.color_pair(221)|curses.A_REVERSE.
+        attr_bg : Optional[int], optional
+            The curses attribute to use for the background. Defaults to
+            curses.color_pair(239)|curses.A_REVERSE.
+        offset_y : int, optional
+            The y offset of the progress bar. Defaults to 0.
+        """
         self.stdscr = stdscr
         self.fraction = fraction
         self.width = width
         self.attr_fg = attr_fg or curses.color_pair(221)|curses.A_REVERSE
         self.attr_bg = attr_bg or curses.color_pair(239)|curses.A_REVERSE
-        self.offset_y = offset_y
-        self._initialize()
-
-    def _initialize(self):
-        maxy, maxx = self.stdscr.getmaxyx()
-        begin_y = maxy // 2 + self.offset_y
-        begin_x = maxx // 2 - (self.width // 2)
-        self.win = curses.newwin(1, self.width, begin_y, begin_x)
+        maxy, maxx = stdscr.getmaxyx()
+        begin_y = maxy // 2 + offset_y
+        begin_x = maxx // 2 - (width // 2)
+        self.win = curses.newwin(1, width, begin_y, begin_x)
         curses.panel.new_panel(self.win)
         self.win.attron(self.attr_bg)
 
-    def draw(self, fraction=None):
+    def draw(self, fraction: Optional[float] = None) -> "ProgressBar":
+        """
+        Draw the progress bar on the screen.
+
+        Parameters
+        ----------
+        fraction : Optional[float], optional
+            The fraction of the bar that should be filled. Defaults to None.
+
+        Returns
+        -------
+        ProgressBar
+            The same instance.
+        """
         if fraction:
             self.win.erase()
             self.fraction = fraction
-        lwidth = int(self.fraction * self.width)
-        rwidth = self.width - lwidth
+        
+        filled_width = int(self.fraction * self.width)
+        remaining_width = self.width - filled_width
+        
         try:
-            self.win.addstr(0, 0, lwidth * " ", self.attr_fg)
-            self.win.addstr(0, lwidth, rwidth * " ", self.attr_bg)
+            self.win.addstr(0, 0, " " * filled_width, self.attr_fg)
+            self.win.addstr(0, filled_width, " " * remaining_width, self.attr_bg)
         except _curses.error:
             pass
+        
         self.win.refresh()
         return self
+
+    def erase(self) -> "ProgressBar":
+        """
+        Erase the progress bar from the screen.
+
+        Returns
+        -------
+        ProgressBar
+            The same instance.
+        """
+        self.win.erase()
+        self.win.refresh()
 
 class Popup:
     def __init__(
@@ -1248,175 +1468,124 @@ class Popup:
         self.win.attron(self.attr)
 
 class Menubar:
-    def __init__(
-        self,
-        stdscr,
-        buttons=None,
-        button_offset=20,
-        button_gap=1,
-        nlines=1,
-        offset_x=0,
-        status_width=10,
-        attr=None,
-    ) -> None:
-        self.stdscr = stdscr
-        self.buttons = buttons if buttons else []
-        self.button_offset = button_offset
-        self.button_gap = button_gap
-        self.nlines = nlines
-        self.offset_x = offset_x
-        self.status_width = status_width
-        self.attr = attr or curses.color_pair(224)|curses.A_REVERSE
-        self._initialize()
+    def __init__(self, stdscr: "_curses._CursesWindow",
+        nlines: Optional[int] = 1,
+        attr: Optional[int] = None,
+        offset_x: Optional[int] = 0,
+        status_bar_width: Optional[int] = 20,
+        buttons: List[Button] = None) -> None:
+        """
+        Initialize the menubar.
 
-    def draw(self):
-        try:
-            self.win.addstr(0, 0, " " * (self.maxx), self.attr)
-        except _curses.error:
-            pass
-        self._draw_status_bar()
-        self._draw_buttons()
+        Parameters
+        ----------
+        stdscr : _curses._CursesWindow
+            The curses window that the menubar will be drawn on.
+        nlines : int, optional
+            The number of lines the menubar should use. Defaults to 1.
+        attr : int, optional
+            The curses attribute to use when drawing the menubar. Defaults to
+            curses.A_REVERSE.
+        offset_x : int, optional
+            The x offset of the menubar. Defaults to 0.
+        status_bar_width : int, optional
+            The width of the status bar. Defaults to 20.
+        buttons : List[Button], optional
+            A list of Button objects that should be used to populate the
+            menubar. Defaults to an empty list.
+        """
+        self.stdscr = stdscr
+        self.nlines = nlines
+        self.attr = attr or curses.color_pair(0)|curses.A_REVERSE
+        self.buttons = buttons if buttons else []
+        self.offset_x = offset_x
+        self.status_bar_width = status_bar_width
+        maxy, ncols = stdscr.getmaxyx()
+        begin_y, begin_x = maxy - nlines, offset_x
+        self.win = stdscr.subwin(nlines, ncols, begin_y, begin_x)
+        self.maxy, self.maxx = self.win.getmaxyx()
+
+    def draw(self) -> None:
+        """
+        Draw the menubar.
+
+        Returns
+        -------
+        None
+        """
+        for y in range(0, self.maxy):
+            try:
+                self.win.addstr(y, 0, " " * (self.maxx), self.attr)
+            except _curses.error:
+                pass
+        
+        self.draw_status_bar()
+        self.draw_buttons()
         self.win.refresh()
 
-    def _draw_status_bar(self):
-        offset = 1
-        for b in self.buttons:
-            label, button_attr = b.status()
-            if not label:
-                continue
-            label = f"│{label:^{self.status_width}}│"
-            self.win.addstr(0, offset, label, button_attr)
-            offset += len(label)
-    
-    def _draw_buttons(self):
-        offset = self.button_offset
-        for b in self.buttons:
-            label = f"{str(b):{self._button_width}}"
-            self.win.addstr(0, offset, label, self.attr)
-            offset += len(label) + self.button_gap
+    def draw_status_bar(self, offset: int = 0) -> None:
+        """
+        Draw the status bar for all buttons in the menubar.
 
-    def register_button(self, button):
-        self.buttons.append(button)
-        self._button_chars.append(button.char)
-        self._button_width = max(len(l) for b in self.buttons
-            for l in b.labels) + 2
-        self.status_width = max(len(l) for b in self.buttons
-            for l in b.status_labels + b.tempstatus_labels)
+        Parameters
+        ----------
+        offset : int, optional
+            The x offset for the status bar. Defaults to 0.
 
-    def handle_char(self, char):
-        char = chr(char)
-        if char in self._button_chars:
-            idx = self._button_chars.index(char)
-            self.buttons[idx].press()
-            self.draw()
+        Returns
+        -------
+        None
+        """
+        labels, attrs = zip(*[b.status() for b in self.buttons])
+        labels, attrs = list(labels), list(attrs)
+        visible_labels = [l for l in labels if l]
+        nseparators = max(0, len(visible_labels) - 1)
+        noffset = offset
 
-    @classmethod
-    def init_color_pairs(cls):
-        for i in range(0, curses.COLORS):
-            curses.init_pair(i + 1, i, -1)
-        
-        return {
-            "RED": curses.color_pair(2),
-            "RED_LIGHT": curses.color_pair(197),
-            "GREEN": curses.color_pair(42),
-            "GREEN_LIGHT": curses.color_pair(156),
-            "YELLOW": curses.color_pair(12),
-            "YELLOW_LIGHT": curses.color_pair(230),
-        }
-
-    def _initialize(self):
-        self.maxy = nlines = self.nlines
-        self.maxx = ncols = self.stdscr.getmaxyx()[1]
-        begin_y = self.stdscr.getmaxyx()[0] - nlines
-        begin_x = self.offset_x
-        self._button_chars = [x.char for x in self.buttons]
-        self.attr = self.attr or curses.color_pair(0)|curses.A_REVERSE
-        self.color_pairs = self.init_color_pairs()
-        self.win = self.stdscr.subwin(nlines, ncols, begin_y, begin_x)
-
-class Button:
-
-    button_map = {"d": "🅳 ", "f": "🅵 ", "r": "🆁 ", "s": "🆂 "}
-    
-    def __init__(
-        self,
-        stdscr,
-        char,
-        labels,
-        funcs,
-        callback=None,
-        status_labels=[],
-        status_attrs=[],
-        tempstatus_labels=[],
-        temp_attrs=[],
-    ) -> None:
-        self.stdscr = stdscr
-        self.char = char
-        self.labels = labels
-        self.funcs = funcs
-        self.callback = callback
-        self.status_labels = status_labels
-        self.status_attrs = status_attrs
-        self.tempstatus_labels = tempstatus_labels
-        self.temp_attrs = temp_attrs
-        self._initialize()
-
-    def _initialize(self):
-        self.state_idx = 0
-        
-        self.status_attrs = self.status_attrs or [
-                curses.color_pair(3)|curses.A_REVERSE,
-                curses.color_pair(197)|curses.A_REVERSE]
-        
-        self.temp_attrs = self.temp_attrs or [
-                curses.color_pair(4)|curses.A_REVERSE,
-                curses.color_pair(4)|curses.A_REVERSE]
-
-        if self.status_labels:
-            self.status_label = self.status_labels[self.state_idx]
+        if visible_labels:
+            width = (self.status_bar_width - nseparators) // len(visible_labels)
         else:
-            self.status_label = None
+            width = (self.status_bar_width - nseparators)
 
-        if self.tempstatus_labels:
-            self.tempstatus_label = self.tempstatus_labels[self.state_idx]
-        else:
-            self.tempstatus_label = None
+        for label, attr in zip(labels, attrs):
+            if label:
+                if nseparators and noffset > offset:
+                    self.win.addstr(0, noffset, "│", self.attr)
+                    noffset += 1
+                label = f"{label[:width]:^{width}}"
+                self.win.addstr(0, noffset, label, attr)
+                noffset += len(label)
 
-        self.status_attr = self.status_attrs[self.state_idx]
+    def draw_buttons(self) -> None:
+        """
+        Draw all buttons in the list.
 
-    def press(self):
-        pop = Popup(self.stdscr, body="Please wait").draw()
-        
-        if self.tempstatus_labels:
-            self._update_status(temp_labels=True)
-        
-        if self.funcs[self.state_idx]():
-            self.state_idx = (self.state_idx + 1) % len(self.labels)
-        
-        if self.tempstatus_labels:
-            self._update_status(temp_labels=False)
-        
-        pop.erase()
-        curses.flushinp()
+        Returns
+        -------
+        None
+        """
+        for button in self.buttons:
+            button.draw()
 
-    def _update_status(self, temp_labels):
-        if temp_labels:
-            label = self.tempstatus_labels[self.state_idx]
-            attr = self.temp_attrs[self.state_idx]
-        else:
-            label = self.status_labels[self.state_idx]
-            attr = self.status_attrs[self.state_idx]
-        
-        self.status_label = label
-        self.status_attr = attr
-        self.callback()
+    async def handle_char(self, char: int) -> None:
+        """
+        Process a keypress for one of the buttons in the menubar.
 
-    def __str__(self):
-        char = self.button_map.get(self.char, self.char)
-        return f"{char}={self.labels[self.state_idx]}"
+        Parameters
+        ----------
+        char : int
+            The character code of the key that was pressed.
 
-    def status(self):
-        return self.status_label, self.status_attr
+        Returns
+        -------
+        None
+        """
+        chars_list = [b.chars_int for b in self.buttons]
+        for idx, chars in enumerate(chars_list):
+            if char in chars:
+                await self.buttons[idx].handle_char(char)
+                self.draw()
+                break
 
 class MyDisplay():
     def __init__(self,
@@ -1424,17 +1593,17 @@ class MyDisplay():
         miny: int = 24,
         minx: int = 80,
         workspaces = None,
-        tabwin = None,
+        tab = None,
     ) -> None:
-        self._stdscr = stdscr
+        self.stdscr = stdscr
         self.miny = miny
         self.minx = minx
-        self.workspaces = workspaces if workspaces else []
-        self.tabwin = tabwin
+        self.workspaces = workspaces
+        self.tab = tab
         self.done: bool = False
         self.posx = 1
         self.posy = 1
-        self.maxy, self.maxx = self._stdscr.getmaxyx()
+        self.maxy, self.maxx = self.stdscr.getmaxyx()
         self.active_ws_idx = 0
         self.color_pairs = self.init_color_pairs()
 
@@ -1469,41 +1638,43 @@ class MyDisplay():
             "PURPLE_LIGHT": curses.color_pair(148),
         }
 
-    def run(self) -> None:
-        self._stdscr.nodelay(True)
+    async def run(self) -> None:
+        self.stdscr.nodelay(True)
         self.make_display()
         
         while not self.done:
-            char = self._stdscr.getch()
+            char = self.stdscr.getch()
             if char == curses.ERR:
-                time.sleep(0.1)
+                asyncio.sleep(0.1)
             elif char == curses.KEY_RESIZE:
-                self.maxy, self.maxx = self._stdscr.getmaxyx()
+                self.maxy, self.maxx = self.stdscr.getmaxyx()
                 if self.maxy >= self.miny and self.maxx >= self.minx:
                     self.make_display()
                 else:
-                    self._stdscr.erase()
+                    self.stdscr.erase()
                     break
             else:
-                self.handle_char(char)
+                await self.handle_char(char)
+                #self.stdscr.refresh()
+                #curses.doupdate()
 
     def make_display(self):
-        self.maxy, self.maxx = self._stdscr.getmaxyx()
-        self._stdscr.erase()  
-        if self.tabwin:
-            self.tabwin.draw()
+        self.maxy, self.maxx = self.stdscr.getmaxyx()
+        self.stdscr.erase()  
+        if self.tab:
+            self.tab.draw()
         self.workspaces[self.active_ws_idx].draw()
 
-    def handle_char(self, char: int) -> None:
+    async def handle_char(self, char: int) -> None:
         if chr(char) in ("q", "Q"):
             self.set_exit()
         elif chr(char) == "\t":
             self.active_ws_idx = (self.active_ws_idx + 1) % len(self.workspaces)
-            self._stdscr.erase()
+            self.stdscr.erase()
             self.workspaces[self.active_ws_idx].draw()
-            self.tabwin.handle_char(char)
+            await self.tab.handle_char(char)
         else:
-            self.workspaces[self.active_ws_idx].handle_char(char)
+            await self.workspaces[self.active_ws_idx].handle_char(char)
 
     def draw_maxyx(self, stdscr, maxy, maxx, ypos):
             text = f"{maxy}x{maxx} ypos={ypos}"
@@ -1638,10 +1809,10 @@ def create_bgw_script(bgw: BGW) -> List[str]:
         expect_log = "/dev/null"
     if not bgw.last_seen:
         rtp_stat = 0
-        commands = config["discovery_commands"]
+        commands = CONFIG["discovery_commands"]
     else:
         rtp_stat = 1
-        commands = config["query_commands"]
+        commands = CONFIG["query_commands"]
         if not bgw.queue.empty():
             queued_commands = bgw.queue.get_nowait()
             if isinstance(queued_commands, str):
@@ -1650,10 +1821,10 @@ def create_bgw_script(bgw: BGW) -> List[str]:
     
     script = script_template.format(**{
         "host": bgw.host,
-        "username": config["username"],
-        "passwd": config["passwd"],
+        "username": CONFIG["username"],
+        "passwd": CONFIG["passwd"],
         "rtp_stat": rtp_stat,
-        "lastn_secs": config["lastn_secs"],
+        "lastn_secs": CONFIG["lastn_secs"],
         "commands": " ".join(f'"{c}"' for c in commands),
         "expect_log": expect_log,
     })
@@ -1697,6 +1868,24 @@ def connected_gateways(ip_filter: Optional[Set[str]] = None) -> Dict[str, str]:
         return {"10.10.48.58": "unencrypted", "10.44.244.51": "encrypted"}
     
     return {ip: result[ip] for ip in sorted(result)}
+
+def create_query_tasks(queue=None) -> List[asyncio.Task]:
+    """
+    Create tasks that query all gateways in GATEWAYS.
+
+    Returns:
+        A list of Tasks.
+    """
+    tasks = []
+    
+    for bgw in GATEWAYS.values():
+        task = create_task(query_gateway(
+            bgw,
+            queue=queue,
+        ), name=f"coro query_gateway() for {bgw.host}")
+        tasks.append(task)
+    
+    return tasks
 
 async def exec_script(
     *args,
@@ -1749,10 +1938,7 @@ async def exec_script(
 
 async def query_gateway(
     bgw: BGW,
-    timeout: float = 2,
     queue: Optional[asyncio.Queue] = None,
-    polling_secs: float = 5,
-    semaphore: Optional[asyncio.Semaphore] = None,
 ) -> Optional[str]:
     """
     Asynchronously queries a BGW and returns the command output.
@@ -1773,8 +1959,11 @@ async def query_gateway(
         Optional[str]: The output of the command if no queue is provided.
     """
 
+    timeout = CONFIG.get("timeout", 10)
+    polling_secs = CONFIG.get("polling_secs", 10)
+    max_polling = CONFIG.get("max_polling", 20)
+    semaphore = asyncio.Semaphore(max_polling)
     name = f"coro query_gateway() for {bgw.host}"
-    semaphore = semaphore if semaphore else asyncio.Semaphore(1)
     avg_sleep = polling_secs
 
     while True:
@@ -1813,48 +2002,8 @@ async def query_gateway(
             if not queue:
                 raise
 
-def create_query_tasks(
-    timeout: float = 10,
-    queue: Optional[asyncio.Queue] = None,
-    polling_secs: float = 10,
-    max_polling: int = 20,
-) -> List[asyncio.Task]:
-    """
-    Create tasks that query all gateways in GATEWAYS.
 
-    Args:
-        timeout: The timeout for each query.
-        queue: The queue to put the output onto.
-        polling_secs: The interval between polling attempts.
-        max_polling: The maximum number of concurrent queries.
-
-    Returns:
-        A list of Tasks.
-    """
-    
-    semaphore = Semaphore(max_polling)
-    tasks = []
-    
-    for bgw in GATEWAYS.values():
-        task = create_task(query_gateway(
-            bgw,
-            timeout=timeout,
-            queue=queue,
-            polling_secs=polling_secs,
-            semaphore=semaphore,
-        ), name=f"coro query_gateway() for {bgw.host}")
-        tasks.append(task)
-    
-    return tasks
-
-async def discover_gateways(
-    timeout: float = 10,
-    max_polling: int = 20,
-    storage: Optional[AsyncMemoryStorage] = AsyncMemoryStorage(),
-    callback: Optional[Callable[[int, int], None]] = None,
-    ip_filter: Optional[Set[str]] = None,
-    name: str = "coro discover_gateways()"
-) -> Tuple[int, int]:
+async def discover_gateways(storage=None, callback=None) -> Tuple[int, int]:
     """Discover all connected gateways and query them.
 
     The function will discover all connected gateways, query each of them and
@@ -1872,11 +2021,16 @@ async def discover_gateways(
         total number of queries.
     """
 
-    global GATEWAYS    
+    global GATEWAYS
+    ip_filter = CONFIG.get("ip_filter", None)
+    maxlen = CONFIG.get("storage_maxlen", None)
+    storage = storage or CONFIG.get("storage", AsyncMemoryStorage(maxlen))
+    name = "coro discover_gateways()"
+
     GATEWAYS = {ip: BGW(ip, proto) for ip, proto in
         connected_gateways(ip_filter).items()}
 
-    tasks = create_query_tasks(timeout=timeout, max_polling=max_polling)
+    tasks = create_query_tasks()
     ok, total = 0, len(tasks)
     logger.info(f"Scheduled {total} tasks in {name}")
     
@@ -1890,19 +2044,15 @@ async def discover_gateways(
                     logger.info(f"Discovery {bgw.host} successful in {name}")
         except Exception:
             pass
-        
-        if callback:
-            callback(idx, total)
-    
-    return (ok, total)
 
-def poll_gateways(
-    timeout: float = 10,
-    polling_secs: float = 10,
-    max_polling: int = 20,
-    storage: Optional[AsyncMemoryStorage] = AsyncMemoryStorage(),
-    callback: Optional[Callable[[BGW], None]] = None,
-    name: str = "poll_gateways()"
+        if callback:
+            callback(idx/total)
+    
+    return (idx/total)
+
+async def poll_gateways(
+    storage = None,
+    callback = None,
 ) -> None:
     """
     Creates tasks that poll all connected gateways.
@@ -1917,34 +2067,38 @@ def poll_gateways(
         None
     """
 
+    maxlen = CONFIG.get("storage_maxlen", None)
+    storage = storage or CONFIG.get("storage", AsyncMemoryStorage(maxlen))
     queue = asyncio.Queue()
+    name = "poll_gateways()"
 
-    tasks = create_query_tasks(
-        timeout=timeout,
-        queue=queue,
-        polling_secs=polling_secs,
-        max_polling=max_polling,
-    )
-
+    tasks = create_query_tasks(queue=queue)
     task = create_task(
         process_queue(queue=queue, storage=storage, callback=callback),
         name="coro process_queue()",
     )
     tasks.append(task)
-
     logger.info(f"Started {len(tasks)} tasks in {name}")
 
-def discover_callback(idx, total):
-    print(f"discover_callback(): idx:{idx}/total:{total}")
+def discovery_func_factory(stdscr):
+    progress = ProgressBar(stdscr)
+    async def discover_callback(fraction, **kwargs):
+        nonlocal progress
+        await discover_gateways(callback=progress.draw)
+    return discover_callback
+
+def cancel_func_factory(stdscr):
+    async def cancel_callback(fraction, **kwargs):
+        await cancel_query_coros()
+    return cancel_callback
 
 def poll_callback(bgw):
     print(f"poll_callback(): {bgw.gw_name:15} last_seen:{bgw.last_seen}")
 
 async def process_queue(
-    queue: asyncio.Queue,
-    storage: Optional[AsyncMemoryStorage] = AsyncMemoryStorage(),
-    callback: Optional[Callable[[BGW], None]] = None,
-    name: str = "coro process_queue()"
+    queue,
+    storage,
+    callback = None,
 ) -> None:
     """
     Asynchronously processes items from a queue.
@@ -1957,6 +2111,7 @@ async def process_queue(
     Returns:
         None
     """
+    name = "coro process_queue()"
     c = 0
     while True:
         item = await queue.get()
@@ -1966,9 +2121,9 @@ async def process_queue(
         logger.info(f"Got {c} items from queue in {name}")
 
 async def process_item(
-    item: str,
-    storage: Optional[AsyncMemoryStorage] = AsyncMemoryStorage(),
-    callback: Optional[Callable[[BGW], None]] = None,
+    item,
+    storage,
+    callback = None,
     name: str = "process_item()"
 ) -> None:
     """
@@ -2026,9 +2181,15 @@ def create_task(
         The newly created task.
     """
     loop = loop if loop else asyncio.get_event_loop()
-    task = asyncio.tasks.Task(coro, loop=loop)
+    task = asyncio.ensure_future(coro, loop=loop)
     task.name = name
     return task
+
+async def cancel_query_coros(**kwargs):
+    for task in asyncio.Task.all_tasks():
+        if hasattr(task, "name") and task.name.startswith("coro query_gateway"):
+            task.cancel()
+            await task
 
 def change_terminal(to_type="xterm-256color"):
     old_term = os.environ.get("TERM")
@@ -2038,6 +2199,7 @@ def change_terminal(to_type="xterm-256color"):
     return old_term
 
 def startup():
+    #logger.setLevel(CONFIG["loglevel"].upper())
     orig_term = change_terminal()
     orig_stty = os.popen("stty -g").read().strip()
     atexit.register(shutdown, orig_term, orig_stty)
@@ -2046,6 +2208,7 @@ def shutdown(term, stty):
     print("Shutting down")
     _ = change_terminal(term)
     os.system(f"stty {stty}")
+    curses.endwin()
 
 def get_username() -> str:
     """Prompt user for SSH username of gateways.
@@ -2086,44 +2249,49 @@ def must_resize(stdscr, miny, minx):
         return True
     return False
 
+def draw_rtppanel(**kwargs):
+    print(kwargs)
+    rtppanel = MyPanel(kwargs['stdscr'], body="whatever")
+    rtppanel.draw()
+    return rtppanel
+
+def erase_rtppanel(**kwargs):
+    kwargs["rtppanel"].erase()
+    curses.panel.update_panels()
+
+
+async def discovery_on_callback(progressbar, *args, **kwargs):
+    try:
+        for i in range(1, progressbar.width):
+            progressbar.draw(i / 20)
+            await asyncio.sleep(0.1)
+    except asyncio.CancelledError:
+        return
+
+async def discovery_off_callback(progressbar, *args, **kwargs):
+    for task in asyncio.Task.all_tasks():
+        if hasattr(task, "name") and task.name == "callback_on":
+            task.cancel()
+            await task
+            break
+    progressbar.erase()
+
+def ungetch_done_callback(char, fut):
+    try:
+        fut.result()  # Will raise CancelledError if the task was cancelled.
+    except asyncio.CancelledError:
+        # If cancelled, leave self.state True.
+        return
+    except Exception:
+        # Optionally log or handle exceptions here.
+        return
+    curses.ungetch(char)
+
 def main(stdscr, miny: int = 24, minx: int = 80):
-    global STORAGE, GATEWAYS
     curses.curs_set(0)
     curses.noecho()
     curses.start_color()
     curses.use_default_colors()
-
-    ws1 = Workspace(
-        stdscr,
-        column_attrs=[
-            "start_time", "end_time", "gw_number",
-            "local_addr", "local_port", "remote_addr",
-            "remote_port", "codec", "qos",
-        ],
-        column_names=[
-            "Start", "End", "BGW", "Local-Address", "LPort",
-            "Remote-Address", "RPort", "Codec", "QoS",
-        ],
-        column_widths=[8, 8, 3, 15, 5, 15, 5, 5, 3],
-        storage = STORAGE,
-    )       
-    ws2 = Workspace(
-        stdscr,
-        column_attrs=[
-            "gw_number", "model", "firmware", "hw",
-            "host", "slamon", "rtp_stat", "faults",
-        ],
-        column_names=[
-            "BGW", "Model", "FW", "HW", "LAN IP",
-            "SLAMon IP", "RTP-Stat", "Faults",
-        ],
-        column_widths=[3, 5, 8, 2, 15, 15, 8, 6],
-        storage = GATEWAYS,
-    )
-    tab = Tab(
-        stdscr,
-        tab_names=["RTP Stats", "Inventory"],
-    )
 
     while must_resize(stdscr, miny, minx):
         char = stdscr.getch()
@@ -2136,70 +2304,107 @@ def main(stdscr, miny: int = 24, minx: int = 80):
 
     stdscr.erase()
     stdscr.resize(miny, minx)
-    stdpanel = curses.panel.new_panel(stdscr)
-    display = MyDisplay(stdscr, workspaces=[ws1, ws2], tabwin=tab)
-    done = False
     stdscr.box()
-    maxy, maxx = stdscr.getmaxyx()
-    ypos = 0
-    rtppanel = None
+    stdscr.refresh()
 
-    while not done:
+    system_menubar = Menubar(stdscr)
+    
+    button_d = Button(ord("d"), ord("D"),
+        win=system_menubar.win,
+        y=0, x=25,
+        char_alt="🄳 ",
+        label_on="Discovery Stop ",
+        label_off="Discovery Start",
+        callback_on=discovery_on_callback,
+        callback_off=discovery_off_callback,
+        done_callback_on=functools.partial(ungetch_done_callback, ord("d")),
+        status_label="Discovery",
+        status_attr_on=curses.color_pair(42)|curses.A_REVERSE,
+        status_attr_off=curses.color_pair(2)|curses.A_REVERSE,
+        stdscr=stdscr,
+        progressbar=ProgressBar(stdscr)
+    )
 
-        menu = Menubar(stdscr)
-        menu.register_button(
-            Button(stdscr, "s", labels=["Start", "Stop"],
-                    funcs=[start, stop],
-                    callback=menu.draw,
-                    status_labels=["EventLoop", "EventLoop"],
-                    tempstatus_labels=["Starting", "Stopping"]))
-        menu.register_button(
-            Button(stdscr, "r", labels=["RTPstat", "RTPstat"],
-                    funcs=[draw_rtppanel, erase_rtppanel],
-                    callback=menu.draw))
-        menu.register_button(
-            Button(stdscr, "d", labels=["DiscoverStart", "DiscoverStop"],
-                    funcs=[discover_start, discover_stop],
-                    callback=menu.draw))
+    button_c = Button(ord("c"), ord("C"),
+        win=system_menubar.win,
+        y=0, x=45,
+        char_alt="🄲 ",
+        label_on="Clear",
+    )
+
+    system_menubar.buttons = [button_d, button_c]
+
+    rtpstat_menubar = Menubar(stdscr)
+
+    button_s = Button(ord("s"), ord("S"),
+        win=rtpstat_menubar.win,
+        y=0, x=45,
+        char_alt="🄲 ",
+        label_off="Start",
+        label_on="Stop",
+    )
+
+    rtpstat_menubar.buttons = [button_s]
+    
+    workspaces = [
+        Workspace(
+            stdscr,
+            column_attrs = [
+                "gw_number", "model", "firmware", "hw",
+                "host", "slamon", "rtp_stat", "faults",
+            ],
+            column_names = [
+                "BGW", "Model", "FW", "HW", "LAN IP",
+                "SLAMon IP", "RTP-Stat", "Faults",
+            ],
+            column_widths = [3, 5, 8, 2, 15, 15, 8, 6],
+            menubar = system_menubar,
+            storage = GATEWAYS,
+            name = "Systems",
+        ),
         
-        menu.draw()
-        draw_maxyx()
+        Workspace(
+            stdscr,
+            column_attrs=[
+                "start_time", "end_time", "gw_number",
+                "local_addr", "local_port", "remote_addr",
+                "remote_port", "codec", "qos",
+            ],
+            column_names=[
+                "Start", "End", "BGW", "Local-Address", "LPort",
+                "Remote-Address", "RPort", "Codec", "QoS",
+            ],
+            column_widths=[8, 8, 3, 15, 5, 15, 5, 5, 3],
+            menubar = rtpstat_menubar,
+            storage = CONFIG["storage"],
+            name = "RTPStat",
+        )   
+    ]
+    
+    tab = Tab(stdscr, tab_names=[w.name for w in workspaces])
+    display = MyDisplay(stdscr, workspaces=workspaces, tab=tab)
+    asyncio_run(display.run())
 
-        while not done:
-            char = stdscr.getch()
-            if char == curses.ERR:
-                time.sleep(0.1)
-            elif char == curses.KEY_RESIZE:
-                stdscr.erase()
-                break
-            elif chr(char) == "q":
-                sys.exit()
-            elif char == curses.KEY_DOWN:
-                ypos = ypos + 1 if ypos < maxy - 1 else ypos
-                draw_maxyx()
-            elif char == curses.KEY_UP:
-                ypos = ypos - 1 if ypos > 0 else 0
-                draw_maxyx()
-            else:
-                menu.handle_char(char)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Monitors Avaya Branch Gateways (BGW)')
     parser.add_argument('-u', dest='username', default='', help='BGW username')
     parser.add_argument('-p', dest='passwd', default='', help='BGW password')
     parser.add_argument('-n', dest='lastn_secs', default=30, help='secs to look back in RTP statistics, default 30secs')
-    parser.add_argument('-m', dest='max_polling', default=20, help='max simultaneous polling sessons, default 20')
+    parser.add_argument('-m', dest='max_polling', default=19, help='max simultaneous polling sessons, default 20')
     parser.add_argument('-l', dest='loglevel', default="INFO", help='loglevel')
-    parser.add_argument('-t', dest='timeout', default=10, help='timeout in secs, default 10secs')
+    parser.add_argument('-t', dest='timeout', default=12, help='timeout in secs, default 10secs')
     parser.add_argument('-f', dest='polling_secs', default=5, help='polling frequency in seconds, default 5secs')
     parser.add_argument('-i', dest='ip_filter', default=None, nargs='+', help='BGW IP filter')
+    parser.add_argument('-s', dest='storage', default=AsyncMemoryStorage(maxlen=CONFIG.get("storage_maxlen")), help='RTP storage type')
     args = parser.parse_args()
-
     args.username = args.username or (CONFIG.get("username") or get_username())
     args.passwd = args.passwd or (CONFIG.get("passwd") or get_passwd())
     CONFIG.update(args.__dict__)
-    GATEWAYS = {}
-    STORAGE = AsyncMemoryStorage()
-    logger.setLevel(config["loglevel"].upper())
+    logging.basicConfig(
+        format=LOG_FORMAT,
+        filename=CONFIG["logfile"],
+        level=CONFIG["loglevel"].upper(),
+    )
     startup()
     curses.wrapper(main)
