@@ -1645,7 +1645,7 @@ class MyDisplay():
         while not self.done:
             char = self.stdscr.getch()
             if char == curses.ERR:
-                asyncio.sleep(0.1)
+                await asyncio.sleep(0.05)
             elif char == curses.KEY_RESIZE:
                 self.maxy, self.maxx = self.stdscr.getmaxyx()
                 if self.maxy >= self.miny and self.maxx >= self.minx:
@@ -2237,17 +2237,20 @@ def get_passwd() -> str:
     return passwd.strip()
 
 def must_resize(stdscr, miny, minx):
+    stdscr.erase()
     maxy, maxx = stdscr.getmaxyx()
+    
+    if maxy >= miny and maxx >= minx:
+        stdscr.refresh()
+        return False
+
     msgs = [f"Resize screen to at least {miny:>3} x {minx:>3}",
             f"             Current size {maxy:>3} x {maxx:>3}",
             "Press 'q' to exit"]
     for i, msg in enumerate(msgs, start=-1):
         stdscr.addstr(maxy // 2 + 2*i, (maxx - len(msg)) // 2, msg)
     stdscr.refresh()
-    
-    if maxy < miny or maxx < minx:
-        return True
-    return False
+    return True
 
 def draw_rtppanel(**kwargs):
     print(kwargs)
@@ -2302,7 +2305,6 @@ def main(stdscr, miny: int = 24, minx: int = 80):
         elif chr(char) in ("q", "Q"):
             return
 
-    stdscr.erase()
     stdscr.resize(miny, minx)
     stdscr.box()
     stdscr.refresh()
@@ -2408,3 +2410,5 @@ if __name__ == "__main__":
     )
     startup()
     curses.wrapper(main)
+
+#6d02:5:4bf:8a3b:3:1c:7f:15:4:0:1:0:11:13:1a:ff:12:f:17:16:ff:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0
