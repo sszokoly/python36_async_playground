@@ -2275,7 +2275,10 @@ async def discovery_off_callback(progressbar, *args, **kwargs):
     for task in asyncio.Task.all_tasks():
         if hasattr(task, "name") and task.name == "callback_on":
             task.cancel()
-            await task
+            try:
+                await task
+            except asyncio.CancelledError:
+                pass
             break
     progressbar.erase()
 
