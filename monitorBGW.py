@@ -52,10 +52,14 @@ CONFIG = {
         "show voip-dsp",
         "show temp",
         "show sla-monitor",
+        "show lldp config",
+        "show port",
+        "show mg list",
     ],
     "query_commands": [
         "show voip-dsp",
-        "show capture",
+        "show rtp-stat summary",
+        "show temp",
     ]
 }
 
@@ -2435,9 +2439,69 @@ if __name__ == "__main__":
 # |001|disabled|disabled/inactive|v2&3|disabled|101.101.111.198|disabled|8300E|
 # +---+--------+---------+-------+----+--------+---------------+--------+-----+
 
+# Status
+# +---+---------------+-------+--------+--------------------------------------+
+# |BGW|Active Sessions|  DSPs |  Temp  |                 Faults               |
+# +---+---------------+-------+--------+--------------------------------------+
+# |001|            0/0|120/120|42C/108F|                                      |
+# +---+---------------+-------+--------+--------------------------------------+
+
 # RTP-Stat
 # +--------+--------+---+---------------+-----+---------------+-----+-----+---+
 # |  Start |   End  |BGW| Local-Address |LPort| Remote-Address|RPort|Codec|QoS|
 # +--------+--------+---+---------------+-----+---------------+-----+-----+---+
 # |11:09:07|11:11:27|001|192.168.111.111|55555|100.100.100.100|55555|G711U| OK|
 # +--------+--------+---+---------------+-----+---------------+-----+-----+---+
+
+# AvayaG450A-001(super)# show lldp config
+
+# Lldp Configuration
+# -------------------
+# Application status: disable
+# Tx interval: 30 seconds
+# Tx hold multiplier: 4 seconds
+# Tx delay: 2 seconds
+# Reinit delay: 2 seconds
+
+# AvayaG450A-001(super)# show port
+# Port   Name             Status    Vlan Level  Neg     Dup. Spd. Type
+# ------ ---------------- --------- ---- ------ ------- ---- ---- ----------------
+# 10/5   NO NAME          connected 1     0     enable  full 1G   Avaya Inc., G450 Media Gateway 10/100/1000BaseTx Port 10/5
+
+# 10/6   NO NAME          no link   1     0     enable  full 1G   Avaya Inc., G450 Media Gateway 10/100/1000BaseTx Port 10/6
+
+
+# AvayaG450A-001(super)# show rtp-stat summary
+
+# Total QoS traps: 2
+# QoS traps Drop : 0
+# Qos Clear
+# Engine                            Active   Total    Mean      Tx
+# ID   Description     Uptime       Session  Session  Duration  TTL
+# ---  --------------  -----------  -------  -------  --------  ----
+# 010        internal  53,05:23:06    0/0     16/2    00:05:17    64
+
+# AvayaG450A-001(super)# show mg list
+# SLOT   TYPE         CODE        SUFFIX  HW VINTAGE  FW VINTAGE
+# ----   --------     ----------  ------  ----------  -----------
+# v1     -- Not Installed --
+# v2     -- Not Installed --
+# v3     -- Not Installed --
+# v4     -- Not Installed --
+# v5     -- Initializing --
+# v6     Analog       MM714       B       23          94
+# v7     -- Not Installed --
+# v8     -- Not Installed --
+# v10    Mainboard    G450        B       2           42.24.0(B)
+
+# G430-5-005(super)# show mg l
+# SLOT   TYPE         CODE        SUFFIX  HW VINTAGE  FW VINTAGE
+# ----   --------     ----------  ------  ----------  -----------
+# v1     S8300        ICC         E       1           0
+# v2     Analog       MM714       B       31          104
+# v3     -- Not Installed --
+# v5     -- Not Installed --
+# v6     -- Not Installed --
+# v7     -- Not Installed --
+# v8     -- Not Installed --
+# v10    Mainboard    G430        A       3           42.32.0(A)
