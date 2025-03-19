@@ -318,6 +318,7 @@ class BGW():
         self.show_rtp_stat_summary = show_rtp_stat_summary
         self.queue = Queue()
         self._active_sessions = None
+        self._alarms = None
         self._capture_service = None
         self._dsp = None
         self._faults = None
@@ -352,28 +353,109 @@ class BGW():
         self._voip_dsp = None
 
     @property
-    def model(self):
-        if not self._model:
-            m = re.search(r'Model\s+:\s+(\S+)', self.show_system)
-            self._model = m.group(1) if m else "?"
-        return self._model
+    def active_sessions(self):
+        if self.show_rtp_stat_summary:
+            m = re.search(r'ternal\s+\S+\s+(\S+)', self.show_rtp_stat_summary)
+            return m.group(1) if m else "?/?"
+        return "NA"
 
     @property
-    def hw(self):
-        if not self._hw:
-            m = re.search(r'HW Vintage\s+:\s+(\S+)', self.show_system)
-            hw_vintage = m.group(1) if m else "?"
-            m = re.search(r'HW Suffix\s+:\s+(\S+)', self.show_system)
-            hw_suffix = m.group(1) if m else "?"
-            self._hw = f"{hw_vintage}{hw_suffix}"
-        return self._hw
+    def alarms(self):
+        if self.show_faults:
+            if not self._faults:
+                offset = self._faults.find("Current Alarm Indications")
+                if offset > 0:
+                    m = re.findall(r"\s+\+ (\S+)", self.show_faults[offset:])
+                    self._alarms = len(m)
+                else:
+                    self._alarms = 0
+            return self._alarms
+        return "NA"
+
+    @property
+    def capture_service(self):
+        if self.show_capture:
+            if not self._capture_service:
+                m = re.search(r'Capture service is (\w+)', self.show_capture)
+                self._capture_service = m.group(1) if m else "?"
+            return self._capture
+        return "NA"
+
+    @property
+    def dsp(self):
+        if self.show_system:
+            if not self._dsp:
+                m = re.findall(r"Media Socket.*?MP(\d+)", self.show_system)
+                self._dsp = sum(int(x) for x in m) if m else "?"
+            return self._dsp
+        return "NA"
+
+    @property
+    def faults(self):
+        if self.show_faults:
+            if not self._faults:
+                if "No Fault Messages" in self.show_faults:
+                    self._faults = 0
+                else:
+                    m = re.findall(r"\s+\+ (\S+)", self.show_faults)
+                    self._faults = len(m)
+            return self._faults
+        return "NA"
 
     @property
     def fw(self):
-        if not self._fw:
-            m = re.search(r'FW Vintage\s+:\s+(\S+)', self.show_system)
-            self._fw = m.group(1) if m else "?"
-        return self._fw
+        if self.show_system:
+            if not self._fw:
+                m = re.search(r'FW Vintage\s+:\s+(\S+)', self.show_system)
+                self._fw = m.group(1) if m else "?"
+            return self._fw
+        return "NA"
+
+    @property
+    def hw(self):
+        if self.show_system:
+            if not self._hw:
+                m = re.search(r'HW Vintage\s+:\s+(\S+)', self.show_system)
+                hw_vintage = m.group(1) if m else "?"
+                m = re.search(r'HW Suffix\s+:\s+(\S+)', self.show_system)
+                hw_suffix = m.group(1) if m else "?"
+                self._hw = f"{hw_vintage}{hw_suffix}"
+            return self._hw
+        return "NA"
+
+    @property
+    def lldp(self):
+        if self.show_lldp_config:
+            if not self._lldp:
+                if "Application status: disable" in self._lldp:
+                   self._lldp = "disabled"
+                else:
+                   self._lldp = "enabled"
+            return self._lldp
+        return "NA"
+
+    @property
+    def lsp(self):
+        if self.show_mg_list:
+            if not self._lsp:
+                m = re.search(r'ICC\s+(\S)', self.show_mg_list)
+                self._lsp = f"S8300{m.group(1)}" if m else "?"
+            return self._lsp
+        return "NA"
+
+    @property
+    def mean_duration(self):
+        if self.show_rtp_stat_summary:
+            m = re.search(r'nal.* (\d+:\d+:\d+) ', self.show_rtp_stat_summary)
+            return m.group(1) if m else "?"
+        return "NA"
+
+    @property
+    def model(self):
+        if not self._model:
+            m = re.search(r'Application status:\s+(\S+)', self.show_system)
+            self._model = m.group(1) if m else "?"
+        return self._model
 
     @property
     def slamon(self):
