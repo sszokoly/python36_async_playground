@@ -4,13 +4,14 @@
 import re
 from typing import AsyncIterator, Iterable, Iterator, Optional, Tuple, Union, TypeVar, Any, Dict, List, Set
 from asyncio import Lock, Queue, Semaphore
+from datetime import datetime
 
 data ={
     "host": "192.168.111.111",
     "proto": "encrypted",
     "gw_name": "AvayaG450A",
     "gw_number": "001",
-    "last_seen": "2023-10-16 08:49:27",
+    "last_seen": "2025-03-21,08:49:27",
     
     "commands": {
         "show running-config": '''
@@ -25,7 +26,7 @@ data ={
         hostname "AvayaG450A"
         no ip telnet
         ip tftp-server file-system-size 2288
-        set port mirror source-port 10/5 mirror-port 10/6 sampling always direction both
+        set port redundancy 10/5 10/4 on red1
         !
         ds-mode t1
         !
@@ -159,19 +160,11 @@ data ={
         4 0 of 20 Busyout Idle No Status Messages
         ''',
 
-        "show temp": '''
-        Gxxx-001(super)# show temp
-        Ambient
-        -------
-        Temperature : 40C
-        High Warning: 45C
-        Low Warning : -5C
-        ''',
-
         "show sla-monitor": '''
         show sla-monitor
         SLA Monitor: Disabled
         Server Address: 0.0.0.0
+        Registered Server IP Address: 0.0.0.0
         Server Port: 50010
         Capture Mode: With Payload
         Version: 1.3.4
@@ -184,7 +177,7 @@ data ={
         Engine                            Active   Total    Mean      Tx
         ID   Description     Uptime       Session  Session  Duration  TTL
         ---  --------------  -----------  -------  -------  --------  ----
-        010        internal  53,05:23:06    0/0     16/2    00:05:17    64
+        010        internal  53,05:23:06   123/12   32442/1443   00:05:17    64
         ''',
 
         "show lldp config": '''
@@ -284,41 +277,44 @@ class BGW():
     def __init__(self,
         host: str,
         proto: str = '',
-        last_seen = None,
+        polling_secs = 10,
         gw_name: str = '',
         gw_number: str = '',
-        show_running_config: str = '',
-        show_system: str = '',
-        show_faults: str = '',
+        dir = '',
         show_capture: str = '',
-        show_voip_dsp: str = '',
-        show_temp: str = '',
-        show_sla_monitor: str = '',
+        show_faults: str = '',
         show_lldp_config: str = '',
-        show_port: str = '',
         show_mg_list: str = '',
+        show_port: str = '',
         show_rtp_stat_summary: str = '',
+        show_running_config: str = '',
+        show_sla_monitor: str = '',
+        show_system: str = '',
+        show_voip_dsp: str = '',
         **kwargs,
     ) -> None:
         self.host = host
         self.proto = proto
-        self.last_seen = last_seen
+        self.polling_secs = polling_secs
         self.gw_name = gw_name
         self.gw_number = gw_number
-        self.show_running_config = show_running_config
-        self.show_system = show_system
-        self.show_faults = show_faults
+        self.polls = 0
+        self.avg_poll_secs = 0
+        self.last_seen = None
+        self.dir = dir
         self.show_capture = show_capture
-        self.show_voip_dsp = show_voip_dsp
-        self.show_temp = show_temp
-        self.show_sla_monitor = show_sla_monitor
+        self.show_faults = show_faults
         self.show_lldp_config = show_lldp_config
-        self.show_port = show_port
         self.show_mg_list = show_mg_list
+        self.show_port = show_port
         self.show_rtp_stat_summary = show_rtp_stat_summary
+        self.show_running_config = show_running_config
+        self.show_sla_monitor = show_sla_monitor
+        self.show_system = show_system
+        self.show_voip_dsp = show_voip_dsp
         self.queue = Queue()
         self._active_sessions = None
-        self._alarms = None
+        self._announcements = None
         self._capture_service = None
         self._dsp = None
         self._faults = None
@@ -326,28 +322,25 @@ class BGW():
         self._hw = None
         self._lldp = None
         self._lsp = None
-        self._mean_duration = None
         self._memory = None
         self._model = None
         self._port1 = None
         self._port1_status = None
         self._port1_neg = None
-        self._port1_speed = None
         self._port1_duplex = None
+        self._port1_speed = None
         self._port2 = None
-        self._port2_status = None    
+        self._port2_status = None
         self._port2_neg = None
-        self._port2_speed = None
         self._port2_duplex = None
-        self._port_redundancy = None
+        self._port2_speed = None
+        self._port_redu = None
         self._psu = None
-        self._qos_traps = None
         self._rtp_stat_service = None
         self._serial = None
         self._slamon_service = None
         self._sla_server = None
         self._snmp = None
-        self._temp = None
         self._total_sessions = None
         self._uptime = None
         self._voip_dsp = None
@@ -355,30 +348,26 @@ class BGW():
     @property
     def active_sessions(self):
         if self.show_rtp_stat_summary:
-            m = re.search(r'ternal\s+\S+\s+(\S+)', self.show_rtp_stat_summary)
+            m = re.search(r'nal\s+\S+\s+(\S+)', self.show_rtp_stat_summary)
             return m.group(1) if m else "?/?"
         return "NA"
 
     @property
-    def alarms(self):
-        if self.show_faults:
-            if not self._faults:
-                offset = self._faults.find("Current Alarm Indications")
-                if offset > 0:
-                    m = re.findall(r"\s+\+ (\S+)", self.show_faults[offset:])
-                    self._alarms = len(m)
-                else:
-                    self._alarms = 0
-            return self._alarms
+    def announcements(self):
+        if self.dir:
+            if not self._announcements:
+                m = re.findall(r"Announcements.*?", self.dir)
+                self._announcements = len(m)
+            return self._announcements
         return "NA"
 
     @property
     def capture_service(self):
         if self.show_capture:
             if not self._capture_service:
-                m = re.search(r'Capture service is (\w+)', self.show_capture)
+                m = re.search(r' service is (\w+)', self.show_capture)
                 self._capture_service = m.group(1) if m else "?"
-            return self._capture
+            return self._capture_service
         return "NA"
 
     @property
@@ -427,7 +416,7 @@ class BGW():
     def lldp(self):
         if self.show_lldp_config:
             if not self._lldp:
-                if "Application status: disable" in self._lldp:
+                if "Application status: disable" in self.show_lldp_config:
                    self._lldp = "disabled"
                 else:
                    self._lldp = "enabled"
@@ -444,71 +433,164 @@ class BGW():
         return "NA"
 
     @property
-    def mean_duration(self):
-        if self.show_rtp_stat_summary:
-            m = re.search(r'nal.* (\d+:\d+:\d+) ', self.show_rtp_stat_summary)
-            return m.group(1) if m else "?"
+    def model(self):
+        if self.show_system:
+            if not self._model:
+                m = re.search(r'Model\s+:\s+(\S+)', self.show_system)
+                self._model = m.group(1) if m else "?"
+            return self._model
         return "NA"
 
     @property
-    def model(self):
-        if not self._model:
-            m = re.search(r'Application status:\s+(\S+)', self.show_system)
-            self._model = m.group(1) if m else "?"
-        return self._model
+    def port1(self):
+        if not self._port1:
+            portdict = self._port_groupdict(0)
+            self._port1 = portdict.get("port", "?") if portdict else "NA"
+        return self._port1
 
     @property
-    def slamon(self):
-        if not self._slamon:
-            m = re.search(r'sla-server-ip-address (\S+)', self.show_system)
-            self._slamon = m.group(1) if m else ""
-        return self._slamon
+    def port1_status(self):
+        if not self._port1_status:
+            portdict = self._port_groupdict(0)
+            self._port1_status = portdict.get("status", "?") if portdict else "NA"
+        return self._port1_status
+
+    @property
+    def port1_neg(self):
+        if not self._port1_neg:
+            portdict = self._port_groupdict(0)
+            self._port1_neg = portdict.get("neg", "?") if portdict else "NA"
+        return self._port1_neg
+
+    @property
+    def port1_duplex(self):
+        if not self._port1_duplex:
+            portdict = self._port_groupdict(0)
+            self._port1_duplex = portdict.get("duplex", "?") if portdict else "NA"
+        return self._port1_duplex
+
+    @property
+    def port1_speed(self):
+        if not self._port1_speed:
+            portdict = self._port_groupdict(0)
+            self._port1_speed = portdict.get("speed", "?") if portdict else "NA"
+        return self._port1_speed
+
+    @property
+    def port2(self):
+        if not self._port2:
+            portdict = self._port_groupdict(1)
+            self._port2 = portdict.get("port", "?") if portdict else "NA"
+        return self._port2
+
+    @property
+    def port2_status(self):
+        if not self._port2_status:
+            pdict = self._port_groupdict(1)
+            self._port2_status = pdict.get("status", "?") if pdict else "NA"
+        return self._port2_status
+
+    @property
+    def port2_neg(self):
+        if not self._port2_neg:
+            pdict = self._port_groupdict(1)
+            self._port2_neg = pdict.get("neg", "?") if pdict else "NA"
+        return self._port2_neg
+
+    @property
+    def port2_duplex(self):
+        if not self._port2_duplex:
+            pdict = self._port_groupdict(1)
+            self._port2_duplex = pdict.get("duplex", "?") if pdict else "NA"
+        return self._port2_duplex
+
+    @property
+    def port2_speed(self):
+        if not self._port2_speed:
+            pdict = self._port_groupdict(1)
+            self._port2_speed = pdict.get("speed", "?") if pdict else "NA"
+        return self._port2_speed
+
+    @property
+    def port_redu(self):
+        if self.show_running_config:
+            if not self._port_redu:
+                m = re.search(r'port redundancy \d+/(\d+) \d+/(\d+)',
+                    self.show_running_config)
+                self._port_redu = f"{m.group(1)}/{m.group(2)}" if m else "?/?"
+            return self._port_redu
+        return "NA"
+
+    @property
+    def psu(self):
+        if self.show_system:
+            if not self._psu:
+                m = re.findall(r"PSU #\d+", self.show_system)
+                self._psu = len(m)
+            return self._psu
+        return "NA"
+
+    @property
+    def rtp_stat_service(self):
+        if not self._rtp_stat_service:
+            m = re.search(r'rtp-stat-service', self.show_running_config)
+            self._rtp_stat_service = "enabled" if m else "disabled"
+        return self._rtp_stat_service
 
     @property
     def serial(self):
-        if not self._serial:
-            m = re.search(r'Serial No\s+:\s+(\S+)', self.show_system)
-            self._serial = m.group(1) if m else "?"
-        return self._serial
+        if self.show_system:
+            if not self._serial:
+                m = re.search(r'Serial No\s+:\s+(\S+)', self.show_system)
+                self._serial = m.group(1) if m else "?"
+            return self._serial
+        return "NA"
 
     @property
-    def rtp_stat(self):
-        if not self._rtp_stat:
-            m = re.search(r'rtp-stat-service', self.show_running_config)
-            self._rtp_stat = "enabled" if m else "disabled"
-        return self._rtp_stat
+    def slamon_service(self):
+        if self.show_sla_monitor:
+            if not self._slamon_service:
+                m = re.search(r'SLA Monitor: (\S+)', self.show_sla_monitor)
+                self._slamon_service = m.group(1).lower() if m else "?"
+            return self._slamon_service
+        return "NA"
 
     @property
-    def capture(self):
-        if not self._capture:
-            m = re.search(r'Capture service is (\w+) and (\w+)', self.show_capture)
-            config, state = m.group(1, 2) if m else ("?", "?")
-            self._capture = config if config == "disabled" else state
-        return self._capture
+    def sla_server(self):
+        if self.show_sla_monitor:
+            if not self._sla_server:
+                m = re.search(
+                    r'Registered Server IP Address:\s+(\S+)', self.show_sla_monitor
+                )
+                self._sla_server = m.group(1) if m else ""
+            return self._sla_server
+        return "NA"
 
     @property
-    def temp(self):
-        if not self._temp:
-            m = re.search(r'Temperature\s+:\s+(\S+) \((\S+)\)', self.show_temp)
-            cels, faren = m.group(1, 2) if m else ("?", "?")
-            self._temp = f"{cels}/{faren}"
-        return self._temp
+    def snmp(self):
+        if self.show_running_config:
+            if not self._snmp:
+                snmp = []
+                if "snmp-server comm" in self.show_running_config:
+                    snmp.append("2")
+                if "encrypted-snmp-server comm" in self.show_running_config:
+                    snmp.append("3")
+                self._snmp = "v" + "&".join(snmp) if snmp else ""
+            return self._snmp
+        return "NA"
 
     @property
-    def faults(self):
-        if not self._faults:
-            if "No Fault Messages" in self.show_faults:
-                self._faults = "none"
-            else:
-                self._faults = "faulty"
-        return self._faults
+    def total_sessions(self):
+        if self.show_rtp_stat_summary:
+            m = re.search(r'nal\s+\S+\s+\S+\s+(\S+)', self.show_rtp_stat_summary)
+            return m.group(1) if m else "?/?"
+        return "NA"
 
-    @property
     def uptime(self):
-        if not self._uptime:
-            m = re.search(r'Uptime.+?:\s+(\S+)', self.show_system)
-            self._uptime = m.group(1) if m else "?"
-        return self._uptime
+        if self.show_rtp_stat_summary:
+            m = re.search(r'nal\s+(\S+)', self.show_rtp_stat_summary)
+            return m.group(1) if m else "?"
+        return "NA"
 
     @property
     def voip_dsp(self):
@@ -527,24 +609,76 @@ class BGW():
         inuse = inuse if total > 0 else "?"
         return f"{inuse}/{total}"
 
-    @property
-    def sla_server(self):
-        if not self._sla_server:
-            m = re.search(
-                r'Registered Server IP Address:\s+(\S+)', self.show_sla_monitor
-            )
-            self._sla_server = m.group(1) if m.group(1) != "0.0.0.0" else ""
-        return self._sla_server
+    def update(
+        self,
+        last_seen: Optional[str] = None,
+        gw_name: Optional[str] = None,
+        gw_number: Optional[str] = None,
+        commands: Optional[Dict[str, str]] = None,
+        **kwargs,
+    ) -> None:
+        """
+        Updates the BGW instance with new data.
 
-    def update(self, data):
-        self.last_seen = data.get("last_seen", self.last_seen)
-        self.gw_name = data.get("gw_name", self.gw_name)
-        self.gw_number = data.get("gw_number", self.gw_number)
-        commands = data.get("commands", {})
+        Args:
+            last_seen: The last time the BGW was seen, in the format
+                "%Y-%m-%d,%H:%M:%S".
+            gw_name: The name of the gateway.
+            gw_number: The number of the gateway.
+            commands: A dictionary of commands and their output.
+            **kwargs: Additional keyword arguments.
+
+        Returns:
+            None
+        """
+        if last_seen:
+            last_seen = datetime.strptime(last_seen, "%Y-%m-%d,%H:%M:%S")
+            if not self.last_seen:
+                self.last_seen = last_seen
+
+            delta = last_seen - self.last_seen
+            if delta:
+                self.avg_poll_secs = round((self.avg_poll_secs + delta) / 2, 1)
+            else:
+                self.avg_poll_secs = self.polling_secs
+
+            if not self.gw_number and gw_number:
+                self.gw_number = gw_number
+            if not self.gw_name and gw_name:
+                self.gw_name = gw_name
+
+            self.polls += 1
+
         if commands:
             for cmd, value in commands.items():
                 bgw_attr = cmd.replace(" ", "_").replace("-", "_")
                 setattr(self, bgw_attr, value)
+
+    def _port_groupdict(self, idx: int) -> Dict[str, str]:
+        """
+        Extract port information from the 'show_port' string.
+
+        Args:
+            idx: The index of the port information to extract.
+
+        Returns:
+            A dictionary containing port details.
+        """
+        if self.show_port:
+            matches = re.findall(r'(.*Avaya Inc)', self.show_port)
+            if matches:
+                line = matches[idx] if idx < len(matches) else ""
+                if line:
+                    return re.search(r"".join((
+                        r'.*?(?P<port>\d+/\d+)',
+                        r'.*?(?P<name>.*)',
+                        r'.*?(?P<status>(connected|no link))',
+                        r'.*?(?P<vlan>\d+)',
+                        r'.*?(?P<level>\d+)',
+                        r'.*?(?P<neg>\S+)',
+                        r'.*?(?P<duplex>\S+)',
+                        r'.*?(?P<speed>\S+)')), line).groupdict()
+        return {}
 
     def __str__(self):
         return f"BGW({self.host})"
@@ -552,8 +686,36 @@ class BGW():
     def __repr__(self):
         return f"BGW(host={self.host})"
 
-    def asdict(self):
-        return self.__dict__
+    def properties_asdict(self) -> Dict[str, Any]:
+        """
+        Return a dictionary of this instance's properties.
+
+        The dictionary will contain the names of the properties as keys and
+        the values of the properties as values.
+
+        Returns:
+            A dictionary of the instance's properties.
+        """
+        properties = {}
+        for name in dir(self.__class__):
+            obj = getattr(self.__class__, name)
+            if isinstance(obj, property):
+                val = obj.__get__(self, self.__class__)
+                properties[name] = val
+        return properties   
+
+    def asdict(self) -> Dict[str, Any]:
+        """
+        Return a dictionary of this instance's properties and attributes.
+
+        The dictionary will contain the names of the properties and attributes
+        as keys and the values of the properties and attributes as values.
+
+        Returns:
+            A dictionary of the instance's properties and attributes.
+        """
+        attrs = self.__dict__
+        return {**self.properties_asdict(), **attrs}
 
 def iter_session_main_attrs(
     session_dict: Dict[str, str],
@@ -605,9 +767,10 @@ def iter_bgw_attrs(
         yield attrs['xpos'], text, attrs['color']
 
 def main():
-    bgw = BGW(**data)
-    bgw.update(data)
-    print(bgw.asdict())
+    bgw = BGW("192.168.111.111")
+    bgw.update(**data)
+    for k, v in bgw.asdict().items():
+        print(f"{k}: {v}")
 
 if __name__ == '__main__':
     main()
