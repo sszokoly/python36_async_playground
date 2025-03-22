@@ -336,6 +336,385 @@ if {{$randomInt == 1}} {{
 puts "{{\\"gw_number\\": \\"001\\", \\"gw_name\\": \\"$host\\", \\"host\\": \\"$host\\", \\"last_seen\\": \\"$last_seen\\", \\"commands\\": {{\\"show system\\": \\"location: 1\\", \\"show running-config\\": \\"location: 1\\"}}, \\"rtp_sessions\\": {{\\"2024-12-30,11:06:15,$host,0000$randomInt\\": \\"session 0000$randomInt\\"}}}}"
 '''
 
+#System
+#+---+---------------+-----+--+--------+------------+------+---+---+-----+----+
+#|BGW|     LAN IP    |Model|HW|Firmware|  Serial No |Memory|DSP|PSU|Fault|Anns|
+#+---+---------------+-----+--+--------+------------+------+---+---+-----+----+
+#|001|192.168.111.111| g430|1A|43.11.12|13TG01116522| 256MB|160|  1|    3| 999|
+#+---+---------------+-----+--+--------+------------+------+---+---+-----+----+
+
+SYSTEM_ATTRS = [
+    {
+        'xpos':  1,
+        'column_attr': 'gw_number',
+        'fmt': '>3',
+        'color': 'base',
+        'column_name': 'BGW',
+    },
+    {
+        'xpos':  5,
+        'column_attr': 'host',
+        'fmt': '>15',
+        'color': 'base',
+        'column_name': 'LAN IP',
+    },
+    {
+        'xpos': 21,
+        'column_attr': 'model',
+        'fmt': '>5',
+        'color': 'base',
+        'column_name': 'Model',
+    },
+    {
+        'xpos': 27,
+        'column_attr': 'hw',
+        'fmt': '>2',
+        'color': 'base',
+        'column_name': 'HW',
+    },
+    {
+        'xpos': 30,
+        'column_attr': 'fw',
+        'fmt': '>8',
+        'color': 'base',
+        'column_name': 'Firmware',
+    },
+    {
+        'xpos': 39,
+        'column_attr': 'serial',
+        'fmt': '>12',
+        'color': 'base',
+        'column_name': 'Serial No.',
+    },
+    {
+        'xpos': 52,
+        'column_attr': 'memory',
+        'fmt': '>6',
+        'color': 'base',
+        'column_name': 'Memory',
+    },
+    {
+        'xpos': 59,
+        'column_attr': 'dsp',
+        'fmt': '>3',
+        'color': 'base',
+        'column_name': 'DSP',
+    },
+    {
+        'xpos': 63,
+        'column_attr': 'psu',
+        'fmt': '>3',
+        'color': 'base',
+        'column_name': 'PSU',
+    },
+    {
+        'xpos': 68,
+        'column_attr': 'faults',
+        'fmt': '>5',
+        'color': 'base',
+        'column_name': 'Fault',
+    },
+    {
+        'xpos': 73,
+        'column_attr': 'announcements',
+        'fmt': '>4',
+        'color': 'base',
+        'column_name': 'Anns',
+    },
+]
+
+#Port
+#+---+----+---------+-------+-----+----+----+---------+-------+-----+----+----+
+#|BGW|Port| Status  |  Neg  |Speed|Dupl|Port| Status  |  Neg  |Speed|Dupl|Redu|
+#+---+----+---------+-------+-----+----+----+---------+-------+-----+----+----+
+#|001|10/4|connected|disable| 100M|half|10/5|connected|disable| 100M|half| 4&5|
+#+---+----+---------+-------+-----+----+----+---------+-------+-----+----+----+
+
+PORT_ATTRS = [
+    {
+        'xpos':  1,
+        'column_attr': 'gw_number',
+        'fmt': '>3',
+        'color': 'base',
+        'column_name': 'BGW',
+    },
+    {
+        'xpos':  5,
+        'column_attr': 'port1',
+        'fmt': '>4',
+        'color': 'base',
+        'column_name': 'Port',
+    },
+    {
+        'xpos': 10,
+        'column_attr': 'port1_status',
+        'fmt': '>9',
+        'color': 'base',
+        'column_name': 'Status',
+    },
+    {
+        'xpos': 20,
+        'column_attr': 'port1_neg',
+        'fmt': '>7',
+        'color': 'base',
+        'column_name': 'Neg',
+    },
+    {
+        'xpos': 28,
+        'column_attr': 'port1_speed',
+        'fmt': '>5',
+        'color': 'base',
+        'column_name': 'Speed',
+    },
+    {
+        'xpos': 34,
+        'column_attr': 'port1_duplex',
+        'fmt': '>4',
+        'color': 'base',
+        'column_name': 'Dupl',
+    },
+    {
+        'xpos': 39,
+        'column_attr': 'port2',
+        'fmt': '>4',
+        'color': 'base',
+        'column_name': 'Port',
+    },
+    {
+        'xpos': 54,
+        'column_attr': 'port2_status',
+        'fmt': '>9',
+        'color': 'base',
+        'column_name': 'Status',
+    },
+    {
+        'xpos': 54,
+        'column_attr': 'port2_neg',
+        'fmt': '>7',
+        'color': 'base',
+        'column_name': 'Neg',
+    },
+    {
+        'xpos': 62,
+        'column_attr': 'port2_speed',
+        'fmt': '>5',
+        'color': 'base',
+        'column_name': 'Speed',
+    },
+    {
+        'xpos': 68,
+        'column_attr': 'port2_duplex',
+        'fmt': '>4',
+        'color': 'base',
+        'column_name': 'Dupl',
+    },
+    {
+        'xpos': 73,
+        'column_attr': 'port_redu',
+        'fmt': '>4',
+        'color': 'base',
+        'column_name': 'Rdcy',
+    },
+]
+
+#Config
+#+---+---------+---------------+----+--------+---------------+--------+-------+
+#|BGW|rtp-stats|capture-service|snmp| slamon | slamon server |  lldp  |  lsp  |
+#+---+---------+---------------+----+--------+---------------+--------+-------+
+#|001| disabled|       disabled|v2&3|disabled|101.101.111.198|disabled| S8300E|
+#+---+---------+---------------+----+--------+---------------+--------+-------+
+
+CONFIG_ATTRS = [
+    {
+        'xpos':  1,
+        'column_attr': 'gw_number',
+        'fmt': '>3',
+        'color': 'base',
+        'column_name': 'BGW',
+    },
+    {
+        'xpos':  5,
+        'column_attr': 'rtp_stat_service',
+        'fmt': '>9',
+        'color': 'base',
+        'column_name': 'RTP-Stats',
+    },
+    {
+        'xpos': 15,
+        'column_attr': 'capture_service',
+        'fmt': '>15',
+        'color': 'base',
+        'column_name': 'Capture-Service',
+    },
+    {
+        'xpos': 31,
+        'column_attr': 'snmp',
+        'fmt': '>4',
+        'color': 'base',
+        'column_name': 'SNMP',
+    },
+    {
+        'xpos': 36,
+        'column_attr': 'slamon_service',
+        'fmt': '>8',
+        'color': 'base',
+        'column_name': 'SLAMon',
+    },
+    {
+        'xpos': 45,
+        'column_attr': 'sla_server',
+        'fmt': '>15',
+        'color': 'base',
+        'column_name': 'SLAMon Server',
+    },
+    {
+        'xpos': 61,
+        'column_attr': 'lldp',
+        'fmt': '>8',
+        'color': 'base',
+        'column_name': 'LLDP',
+    },
+    {
+        'xpos': 70,
+        'column_attr': 'lsp',
+        'fmt': '>7',
+        'color': 'base',
+        'column_name': 'LSP',
+    },
+]
+
+#Status
+#+---+-------------+------------+------------+---------------+----------+-----+
+#|BGW|    Uptime   |Act Sessions|Tot Sessions|In-Use/Tot DSPs|AvgPollSec|Polls|
+#+---+-------------+------------+------------+---------------+----------+-----+
+#|001|153d05h23m06s|         0/0|  32442/1443|        320/230|    120.32|    3|
+#+---+-------------+------------+------------+---------------+----------+-----+
+
+STATUS_ATTRS = [
+    {
+        'xpos':  1,
+        'column_attr': 'gw_number',
+        'fmt': '>3',
+        'color': 'base',
+        'column_name': 'BGW',
+    },
+    {
+        'xpos':  5,
+        'column_attr': 'uptime',
+        'fmt': '>13',
+        'color': 'base',
+        'column_name': 'Uptime',
+    },
+    {
+        'xpos': 19,
+        'column_attr': 'active_sessions',
+        'fmt': '>12',
+        'color': 'base',
+        'column_name': 'Act.Sessions',
+    },
+    {
+        'xpos': 32,
+        'column_attr': 'total_sessions',
+        'fmt': '>12',
+        'color': 'base',
+        'column_name': 'Tot.Sessions',
+    },
+    {
+        'xpos': 45,
+        'column_attr': 'voip_dsp',
+        'fmt': '>15',
+        'color': 'base',
+        'column_name': 'In-Use/Tot.DSPs',
+    },
+    {
+        'xpos': 61,
+        'column_attr': 'avg_poll_secs',
+        'fmt': '>10',
+        'color': 'base',
+        'column_name': 'AvgPollSec',
+    },
+    {
+        'xpos': 72,
+        'column_attr': 'polls',
+        'fmt': '>5',
+        'color': 'base',
+        'column_name': 'Polls',
+    },
+]
+
+#RTP-Stat
+#+--------+--------+---+---------------+-----+---------------+-----+-----+----+
+#|  Start |   End  |BGW| Local-Address |LPort| Remote-Address|RPort|Codec| QoS|
+#+--------+--------+---+---------------+-----+---------------+-----+-----+----+
+#|11:09:07|11:11:27|001|192.168.111.111|55555|100.100.100.100|55555|G711U|  OK|
+#+--------+--------+---+---------------+-----+---------------+-----+-----+----+
+
+RTPSTAT_ATTRS = [
+    {
+        'xpos':  1,
+        'column_attr': 'start_time',
+        'fmt': '>8',
+        'color': 'base',
+        'column_name': 'Start',
+    },
+    {
+        'xpos': 10,
+        'column_attr': 'end_time',
+        'fmt': '>8',
+        'color': 'base',
+        'column_name': 'End',
+    },
+    {
+        'xpos': 19,
+        'column_attr': 'gw_number',
+        'fmt': '>3',
+        'color': 'base',
+        'column_name': 'BGW',
+    },
+    {
+        'xpos': 23,
+        'column_attr': 'local_addr',
+        'fmt': '>15',
+        'color': 'base',
+        'column_name': 'Local-Address',
+    },
+    {
+        'xpos': 39,
+        'column_attr': 'local_port',
+        'fmt': '>5',
+        'color': 'base',
+        'column_name': 'LPort',
+    },
+    {
+        'xpos': 45,
+        'column_attr': 'remote_addr',
+        'fmt': '>15',
+        'color': 'base',
+        'column_name': 'Remote-Address',
+    }, 
+    {
+        'xpos': 61,
+        'column_attr': 'remote_port',
+        'fmt': '>5',
+        'color': 'base',
+        'column_name': 'RPort',
+    },
+    {
+        'xpos': 67,
+        'column_attr': 'codec',
+        'fmt': '>5',
+        'color': 'base',
+        'column_name': 'Codec',
+    },
+    {
+        'xpos': 74,
+        'column_attr': 'qos',
+        'fmt': '^4',
+        'color': 'base',
+        'column_name': 'QoS',
+    },
+]
+
 RTP_DETAILED_PATTERNS = (
     r'.*?Session-ID: (?P<session_id>\d+)',
     r'.*?Status: (?P<status>\S+),',
@@ -417,127 +796,336 @@ class BGW():
     def __init__(self,
         host: str,
         proto: str = '',
-        last_seen = None,
+        polling_secs = 10,
         gw_name: str = '',
         gw_number: str = '',
-        show_running_config: str = '',
-        show_system: str = '',
-        show_faults: str = '',
+        dir = '',
         show_capture: str = '',
-        show_voip_dsp: str = '',
-        show_temp: str = '',
+        show_faults: str = '',
+        show_lldp_config: str = '',
+        show_mg_list: str = '',
+        show_port: str = '',
+        show_rtp_stat_summary: str = '',
+        show_running_config: str = '',
         show_sla_monitor: str = '',
+        show_system: str = '',
+        show_voip_dsp: str = '',
+        **kwargs,
     ) -> None:
         self.host = host
         self.proto = proto
-        self.last_seen = last_seen
+        self.polling_secs = polling_secs
         self.gw_name = gw_name
         self.gw_number = gw_number
-        self.show_running_config = show_running_config
-        self.show_system = show_system
-        self.show_faults = show_faults
+        self.polls = 0
+        self.avg_poll_secs = 0
+        self.last_seen = None
+        self.dir = dir
         self.show_capture = show_capture
-        self.show_voip_dsp = show_voip_dsp
-        self.show_temp = show_temp
+        self.show_faults = show_faults
+        self.show_lldp_config = show_lldp_config
+        self.show_mg_list = show_mg_list
+        self.show_port = show_port
+        self.show_rtp_stat_summary = show_rtp_stat_summary
+        self.show_running_config = show_running_config
         self.show_sla_monitor = show_sla_monitor
+        self.show_system = show_system
+        self.show_voip_dsp = show_voip_dsp
         self.queue = Queue()
+        self._active_sessions = None
+        self._announcements = None
+        self._capture_service = None
+        self._dsp = None
         self._faults = None
-        self._capture = None
-        self._model = None
-        self._hw = None
         self._fw = None
-        self._slamon = None
+        self._hw = None
+        self._lldp = None
+        self._lsp = None
+        self._memory = None
+        self._model = None
+        self._port1 = None
+        self._port1_status = None
+        self._port1_neg = None
+        self._port1_duplex = None
+        self._port1_speed = None
+        self._port2 = None
+        self._port2_status = None
+        self._port2_neg = None
+        self._port2_duplex = None
+        self._port2_speed = None
+        self._port_redu = None
+        self._psu = None
+        self._rtp_stat_service = None
         self._serial = None
-        self._rtp_stat = None
-        self._capture = None
-        self._temp = None
+        self._slamon_service = None
+        self._sla_server = None
+        self._snmp = None
+        self._total_sessions = None
         self._uptime = None
         self._voip_dsp = None
-        self._sla_server = None
 
     @property
-    def model(self):
-        if not self._model:
-            m = re.search(r'Model\s+:\s+(\S+)', self.show_system)
-            self._model = m.group(1) if m else "?"
-        return self._model
+    def active_sessions(self):
+        if self.show_rtp_stat_summary:
+            m = re.search(r'nal\s+\S+\s+(\S+)', self.show_rtp_stat_summary)
+            return m.group(1) if m else "?/?"
+        return "NA"
 
     @property
-    def hw(self):
-        if not self._hw:
-            m = re.search(r'HW Vintage\s+:\s+(\S+)', self.show_system)
-            hw_vintage = m.group(1) if m else "?"
-            m = re.search(r'HW Suffix\s+:\s+(\S+)', self.show_system)
-            hw_suffix = m.group(1) if m else "?"
-            self._hw = f"{hw_vintage}{hw_suffix}"
-        return self._hw
+    def announcements(self):
+        if self.dir:
+            if not self._announcements:
+                m = re.findall(r"Announcements.*?", self.dir)
+                self._announcements = len(m)
+            return self._announcements
+        return "NA"
 
     @property
-    def fw(self):
-        if not self._fw:
-            m = re.search(r'FW Vintage\s+:\s+(\S+)', self.show_system)
-            self._fw = m.group(1) if m else "?"
-        return self._fw
+    def capture_service(self):
+        if self.show_capture:
+            if not self._capture_service:
+                m = re.search(r' service is (\w+)', self.show_capture)
+                self._capture_service = m.group(1) if m else "?"
+            return self._capture_service
+        return "NA"
 
     @property
-    def slamon(self):
-        if not self._slamon:
-            m = re.search(r'sla-server-ip-address (\S+)', self.show_system)
-            self._slamon = m.group(1) if m else ""
-        return self._slamon
-
-    @property
-    def serial(self):
-        if not self._serial:
-            m = re.search(r'Serial No\s+:\s+(\S+)', self.show_system)
-            self._serial = m.group(1) if m else "?"
-        return self._serial
-
-    @property
-    def rtp_stat(self):
-        if not self._rtp_stat:
-            m = re.search(r'rtp-stat-service', self.show_running_config)
-            self._rtp_stat = "enabled" if m else "disabled"
-        return self._rtp_stat
-
-    @property
-    def capture(self):
-        if not self._capture:
-            m = re.search(r'Capture service is (\w+) and (\w+)', self.show_capture)
-            config, state = m.group(1, 2) if m else ("?", "?")
-            self._capture = config if config == "disabled" else state
-        return self._capture
-
-    @property
-    def temp(self):
-        if not self._temp:
-            m = re.search(r'Temperature\s+:\s+(\S+) \((\S+)\)', self.show_temp)
-            cels, faren = m.group(1, 2) if m else ("?", "?")
-            self._temp = f"{cels}/{faren}"
-        return self._temp
+    def dsp(self):
+        if self.show_system:
+            if not self._dsp:
+                m = re.findall(r"Media Socket.*?MP(\d+)", self.show_system)
+                self._dsp = sum(int(x) for x in m) if m else "?"
+            return self._dsp
+        return "NA"
 
     @property
     def faults(self):
-        if not self._faults:
-            if "No Fault Messages" in self.show_faults:
-                self._faults = "none"
-            else:
-                self._faults = "faulty"
-        return self._faults
+        if self.show_faults:
+            if not self._faults:
+                if "No Fault Messages" in self.show_faults:
+                    self._faults = 0
+                else:
+                    m = re.findall(r"\s+\+ (\S+)", self.show_faults)
+                    self._faults = len(m)
+            return self._faults
+        return "NA"
+
+    @property
+    def fw(self):
+        if self.show_system:
+            if not self._fw:
+                m = re.search(r'FW Vintage\s+:\s+(\S+)', self.show_system)
+                self._fw = m.group(1) if m else "?"
+            return self._fw
+        return "NA"
+
+    @property
+    def hw(self):
+        if self.show_system:
+            if not self._hw:
+                m = re.search(r'HW Vintage\s+:\s+(\S+)', self.show_system)
+                hw_vintage = m.group(1) if m else "?"
+                m = re.search(r'HW Suffix\s+:\s+(\S+)', self.show_system)
+                hw_suffix = m.group(1) if m else "?"
+                self._hw = f"{hw_vintage}{hw_suffix}"
+            return self._hw
+        return "NA"
+
+    @property
+    def lldp(self):
+        if self.show_lldp_config:
+            if not self._lldp:
+                if "Application status: disable" in self.show_lldp_config:
+                   self._lldp = "disabled"
+                else:
+                   self._lldp = "enabled"
+            return self._lldp
+        return "NA"
+
+    @property
+    def lsp(self):
+        if self.show_mg_list:
+            if not self._lsp:
+                m = re.search(r'ICC\s+(\S)', self.show_mg_list)
+                self._lsp = f"S8300{m.group(1)}" if m else "?"
+            return self._lsp
+        return "NA"
+
+    @property
+    def memory(self):
+        if self.show_system:
+            if not self._memory:
+                m = re.findall(r"Memory #\d+\s+:\s+(\S+)", self.show_system)
+                self._memory = f"{sum(self._to_mbyte(x) for x in m)}MB"
+            return self._memory
+        return "NA"
+
+    @property
+    def model(self):
+        if self.show_system:
+            if not self._model:
+                m = re.search(r'Model\s+:\s+(\S+)', self.show_system)
+                self._model = m.group(1) if m else "?"
+            return self._model
+        return "NA"
+
+    @property
+    def port1(self):
+        if not self._port1:
+            pdict = self._port_groupdict(0)
+            self._port1 = pdict.get("port", "?") if pdict else "NA"
+        return self._port1
+
+    @property
+    def port1_status(self):
+        if not self._port1_status:
+            pdict = self._port_groupdict(0)
+            self._port1_status = pdict.get("status", "?") if pdict else "NA"
+        return self._port1_status
+
+    @property
+    def port1_neg(self):
+        if not self._port1_neg:
+            pdict = self._port_groupdict(0)
+            self._port1_neg = pdict.get("neg", "?") if pdict else "NA"
+        return self._port1_neg
+
+    @property
+    def port1_duplex(self):
+        if not self._port1_duplex:
+            pdict = self._port_groupdict(0)
+            self._port1_duplex = pdict.get("duplex", "?") if pdict else "NA"
+        return self._port1_duplex
+
+    @property
+    def port1_speed(self):
+        if not self._port1_speed:
+            pdict = self._port_groupdict(0)
+            self._port1_speed = pdict.get("speed", "?") if pdict else "NA"
+        return self._port1_speed
+
+    @property
+    def port2(self):
+        if not self._port2:
+            pdict = self._port_groupdict(1)
+            self._port2 = pdict.get("port", "?") if pdict else "NA"
+        return self._port2
+
+    @property
+    def port2_status(self):
+        if not self._port2_status:
+            pdict = self._port_groupdict(1)
+            self._port2_status = pdict.get("status", "?") if pdict else "NA"
+        return self._port2_status
+
+    @property
+    def port2_neg(self):
+        if not self._port2_neg:
+            pdict = self._port_groupdict(1)
+            self._port2_neg = pdict.get("neg", "?") if pdict else "NA"
+        return self._port2_neg
+
+    @property
+    def port2_duplex(self):
+        if not self._port2_duplex:
+            pdict = self._port_groupdict(1)
+            self._port2_duplex = pdict.get("duplex", "?") if pdict else "NA"
+        return self._port2_duplex
+
+    @property
+    def port2_speed(self):
+        if not self._port2_speed:
+            pdict = self._port_groupdict(1)
+            self._port2_speed = pdict.get("speed", "?") if pdict else "NA"
+        return self._port2_speed
+
+    @property
+    def port_redu(self):
+        if self.show_running_config:
+            if not self._port_redu:
+                m = re.search(r'port redundancy \d+/(\d+) \d+/(\d+)',
+                    self.show_running_config)
+                self._port_redu = f"{m.group(1)}/{m.group(2)}" if m else "?/?"
+            return self._port_redu
+        return "NA"
+
+    @property
+    def psu(self):
+        if self.show_system:
+            if not self._psu:
+                m = re.findall(r"PSU #\d+", self.show_system)
+                self._psu = len(m)
+            return self._psu
+        return "NA"
+
+    @property
+    def rtp_stat_service(self):
+        if not self._rtp_stat_service:
+            m = re.search(r'rtp-stat-service', self.show_running_config)
+            self._rtp_stat_service = "enabled" if m else "disabled"
+        return self._rtp_stat_service
+
+    @property
+    def serial(self):
+        if self.show_system:
+            if not self._serial:
+                m = re.search(r'Serial No\s+:\s+(\S+)', self.show_system)
+                self._serial = m.group(1) if m else "?"
+            return self._serial
+        return "NA"
+
+    @property
+    def slamon_service(self):
+        if self.show_sla_monitor:
+            if not self._slamon_service:
+                m = re.search(r'SLA Monitor: (\S+)', self.show_sla_monitor)
+                self._slamon_service = m.group(1).lower() if m else "?"
+            return self._slamon_service
+        return "NA"
+
+    @property
+    def sla_server(self):
+        if self.show_sla_monitor:
+            if not self._sla_server:
+                m = re.search(r'Registered Server IP Address:\s+(\S+)',
+                              self.show_sla_monitor)
+                self._sla_server = m.group(1) if m else ""
+            return self._sla_server
+        return "NA"
+
+    @property
+    def snmp(self):
+        if self.show_running_config:
+            if not self._snmp:
+                snmp = []
+                if "snmp-server comm" in self.show_running_config:
+                    snmp.append("2")
+                if "encrypted-snmp-server comm" in self.show_running_config:
+                    snmp.append("3")
+                self._snmp = "v" + "&".join(snmp) if snmp else ""
+            return self._snmp
+        return "NA"
+
+    @property
+    def total_sessions(self):
+        if self.show_rtp_stat_summary:
+            m = re.search(r'nal\s+\S+\s+\S+\s+(\S+)',
+                          self.show_rtp_stat_summary)
+            return m.group(1) if m else "?/?"
+        return "NA"
 
     @property
     def uptime(self):
-        if not self._uptime:
-            m = re.search(r'Uptime.+?:\s+(\S+)', self.show_system)
-            self._uptime = m.group(1) if m else "?"
-        return self._uptime
+        if self.show_rtp_stat_summary:
+            m = re.search(r'nal\s+(\S+)', self.show_rtp_stat_summary)
+            return m.group(1) if m else "?"
+        return "NA"
 
     @property
     def voip_dsp(self):
         inuse, total = 0, 0
-        dsps = re.findall(
-            r"In Use\s+:\s+(\d+) of (\d+) channels", self.show_voip_dsp
-        )
+        dsps = re.findall(r"In Use\s+:\s+(\d+) of (\d+) channels",
+                          self.show_voip_dsp)
         for dsp in dsps:
             try:
                 dsp_inuse, dsp_total = dsp
@@ -549,24 +1137,87 @@ class BGW():
         inuse = inuse if total > 0 else "?"
         return f"{inuse}/{total}"
 
-    @property
-    def sla_server(self):
-        if not self._sla_server:
-            m = re.search(
-                r'Registered Server IP Address:\s+(\S+)', self.show_sla_monitor
-            )
-            self._sla_server = m.group(1) if m.group(1) != "0.0.0.0" else ""
-        return self._sla_server
+    def update(
+        self,
+        last_seen: Optional[str] = None,
+        gw_name: Optional[str] = None,
+        gw_number: Optional[str] = None,
+        commands: Optional[Dict[str, str]] = None,
+        **kwargs,
+    ) -> None:
+        """
+        Updates the BGW instance with new data.
 
-    def update(self, data):
-        self.last_seen = data.get("last_seen", self.last_seen)
-        self.gw_name = data.get("gw_name", self.gw_name)
-        self.gw_number = data.get("gw_number", self.gw_number)
-        commands = data.get("commands", {})
+        Args:
+            last_seen: The last time the BGW was seen, in the format
+                "%Y-%m-%d,%H:%M:%S".
+            gw_name: The name of the gateway.
+            gw_number: The number of the gateway.
+            commands: A dictionary of commands and their output.
+            **kwargs: Additional keyword arguments.
+
+        Returns:
+            None
+        """
+        if last_seen:
+            last_seen = datetime.strptime(last_seen, "%Y-%m-%d,%H:%M:%S")
+            if not self.last_seen:
+                self.last_seen = last_seen
+
+            delta = last_seen - self.last_seen
+            if delta:
+                self.avg_poll_secs = round((self.avg_poll_secs + delta) / 2, 1)
+            else:
+                self.avg_poll_secs = self.polling_secs
+
+            if not self.gw_number and gw_number:
+                self.gw_number = gw_number
+            if not self.gw_name and gw_name:
+                self.gw_name = gw_name
+
+            self.polls += 1
+
         if commands:
             for cmd, value in commands.items():
                 bgw_attr = cmd.replace(" ", "_").replace("-", "_")
                 setattr(self, bgw_attr, value)
+
+    def _port_groupdict(self, idx: int) -> Dict[str, str]:
+        """
+        Extract port information from the 'show_port' string.
+
+        Args:
+            idx: The index of the port information to extract.
+
+        Returns:
+            A dictionary containing port details.
+        """
+        if self.show_port:
+            matches = re.findall(r'(.*Avaya Inc)', self.show_port)
+            if matches:
+                line = matches[idx] if idx < len(matches) else ""
+                if line:
+                    return re.search(r"".join((
+                        r'.*?(?P<port>\d+/\d+)',
+                        r'.*?(?P<name>.*)',
+                        r'.*?(?P<status>(connected|no link))',
+                        r'.*?(?P<vlan>\d+)',
+                        r'.*?(?P<level>\d+)',
+                        r'.*?(?P<neg>\S+)',
+                        r'.*?(?P<duplex>\S+)',
+                        r'.*?(?P<speed>\S+)')), line).groupdict()
+        return {}
+
+    @staticmethod
+    def _to_mbyte(str):
+        m = re.search(r'(\d+)([MG]B)', str)
+        if m:
+            num, unit = int(m.group(1)), m.group(2)
+            if unit == "MB":
+                return num
+            elif unit == "GB":
+                return 1024 * num
+        return 0
 
     def __str__(self):
         return f"BGW({self.host})"
@@ -574,8 +1225,36 @@ class BGW():
     def __repr__(self):
         return f"BGW(host={self.host})"
 
-    def asdict(self):
-        return self.__dict__
+    def properties_asdict(self) -> Dict[str, Any]:
+        """
+        Return a dictionary of this instance's properties.
+
+        The dictionary will contain the names of the properties as keys and
+        the values of the properties as values.
+
+        Returns:
+            A dictionary of the instance's properties.
+        """
+        properties = {}
+        for name in dir(self.__class__):
+            obj = getattr(self.__class__, name)
+            if isinstance(obj, property):
+                val = obj.__get__(self, self.__class__)
+                properties[name] = val
+        return properties   
+
+    def asdict(self) -> Dict[str, Any]:
+        """
+        Return a dictionary of this instance's properties and attributes.
+
+        The dictionary will contain the names of the properties and attributes
+        as keys and the values of the properties and attributes as values.
+
+        Returns:
+            A dictionary of the instance's properties and attributes.
+        """
+        attrs = self.__dict__
+        return {**self.properties_asdict(), **attrs}
 
 class RTPSession:
     def __init__(self, params: Dict[str, str]) -> None:
@@ -1476,7 +2155,7 @@ class Menubar:
         nlines: Optional[int] = 1,
         attr: Optional[int] = None,
         offset_x: Optional[int] = 0,
-        status_bar_width: Optional[int] = 20,
+        status_bar_width: Optional[int] = 13,
         buttons: List[Button] = None) -> None:
         """
         Initialize the menubar.
@@ -1792,6 +2471,41 @@ def custom_exception_handler(loop, context):
         logger.error(f"{repr(exc)} silenced")
         return
     loop.default_exception_handler(context)
+
+def iter_attrs(
+    obj: object,
+    attrs: List[Dict[str, Any]],
+    xoffset: int = 0
+) -> Iterator[Tuple[int, str, str]]:
+    """
+    Iterate over the attributes of an object and yield a tuple of 3 values:
+
+    - `xpos`: The x position of the attribute in curses window
+    - `_str`: The text of the attribute, formatted according to the `fmt`
+    - `color`: The name of the color of the attribute
+
+    Parameters
+    ----------
+    obj : object
+        The object to get attributes from
+    attrs : List[Dict[str, Any]]
+        A list of dictionaries of the attributes of the object
+    xoffset : int, optional
+        The offset of xpos, by default 0
+
+    Returns
+    ------
+    Tuple[int, str, str]
+        A tuple of 3 values: xpos, _str, color
+    """
+    for attr in attrs:
+        if hasattr(obj, attr['name']):
+            _str = getattr(obj, attr['name'])
+        else:
+            _str = obj.get(attr['name'], attr['name'])
+        color = attr['color']
+        _str = f"{_str:{attr['fmt']}}"
+        yield attr['xpos'] + xoffset, _str, color
 
 def create_bgw_script(bgw: BGW) -> List[str]:
     """
@@ -2317,13 +3031,14 @@ def main(stdscr, miny: int = 24, minx: int = 80):
     stdscr.refresh()
 
     system_menubar = Menubar(stdscr)
+    rtpstat_menubar = Menubar(stdscr)
     
     button_d = Button(ord("d"), ord("D"),
         win=system_menubar.win,
-        y=0, x=25,
+        y=0, x=20,
         char_alt="🄳 ",
-        label_on="Discovery Stop ",
         label_off="Discovery Start",
+        label_on="Discovery Stop ",
         callback_on=discovery_on_callback,
         callback_off=discovery_off_callback,
         done_callback_on=functools.partial(ungetch_done_callback, ord("d")),
@@ -2341,49 +3056,84 @@ def main(stdscr, miny: int = 24, minx: int = 80):
         label_on="Clear",
     )
 
-    system_menubar.buttons = [button_d, button_c]
-
-    rtpstat_menubar = Menubar(stdscr)
-
     button_s = Button(ord("s"), ord("S"),
         win=rtpstat_menubar.win,
-        y=0, x=45,
-        char_alt="🄲 ",
-        label_off="Start",
-        label_on="Stop",
+        y=0, x=20,
+        char_alt="🅂 ",
+        label_off="Start Polling",
+        label_on="Stop  Polling",
+        callback_on=None,
+        callback_off=None,
+        done_callback_on=None,
+        status_label="Polling",
+        status_attr_on=curses.color_pair(42)|curses.A_REVERSE,
+        status_attr_off=curses.color_pair(2)|curses.A_REVERSE,
+        stdscr=stdscr,
     )
 
-    rtpstat_menubar.buttons = [button_s]
-    
+    button_r = Button(ord("s"), ord("S"),
+        win=rtpstat_menubar.win,
+        y=0, x=45,
+        char_alt="🅁 ",
+        label_off="RTP Details",
+        label_on="RTP Details",
+        callback_on=None,
+        callback_off=None,
+        done_callback_on=None,
+        status_attr_on=curses.color_pair(42)|curses.A_REVERSE,
+        status_attr_off=curses.color_pair(2)|curses.A_REVERSE,
+        stdscr=stdscr,
+    )
+
+    system_menubar.buttons = [button_d, button_c]
+    rtpstat_menubar.buttons = [button_s, button_r]
+
     workspaces = [
         Workspace(
             stdscr,
-            column_attrs = [
-                "gw_number", "model", "firmware", "hw",
-                "host", "slamon", "rtp_stat", "faults",
-            ],
-            column_names = [
-                "BGW", "Model", "FW", "HW", "LAN IP",
-                "SLAMon IP", "RTP-Stat", "Faults",
-            ],
-            column_widths = [3, 5, 8, 2, 15, 15, 8, 6],
+            column_attrs = [x['column_attr'] for x in SYSTEM_ATTRS],
+            column_names = [x['column_name'] for x in SYSTEM_ATTRS],
+            column_widths = [int(x['fmt'][1:]) for x in SYSTEM_ATTRS],
             menubar = system_menubar,
             storage = GATEWAYS,
-            name = "Systems",
+            name = "System",
         ),
-        
+
         Workspace(
             stdscr,
-            column_attrs=[
-                "start_time", "end_time", "gw_number",
-                "local_addr", "local_port", "remote_addr",
-                "remote_port", "codec", "qos",
-            ],
-            column_names=[
-                "Start", "End", "BGW", "Local-Address", "LPort",
-                "Remote-Address", "RPort", "Codec", "QoS",
-            ],
-            column_widths=[8, 8, 3, 15, 5, 15, 5, 5, 3],
+            column_attrs = [x['column_attr'] for x in PORT_ATTRS],
+            column_names = [x['column_name'] for x in PORT_ATTRS],
+            column_widths = [int(x['fmt'][1:]) for x in PORT_ATTRS],
+            menubar = system_menubar,
+            storage = GATEWAYS,
+            name = "Ports",
+        ),
+
+        Workspace(
+            stdscr,
+            column_attrs = [x['column_attr'] for x in CONFIG_ATTRS],
+            column_names = [x['column_name'] for x in CONFIG_ATTRS],
+            column_widths = [int(x['fmt'][1:]) for x in CONFIG_ATTRS],
+            menubar = system_menubar,
+            storage = GATEWAYS,
+            name = "Config",
+        ),
+
+        Workspace(
+            stdscr,
+            column_attrs = [x['column_attr'] for x in STATUS_ATTRS],
+            column_names = [x['column_name'] for x in STATUS_ATTRS],
+            column_widths = [int(x['fmt'][1:]) for x in STATUS_ATTRS],
+            menubar = system_menubar,
+            storage = GATEWAYS,
+            name = "Status",
+        ),
+
+        Workspace(
+            stdscr,
+            column_attrs = [x['column_attr'] for x in RTPSTAT_ATTRS],
+            column_names = [x['column_name'] for x in RTPSTAT_ATTRS],
+            column_widths = [int(x['fmt'][1:]) for x in RTPSTAT_ATTRS],
             menubar = rtpstat_menubar,
             storage = CONFIG["storage"],
             name = "RTPStat",
@@ -2417,38 +3167,3 @@ if __name__ == "__main__":
     )
     startup()
     curses.wrapper(main)
-
-# System
-# +---+---------------+-----+--+--------+------------+------+---+---+-----+----+
-# |BGW|     LAN IP    |Model|HW|Firmware|  Serial No |Memory|DSP|PSU|Fault|Anns|   
-# +---+---------------+-----+--+--------+------------+------+---+---+-----+----+
-# |001|192.168.111.111| g430|1A|43.11.12|13TG01116522| 256MB|160|  1|    3| 999|
-# +---+---------------+-----+--+--------+------------+------+---+---+-----+----+
-
-# Port
-# +---+----+---------+-------+-----+----+----+---------+-------+-----+----+----+
-# |BGW|Port| Status  |  Neg  |Speed|Dupl|Port| Status  |  Neg  |Speed|Dupl|Redu|
-# +---+----+---------+-------+-----+----+----+---------+-------+-----+----+----+
-# |001|10/4|connected|disable| 100M|half|10/5|connected|disable| 100M|half| 4&5|
-# +---+----+---------+-------+-----+----+----+---------+-------+-----+----+----+
-
-# Config
-# +---+---------+---------------+----+--------+---------------+--------+-------+
-# |BGW|rtp-stats|capture-service|snmp| slamon | slamon server |  lldp  |  lsp  |
-# +---+---------+---------------+----+--------+---------------+--------+-------+
-# |001| disabled|       disabled|v2&3|disabled|101.101.111.198|disabled| S8300E|
-# +---+---------+---------------+----+--------+---------------+--------+-------+
-
-# Status
-# +---+-------------+------------+------------+---------------+----------+-----+
-# |BGW|    Uptime   |Act Sessions|Tot Sessions|In-Use/Tot DSPs|AvgPollSec|Polls|
-# +---+-------------+------------+------------+---------------+----------+-----+
-# |001|153d05h23m06s|         0/0|  32442/1443|        320/230|    120.32|    3|
-# +---+-------------+------------+------------+---------------+----------+-----+
-
-# RTP-Stat
-# +--------+--------+---+---------------+-----+---------------+-----+-----+----+
-# |  Start |   End  |BGW| Local-Address |LPort| Remote-Address|RPort|Codec| QoS|
-# +--------+--------+---+---------------+-----+---------------+-----+-----+----+
-# |11:09:07|11:11:27|001|192.168.111.111|55555|100.100.100.100|55555|G711U| OK |
-# +--------+--------+---+---------------+-----+---------------+-----+-----+----+

@@ -269,17 +269,83 @@ rtp_stat = {
 # +---+---------------+-----+--+--------+------------+------+---+---+-----+----+
 
 SYSTEM_ATTRS = [
-    {'xpos':  1, 'name': 'gw_number', 'fmt': '', 'color': 'base'},
-    {'xpos':  5, 'name': 'host', 'fmt': '>15', 'color': 'base'},
-    {'xpos': 21, 'name': 'model', 'fmt': '>5', 'color': 'base'},
-    {'xpos': 27, 'name': 'hw', 'fmt': '', 'color': 'base'},
-    {'xpos': 30, 'name': 'fw', 'fmt': '>8', 'color': 'base'},
-    {'xpos': 39, 'name': 'serial', 'fmt': '', 'color': 'base'},
-    {'xpos': 52, 'name': 'memory', 'fmt': '>6', 'color': 'base'},
-    {'xpos': 59, 'name': 'dsp', 'fmt': '>3', 'color': 'base'},
-    {'xpos': 63, 'name': 'psu', 'fmt': '>3', 'color': 'base'},
-    {'xpos': 68, 'name': 'faults', 'fmt': '>5', 'color': 'base'},
-    {'xpos': 73, 'name': 'announcements', 'fmt': '>4', 'color': 'base'},
+    {
+        'xpos':  1,
+        'column_attr': 'gw_number',
+        'fmt': '>3',
+        'color': 'base',
+        'column_name': 'BGW',
+    },
+    {
+        'xpos':  5,
+        'column_attr': 'host',
+        'fmt': '>15',
+        'color': 'base',
+        'column_name': 'LAN IP',
+    },
+    {
+        'xpos': 21,
+        'column_attr': 'model',
+        'fmt': '>5',
+        'color': 'base',
+        'column_name': 'Model',
+    },
+    {
+        'xpos': 27,
+        'column_attr': 'hw',
+        'fmt': '>2',
+        'color': 'base',
+        'column_name': 'HW',
+    },
+    {
+        'xpos': 30,
+        'column_attr': 'fw',
+        'fmt': '>8',
+        'color': 'base',
+        'column_name': 'Firmware',
+    },
+    {
+        'xpos': 39,
+        'column_attr': 'serial',
+        'fmt': '>12',
+        'color': 'base',
+        'column_name': 'Serial No',
+    },
+    {
+        'xpos': 52,
+        'column_attr': 'memory',
+        'fmt': '>6',
+        'color': 'base',
+        'column_name': 'Memory',
+    },
+    {
+        'xpos': 59,
+        'column_attr': 'dsp',
+        'fmt': '>3',
+        'color': 'base',
+        'column_name': 'DSP',
+    },
+    {
+        'xpos': 63,
+        'column_attr': 'psu',
+        'fmt': '>3',
+        'color': 'base',
+        'column_name': 'PSU',
+    },
+    {
+        'xpos': 68,
+        'column_attr': 'faults',
+        'fmt': '>5',
+        'color': 'base',
+        'column_name': 'Fault',
+    },
+    {
+        'xpos': 73,
+        'column_attr': 'announcements',
+        'fmt': '>4',
+        'color': 'base',
+        'column_name': 'Anns',
+    },
 ]
 
 # Port
@@ -290,18 +356,90 @@ SYSTEM_ATTRS = [
 # +---+----+---------+-------+-----+----+----+---------+-------+-----+----+----+
 
 PORT_ATTRS = [
-    {'xpos':  1, 'name': 'gw_number', 'fmt': '', 'color': 'base'},
-    {'xpos':  5, 'name': 'port1', 'fmt': '>4', 'color': 'base'},
-    {'xpos': 10, 'name': 'port1_status', 'fmt': '>9', 'color': 'base'},
-    {'xpos': 20, 'name': 'port1_neg', 'fmt': '>7', 'color': 'base'},
-    {'xpos': 28, 'name': 'port1_speed', 'fmt': '>5', 'color': 'base'},
-    {'xpos': 34, 'name': 'port1_duplex', 'fmt': '>4', 'color': 'base'},
-    {'xpos': 39, 'name': 'port2', 'fmt': '>4', 'color': 'base'},
-    {'xpos': 54, 'name': 'port2_status', 'fmt': '>9', 'color': 'base'},
-    {'xpos': 54, 'name': 'port2_neg', 'fmt': '>7', 'color': 'base'},
-    {'xpos': 62, 'name': 'port2_speed', 'fmt': '>5', 'color': 'base'},
-    {'xpos': 68, 'name': 'port2_duplex', 'fmt': '>4', 'color': 'base'},
-    {'xpos': 73, 'name': 'port_redu', 'fmt': '>4', 'color': 'base'},
+    {
+        'xpos':  1,
+        'column_attr': 'gw_number',
+        'fmt': '>3',
+        'color': 'base',
+        'column_name': 'BGW',
+    },
+    {
+        'xpos':  5,
+        'column_attr': 'port1',
+        'fmt': '>4',
+        'color': 'base',
+        'column_name': 'Port',
+    },
+    {
+        'xpos': 10,
+        'column_attr': 'port1_status',
+        'fmt': '>9',
+        'color': 'base',
+        'column_name': 'Status',
+    },
+    {
+        'xpos': 20,
+        'column_attr': 'port1_neg',
+        'fmt': '>7',
+        'color': 'base',
+        'column_name': 'Neg',
+    },
+    {
+        'xpos': 28,
+        'column_attr': 'port1_speed',
+        'fmt': '>5',
+        'color': 'base',
+        'column_name': 'Speed',
+    },
+    {
+        'xpos': 34,
+        'column_attr': 'port1_duplex',
+        'fmt': '>4',
+        'color': 'base',
+        'column_name': 'Duplex',
+    },
+    {
+        'xpos': 39,
+        'column_attr': 'port2',
+        'fmt': '>4',
+        'color': 'base',
+        'column_name': 'Port',
+    },
+    {
+        'xpos': 54,
+        'column_attr': 'port2_status',
+        'fmt': '>9',
+        'color': 'base',
+        'column_name': 'Status',
+    },
+    {
+        'xpos': 54,
+        'column_attr': 'port2_neg',
+        'fmt': '>7',
+        'color': 'base',
+        'column_name': 'Neg',
+    },
+    {
+        'xpos': 62,
+        'column_attr': 'port2_speed',
+        'fmt': '>5',
+        'color': 'base',
+        'column_name': 'Speed',
+    },
+    {
+        'xpos': 68,
+        'column_attr': 'port2_duplex',
+        'fmt': '>4',
+        'color': 'base',
+        'column_name': 'Duplex',
+    },
+    {
+        'xpos': 73,
+        'column_attr': 'port_redu',
+        'fmt': '>4',
+        'color': 'base',
+        'column_name': 'Redu',
+    },
 ]
 
 # Config
@@ -312,14 +450,62 @@ PORT_ATTRS = [
 # +---+---------+---------------+----+--------+---------------+--------+-------+
 
 CONFIG_ATTRS = [
-    {'xpos':  1, 'name': 'gw_number', 'fmt': '', 'color': 'base'},
-    {'xpos':  5, 'name': 'rtp_stat_service', 'fmt': '>9', 'color': 'base'},
-    {'xpos': 15, 'name': 'capture_service', 'fmt': '>15', 'color': 'base'},
-    {'xpos': 31, 'name': 'snmp', 'fmt': '>4', 'color': 'base'},
-    {'xpos': 36, 'name': 'slamon_service', 'fmt': '>8', 'color': 'base'},
-    {'xpos': 45, 'name': 'sla_server', 'fmt': '>15', 'color': 'base'},
-    {'xpos': 61, 'name': 'lldp', 'fmt': '>8', 'color': 'base'},
-    {'xpos': 70, 'name': 'lsp', 'fmt': '>7', 'color': 'base'},
+    {
+        'xpos':  1,
+        'column_attr': 'gw_number',
+        'fmt': '>3',
+        'color': 'base',
+        'column_name': 'BGW',
+    },
+    {
+        'xpos':  5,
+        'column_attr': 'rtp_stat_service',
+        'fmt': '>9',
+        'color': 'base',
+        'column_name': 'rtp-stats',
+    },
+    {
+        'xpos': 15,
+        'column_attr': 'capture_service',
+        'fmt': '>15',
+        'color': 'base',
+        'column_name': 'capture-service',
+    },
+    {
+        'xpos': 31,
+        'column_attr': 'snmp',
+        'fmt': '>4',
+        'color': 'base',
+        'column_name': 'snmp',
+    },
+    {
+        'xpos': 36,
+        'column_attr': 'slamon_service',
+        'fmt': '>8',
+        'color': 'base',
+        'column_name': 'slamon',
+    },
+    {
+        'xpos': 45,
+        'column_attr': 'sla_server',
+        'fmt': '>15',
+        'color': 'base',
+        'column_name': 'slamon server',
+    },
+    {
+        'xpos': 61,
+        'column_attr': 'lldp',
+        'fmt': '>8',
+        'color': 'base',
+        'column_name': 'lldp',
+    },
+    {
+        'xpos': 70,
+        'column_attr': 'lsp',
+        'fmt': '>7',
+        'color': 'base',
+        'column_name': 'lsp',
+    },
 ]
 
 # Status
@@ -329,14 +515,56 @@ CONFIG_ATTRS = [
 # |001|153d05h23m06s|         0/0|  32442/1443|        320/230|    120.32|    3|
 # +---+-------------+------------+------------+---------------+----------+-----+
 
-STATUS_ATTR = [
-    {'xpos':  1, 'name': 'gw_number', 'fmt': '', 'color': 'base'},
-    {'xpos':  5, 'name': 'uptime', 'fmt': '>13', 'color': 'base'},
-    {'xpos': 19, 'name': 'active_sessions', 'fmt': '>11', 'color': 'base'},
-    {'xpos': 32, 'name': 'total_sessions', 'fmt': '>11', 'color': 'base'},
-    {'xpos': 45, 'name': 'voip_dsp', 'fmt': '>14', 'color': 'base'},
-    {'xpos': 61, 'name': 'avg_poll_secs', 'fmt': '>9', 'color': 'base'},
-    {'xpos': 72, 'name': 'polls', 'fmt': '>5', 'color': 'base'},
+STATUS_ATTRS = [
+    {
+        'xpos':  1,
+        'column_attr': 'gw_number',
+        'fmt': '>3',
+        'color': 'base',
+        'column_name': 'BGW',
+    },
+    {
+        'xpos':  5,
+        'column_attr': 'uptime',
+        'fmt': '>13',
+        'color': 'base',
+        'column_name': 'Uptime',
+    },
+    {
+        'xpos': 19,
+        'column_attr': 'active_sessions',
+        'fmt': '>11',
+        'color': 'base',
+        'column_name': 'Act Sessions',
+    },
+    {
+        'xpos': 32,
+        'column_attr': 'total_sessions',
+        'fmt': '>11',
+        'color': 'base',
+        'column_name': 'Tot Sessions',
+    },
+    {
+        'xpos': 45,
+        'column_attr': 'voip_dsp',
+        'fmt': '>14',
+        'color': 'base',
+        'column_name': 'In-Use/Tot DSPs',
+    },
+    {
+        'xpos': 61,
+        'column_attr': 'avg_poll_secs',
+        'fmt': '>9',
+        'color': 'base',
+        'column_name': 'AvgPollSec',
+    },
+    {
+        'xpos': 72,
+        'column_attr': 'polls',
+        'fmt': '>5',
+        'color': 'base',
+        'column_name': 'Polls',
+    },
 ]
 
 # RTP-Stat
@@ -346,16 +574,70 @@ STATUS_ATTR = [
 # |11:09:07|11:11:27|001|192.168.111.111|55555|100.100.100.100|55555|G711U|  OK|
 # +--------+--------+---+---------------+-----+---------------+-----+-----+----+
 
-RTP_STAT_ATTRS = [
-    {'xpos':  1, 'name': 'start_time', 'fmt': '', 'color': 'base'},
-    {'xpos': 10, 'name': 'end_time', 'fmt': '', 'color': 'base'},
-    {'xpos': 19, 'name': 'gw_number', 'fmt': '0>3', 'color': 'base'},
-    {'xpos': 23, 'name': 'local_addr', 'fmt': '>15', 'color': 'base'},
-    {'xpos': 39, 'name': 'local_port', 'fmt': '>5', 'color': 'base'},
-    {'xpos': 45, 'name': 'remote_addr', 'fmt': '>15', 'color': 'base'},
-    {'xpos': 61, 'name': 'remote_port', 'fmt': '>5', 'color': 'base'},
-    {'xpos': 67, 'name': 'codec', 'fmt': '>5', 'color': 'base'},
-    {'xpos': 74, 'name': 'qos', 'fmt': '^4', 'color': 'base'},
+RTPSTAT_ATTRS = [
+    {
+        'xpos':  1,
+        'column_attr': 'start_time',
+        'fmt': '>8',
+        'color': 'base',
+        'column_name': 'Start',
+    },
+    {
+        'xpos': 10,
+        'column_attr': 'end_time',
+        'fmt': '>8',
+        'color': 'base',
+        'column_name': 'End',
+    },
+    {
+        'xpos': 19,
+        'column_attr': 'gw_number',
+        'fmt': '>3',
+        'color': 'base',
+        'column_name': 'BGW',
+    },
+    {
+        'xpos': 23,
+        'column_attr': 'local_addr',
+        'fmt': '>15',
+        'color': 'base',
+        'column_name': 'Local-Address',
+    },
+    {
+        'xpos': 39,
+        'column_attr': 'local_port',
+        'fmt': '>5',
+        'color': 'base',
+        'column_name': 'LPort',
+    },
+    {
+        'xpos': 45,
+        'column_attr': 'remote_addr',
+        'fmt': '>15',
+        'color': 'base',
+        'column_name': 'Remote-Address',
+    }, 
+    {
+        'xpos': 61,
+        'column_attr': 'remote_port',
+        'fmt': '>5',
+        'color': 'base',
+        'column_name': 'RPort',
+    },
+    {
+        'xpos': 67,
+        'column_attr': 'codec',
+        'fmt': '>5',
+        'color': 'base',
+        'column_name': 'Codec',
+    },
+    {
+        'xpos': 74,
+        'column_attr': 'qos',
+        'fmt': '^4',
+        'color': 'base',
+        'column_name': 'QoS',
+    },
 ]
 
 
@@ -539,43 +821,43 @@ class BGW():
     @property
     def port1(self):
         if not self._port1:
-            portdict = self._port_groupdict(0)
-            self._port1 = portdict.get("port", "?") if portdict else "NA"
+            pdict = self._port_groupdict(0)
+            self._port1 = pdict.get("port", "?") if pdict else "NA"
         return self._port1
 
     @property
     def port1_status(self):
         if not self._port1_status:
-            portdict = self._port_groupdict(0)
-            self._port1_status = portdict.get("status", "?") if portdict else "NA"
+            pdict = self._port_groupdict(0)
+            self._port1_status = pdict.get("status", "?") if pdict else "NA"
         return self._port1_status
 
     @property
     def port1_neg(self):
         if not self._port1_neg:
-            portdict = self._port_groupdict(0)
-            self._port1_neg = portdict.get("neg", "?") if portdict else "NA"
+            pdict = self._port_groupdict(0)
+            self._port1_neg = pdict.get("neg", "?") if pdict else "NA"
         return self._port1_neg
 
     @property
     def port1_duplex(self):
         if not self._port1_duplex:
-            portdict = self._port_groupdict(0)
-            self._port1_duplex = portdict.get("duplex", "?") if portdict else "NA"
+            pdict = self._port_groupdict(0)
+            self._port1_duplex = pdict.get("duplex", "?") if pdict else "NA"
         return self._port1_duplex
 
     @property
     def port1_speed(self):
         if not self._port1_speed:
-            portdict = self._port_groupdict(0)
-            self._port1_speed = portdict.get("speed", "?") if portdict else "NA"
+            pdict = self._port_groupdict(0)
+            self._port1_speed = pdict.get("speed", "?") if pdict else "NA"
         return self._port1_speed
 
     @property
     def port2(self):
         if not self._port2:
-            portdict = self._port_groupdict(1)
-            self._port2 = portdict.get("port", "?") if portdict else "NA"
+            pdict = self._port_groupdict(1)
+            self._port2 = pdict.get("port", "?") if pdict else "NA"
         return self._port2
 
     @property
@@ -654,9 +936,8 @@ class BGW():
     def sla_server(self):
         if self.show_sla_monitor:
             if not self._sla_server:
-                m = re.search(
-                    r'Registered Server IP Address:\s+(\S+)', self.show_sla_monitor
-                )
+                m = re.search(r'Registered Server IP Address:\s+(\S+)',
+                              self.show_sla_monitor)
                 self._sla_server = m.group(1) if m else ""
             return self._sla_server
         return "NA"
@@ -677,7 +958,8 @@ class BGW():
     @property
     def total_sessions(self):
         if self.show_rtp_stat_summary:
-            m = re.search(r'nal\s+\S+\s+\S+\s+(\S+)', self.show_rtp_stat_summary)
+            m = re.search(r'nal\s+\S+\s+\S+\s+(\S+)',
+                          self.show_rtp_stat_summary)
             return m.group(1) if m else "?/?"
         return "NA"
 
@@ -691,9 +973,8 @@ class BGW():
     @property
     def voip_dsp(self):
         inuse, total = 0, 0
-        dsps = re.findall(
-            r"In Use\s+:\s+(\d+) of (\d+) channels", self.show_voip_dsp
-        )
+        dsps = re.findall(r"In Use\s+:\s+(\d+) of (\d+) channels",
+                          self.show_voip_dsp)
         for dsp in dsps:
             try:
                 dsp_inuse, dsp_total = dsp
@@ -824,22 +1105,38 @@ class BGW():
         attrs = self.__dict__
         return {**self.properties_asdict(), **attrs}
 
-def iter_attrs(obj, attrs, xoffset: int = 0):
+def iter_attrs(
+    obj: object,
+    attrs: List[Dict[str, Any]],
+    xoffset: int = 0
+) -> Iterator[Tuple[int, str, str]]:
+
     for attr in attrs:
-        if hasattr(obj, attr['name']):
-            _str = getattr(obj, attr['name'])
+        if hasattr(obj, attr['column_attr']):
+            _str = str(getattr(obj, attr['column_attr']))
         else:
-            _str = obj.get(attr['name'], attr['name'])
+            _str = str(obj.get(attr['column_attr'], attr['column_attr']))
+        
+        if attr['fmt']:
+            _len = int(''.join(i for i in attr['fmt'] if i.isdigit()))
+            _str = f"{_str[:_len]:{attr['fmt']}}"
+        elif attr['column_name']:
+            _len = len(attr['column_name'])
+            _str = f"{_str[:_len]}"
+        else:
+            _len = len(attr['column_attr'])
+            _str = f"{_str[:_len]}"
+        
         color = attr['color']
-        _str = f"{_str:{attr['fmt']}}"
-        yield attr['xpos'] + xoffset, _str, color
+        xpos = attr['xpos'] if attr['xpos'] else 0
+        yield xpos + xoffset, _str, color
 
 def main():
     bgw = BGW("192.168.111.111")
     bgw.update(**data)
-    for xpos, str, color in iter_attrs(bgw, SYSTEM_ATTRS):
+    for xpos, str, color in iter_attrs(bgw, STATUS_ATTRS):
         print(f"{xpos:3} {str:20} {color}")
-    for xpos, str, color in iter_attrs(rtp_stat, RTP_STAT_ATTRS):
+    for xpos, str, color in iter_attrs(rtp_stat, RTPSTAT_ATTRS):
         print(f"{xpos:3} {str:20} {color}")
 
 if __name__ == '__main__':
