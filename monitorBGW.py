@@ -34,7 +34,7 @@ logger = logging.getLogger(__name__)
 ############################ CONSTATS, VARIABLES ############################
 LOG_FORMAT = "%(asctime)s - %(levelname)8s - %(message)s [%(filename)s:%(lineno)s]"
 
-script_template_compressed = '''
+script_template = '''
 eJzdGWtv28jxu37FHE0f/GJsC7gPdZs+kOaQa5C74JwWKCSFoMmVxAtF0rvL2Aar/34z+yCXD0nOtU
 2BEoLE3Z2d98zOjiZH31xWgl/epfkleyxZLCdH+x74wDZlFkkG/4h4Gt1lTMDeDZOJYBLWhZBQ0/dW
 jSvBeB5tGNT2Tc+XkRAPCdT6V89xWYZCRrjfvun5LBIyDwWLBdTtu16Li80myhNcqaG2gy1szc5iFS
@@ -73,7 +73,7 @@ o4xeOug/4/80nbTGPrX9jt9Ueask8gOWuuQmcs2LarWG5m8GT2VbXuVAzjmxTmqWm95J45lHAyNbkE
 4r96BruLt6DnDA8F9o8IaQt/twGpjxOeYb/n14YmkNDdYzx08as770Un0Jf7v96UdT7U6UhDPzL9qC
 /s+kYoN4pt7mr8uCdPY='''
 
-script_template = '''
+script_template_test = '''
 eJxtUcFugzAMvfMVVlSkdgMJWLsDU4+TtsNO22UaE2Lg0kiQIBJEJ5R/n0NoO03zAez3/PIcx1Oo4S
 iVhsl+jWfrQWEvihZhOmcO7wqlxgom93dYr7tc6YL058zhTaG0yBWWCqZr7rhStm0hKmImmM6FAbMo
 ZZ0feEPueOqw1DkBxnNm1CjbZ6Hhg7ie9FzotUXXG7iB7caYT+psEDtILmOQMwqrwBKqQiOwW/899N
@@ -96,7 +96,8 @@ CONFIG = {
     "storage": None,
     "storage_maxlen": None,
     "script_template": script_template,
-    "discovery_commands": [ 
+    "discovery_commands": [
+        "dir",
         "show running-config",
         "show system",
         "show faults",
@@ -260,7 +261,7 @@ PORT_ATTRS = [
         'column_name': 'Port',
     },
     {
-        'xpos': 54,
+        'xpos': 44,
         'column_attr': 'port2_status',
         'fmt': '>9',
         'color': 'base',
@@ -972,8 +973,8 @@ class BGW():
     @property
     def announcements(self):
         if self.dir:
-            if not self._announcements:
-                m = re.findall(r"Announcements.*?", self.dir)
+            if self._announcements is None:
+                m = re.findall(r"Annc files", self.dir)
                 self._announcements = len(m)
             return self._announcements
         return "NA"
@@ -981,7 +982,7 @@ class BGW():
     @property
     def capture_service(self):
         if self.show_capture:
-            if not self._capture_service:
+            if self._capture_service is None:
                 m = re.search(r' service is (\w+)', self.show_capture)
                 self._capture_service = m.group(1) if m else "?"
             return self._capture_service
@@ -990,8 +991,8 @@ class BGW():
     @property
     def dsp(self):
         if self.show_system:
-            if not self._dsp:
-                m = re.findall(r"Media Socket.*?MP(\d+)", self.show_system)
+            if self._dsp is None:
+                m = re.findall(r"Media Socket .*?: M?P?(\d+) ", self.show_system)
                 self._dsp = sum(int(x) for x in m) if m else "?"
             return self._dsp
         return "NA"
@@ -999,7 +1000,7 @@ class BGW():
     @property
     def faults(self):
         if self.show_faults:
-            if not self._faults:
+            if self._faults is None:
                 if "No Fault Messages" in self.show_faults:
                     self._faults = 0
                 else:
@@ -1011,7 +1012,7 @@ class BGW():
     @property
     def fw(self):
         if self.show_system:
-            if not self._fw:
+            if self._fw is None:
                 m = re.search(r'FW Vintage\s+:\s+(\S+)', self.show_system)
                 self._fw = m.group(1) if m else "?"
             return self._fw
@@ -1020,7 +1021,7 @@ class BGW():
     @property
     def hw(self):
         if self.show_system:
-            if not self._hw:
+            if self._hw is None:
                 m = re.search(r'HW Vintage\s+:\s+(\S+)', self.show_system)
                 hw_vintage = m.group(1) if m else "?"
                 m = re.search(r'HW Suffix\s+:\s+(\S+)', self.show_system)
@@ -1032,7 +1033,7 @@ class BGW():
     @property
     def lldp(self):
         if self.show_lldp_config:
-            if not self._lldp:
+            if self._lldp is None:
                 if "Application status: disable" in self.show_lldp_config:
                    self._lldp = "disabled"
                 else:
@@ -1043,16 +1044,16 @@ class BGW():
     @property
     def lsp(self):
         if self.show_mg_list:
-            if not self._lsp:
+            if self._lsp is None:
                 m = re.search(r'ICC\s+(\S)', self.show_mg_list)
-                self._lsp = f"S8300{m.group(1)}" if m else "?"
+                self._lsp = f"S8300{m.group(1)}" if m else ""
             return self._lsp
         return "NA"
 
     @property
     def memory(self):
         if self.show_system:
-            if not self._memory:
+            if self._memory is None:
                 m = re.findall(r"Memory #\d+\s+:\s+(\S+)", self.show_system)
                 self._memory = f"{sum(self._to_mbyte(x) for x in m)}MB"
             return self._memory
@@ -1061,7 +1062,7 @@ class BGW():
     @property
     def model(self):
         if self.show_system:
-            if not self._model:
+            if self._model is None:
                 m = re.search(r'Model\s+:\s+(\S+)', self.show_system)
                 self._model = m.group(1) if m else "?"
             return self._model
@@ -1069,70 +1070,70 @@ class BGW():
 
     @property
     def port1(self):
-        if not self._port1:
+        if self._port1 is None:
             pdict = self._port_groupdict(0)
             self._port1 = pdict.get("port", "?") if pdict else "NA"
         return self._port1
 
     @property
     def port1_status(self):
-        if not self._port1_status:
+        if self._port1_status is None:
             pdict = self._port_groupdict(0)
             self._port1_status = pdict.get("status", "?") if pdict else "NA"
         return self._port1_status
 
     @property
     def port1_neg(self):
-        if not self._port1_neg:
+        if self._port1_neg is None:
             pdict = self._port_groupdict(0)
             self._port1_neg = pdict.get("neg", "?") if pdict else "NA"
         return self._port1_neg
 
     @property
     def port1_duplex(self):
-        if not self._port1_duplex:
+        if self._port1_duplex is None:
             pdict = self._port_groupdict(0)
             self._port1_duplex = pdict.get("duplex", "?") if pdict else "NA"
         return self._port1_duplex
 
     @property
     def port1_speed(self):
-        if not self._port1_speed:
+        if self._port1_speed is None:
             pdict = self._port_groupdict(0)
             self._port1_speed = pdict.get("speed", "?") if pdict else "NA"
         return self._port1_speed
 
     @property
     def port2(self):
-        if not self._port2:
+        if self._port2 is None:
             pdict = self._port_groupdict(1)
             self._port2 = pdict.get("port", "?") if pdict else "NA"
         return self._port2
 
     @property
     def port2_status(self):
-        if not self._port2_status:
+        if self._port2_status is None:
             pdict = self._port_groupdict(1)
             self._port2_status = pdict.get("status", "?") if pdict else "NA"
         return self._port2_status
 
     @property
     def port2_neg(self):
-        if not self._port2_neg:
+        if self._port2_neg is None:
             pdict = self._port_groupdict(1)
             self._port2_neg = pdict.get("neg", "?") if pdict else "NA"
         return self._port2_neg
 
     @property
     def port2_duplex(self):
-        if not self._port2_duplex:
+        if self._port2_duplex is None:
             pdict = self._port_groupdict(1)
             self._port2_duplex = pdict.get("duplex", "?") if pdict else "NA"
         return self._port2_duplex
 
     @property
     def port2_speed(self):
-        if not self._port2_speed:
+        if self._port2_speed is None:
             pdict = self._port_groupdict(1)
             self._port2_speed = pdict.get("speed", "?") if pdict else "NA"
         return self._port2_speed
@@ -1140,17 +1141,17 @@ class BGW():
     @property
     def port_redu(self):
         if self.show_running_config:
-            if not self._port_redu:
+            if self._port_redu is None:
                 m = re.search(r'port redundancy \d+/(\d+) \d+/(\d+)',
                     self.show_running_config)
-                self._port_redu = f"{m.group(1)}/{m.group(2)}" if m else "?/?"
+                self._port_redu = f"{m.group(1)}/{m.group(2)}" if m else ""
             return self._port_redu
         return "NA"
 
     @property
     def psu(self):
         if self.show_system:
-            if not self._psu:
+            if self._psu is None:
                 m = re.findall(r"PSU #\d+", self.show_system)
                 self._psu = len(m)
             return self._psu
@@ -1158,7 +1159,7 @@ class BGW():
 
     @property
     def rtp_stat_service(self):
-        if not self._rtp_stat_service:
+        if self._rtp_stat_service is None:
             m = re.search(r'rtp-stat-service', self.show_running_config)
             self._rtp_stat_service = "enabled" if m else "disabled"
         return self._rtp_stat_service
@@ -1166,7 +1167,7 @@ class BGW():
     @property
     def serial(self):
         if self.show_system:
-            if not self._serial:
+            if self._serial is None:
                 m = re.search(r'Serial No\s+:\s+(\S+)', self.show_system)
                 self._serial = m.group(1) if m else "?"
             return self._serial
@@ -1175,8 +1176,8 @@ class BGW():
     @property
     def slamon_service(self):
         if self.show_sla_monitor:
-            if not self._slamon_service:
-                m = re.search(r'SLA Monitor: (\S+)', self.show_sla_monitor)
+            if self._slamon_service is None:
+                m = re.search(r'SLA Monitor:\s+(\S+)', self.show_sla_monitor)
                 self._slamon_service = m.group(1).lower() if m else "?"
             return self._slamon_service
         return "NA"
@@ -1184,7 +1185,7 @@ class BGW():
     @property
     def sla_server(self):
         if self.show_sla_monitor:
-            if not self._sla_server:
+            if self._sla_server is None:
                 m = re.search(r'Registered Server IP Address:\s+(\S+)',
                               self.show_sla_monitor)
                 self._sla_server = m.group(1) if m else ""
@@ -1194,7 +1195,7 @@ class BGW():
     @property
     def snmp(self):
         if self.show_running_config:
-            if not self._snmp:
+            if self._snmp is None:
                 snmp = []
                 if "snmp-server comm" in self.show_running_config:
                     snmp.append("2")
@@ -1231,8 +1232,8 @@ class BGW():
                 total += int(dsp_total)
             except:
                 pass
-        total = total if total > 0 else "?"
-        inuse = inuse if inuse > 0 else "?"
+        #total = total if total > 0 else "?"
+        #inuse = inuse if inuse > 0 else "?"
         return f"{inuse}/{total}"
 
     def update(
@@ -2462,14 +2463,16 @@ async def discover_gateways(storage=None, callback=None) -> Tuple[int, int]:
         total number of queries.
     """
 
-    global GATEWAYS, BGWS
+    GATEWAYS.clear()
+    BGWS.clear()
+
     ip_filter = CONFIG.get("ip_filter", None)
     maxlen = CONFIG.get("storage_maxlen", None)
     storage = storage or CONFIG.get("storage", AsyncMemoryStorage(maxlen))
     name = "coro discover_gateways()"
 
-    GATEWAYS = {ip: BGW(ip, proto) for ip, proto in
-        connected_gateways(ip_filter).items()}
+    GATEWAYS.update({ip: BGW(ip, proto) for ip, proto in
+        connected_gateways(ip_filter).items()})
 
     tasks = create_query_tasks()
     ok, total = 0, len(tasks)
@@ -2696,12 +2699,14 @@ def must_resize(stdscr, miny, minx):
 
 async def discovery_on_callback(progressbar, storage, *args, **kwargs):
     try:
+        progressbar.draw()
         await create_task(discover_gateways(storage=storage,
             callback=progressbar.draw))
     except asyncio.CancelledError:
         return
 
 async def discovery_off_callback(progressbar, *args, **kwargs):
+    progressbar.erase()
     for task in asyncio.Task.all_tasks():
         if hasattr(task, "name") and task.name == "callback_on":
             task.cancel()
@@ -2710,7 +2715,6 @@ async def discovery_off_callback(progressbar, *args, **kwargs):
             except asyncio.CancelledError:
                 pass
             break
-    progressbar.erase()
 
 def discovery_done_callback(char, mydisplay, fut):
     try:

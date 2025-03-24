@@ -1630,3 +1630,368 @@ AttributeError: 'Workspace' object has no attribute 'column_widths'
 2025-03-23 23:24:05,001 -     INFO - Discovery 10.44.244.51 successful in coro discover_gateways() [monitorBGW.py:2485]
 2025-03-23 23:24:05,009 -     INFO - Received: 100 [monitorBGW.py:2029]
 2025-03-23 23:24:05,009 -     INFO - Received: 100 [monitorBGW.py:1585]
+2025-03-24 16:56:15,499 -     INFO - Received: 100 [monitorBGW.py:2029]
+2025-03-24 16:56:15,500 -     INFO - Received: 100 [monitorBGW.py:1585]
+2025-03-24 16:56:15,514 -     INFO - Scheduled 2 tasks in coro discover_gateways() [monitorBGW.py:2476]
+2025-03-24 16:56:15,515 -     INFO - Acquired semaphore in coro query_gateway() for 10.10.48.58, free 18 [monitorBGW.py:2416]
+2025-03-24 16:56:15,519 -     INFO - Acquired semaphore in coro query_gateway() for 10.44.244.51, free 18 [monitorBGW.py:2416]
+2025-03-24 16:56:15,525 -     INFO - Created process PID 736 in coro exec_script() for 10.10.48.58 [monitorBGW.py:2358]
+2025-03-24 16:56:15,526 -     INFO - Created process PID 737 in coro exec_script() for 10.44.244.51 [monitorBGW.py:2358]
+2025-03-24 16:56:23,786 -     INFO - Discovery 10.44.244.51 successful in coro discover_gateways() [monitorBGW.py:2485]
+2025-03-24 16:56:23,943 -     INFO - Discovery 10.10.48.58 successful in coro discover_gateways() [monitorBGW.py:2485]
+2025-03-24 16:56:23,960 -     INFO - Received: 100 [monitorBGW.py:2029]
+2025-03-24 16:56:23,960 -     INFO - Received: 100 [monitorBGW.py:1585]
+2025-03-24 17:00:02,204 -     INFO - Received: 100 [monitorBGW.py:2029]
+2025-03-24 17:00:02,205 -     INFO - Received: 100 [monitorBGW.py:1585]
+2025-03-24 17:00:02,214 -     INFO - Scheduled 2 tasks in coro discover_gateways() [monitorBGW.py:2476]
+2025-03-24 17:00:02,216 -     INFO - Acquired semaphore in coro query_gateway() for 10.10.48.58, free 18 [monitorBGW.py:2416]
+2025-03-24 17:00:02,229 -     INFO - Acquired semaphore in coro query_gateway() for 10.44.244.51, free 18 [monitorBGW.py:2416]
+2025-03-24 17:00:02,243 -     INFO - Created process PID 1669 in coro exec_script() for 10.10.48.58 [monitorBGW.py:2358]
+2025-03-24 17:00:02,249 -     INFO - Created process PID 1670 in coro exec_script() for 10.44.244.51 [monitorBGW.py:2358]
+2025-03-24 17:00:10,283 -     INFO - Discovery 10.44.244.51 successful in coro discover_gateways() [monitorBGW.py:2485]
+2025-03-24 17:00:10,403 -     INFO - Discovery 10.10.48.58 successful in coro discover_gateways() [monitorBGW.py:2485]
+2025-03-24 17:00:10,451 -     INFO - Received: 100 [monitorBGW.py:2029]
+2025-03-24 17:00:10,452 -     INFO - Received: 100 [monitorBGW.py:1585]
+2025-03-24 17:04:37,186 -     INFO - Received: 100 [monitorBGW.py:2029]
+2025-03-24 17:04:37,187 -     INFO - Received: 100 [monitorBGW.py:1585]
+2025-03-24 17:04:37,198 -     INFO - Scheduled 2 tasks in coro discover_gateways() [monitorBGW.py:2476]
+2025-03-24 17:04:37,200 -     INFO - Acquired semaphore in coro query_gateway() for 10.10.48.58, free 18 [monitorBGW.py:2416]
+2025-03-24 17:04:37,208 -     INFO - Acquired semaphore in coro query_gateway() for 10.44.244.51, free 18 [monitorBGW.py:2416]
+2025-03-24 17:04:37,218 -     INFO - Created process PID 2735 in coro exec_script() for 10.10.48.58 [monitorBGW.py:2358]
+2025-03-24 17:04:37,223 -     INFO - Created process PID 2736 in coro exec_script() for 10.44.244.51 [monitorBGW.py:2358]
+2025-03-24 17:04:45,282 -     INFO - Discovery 10.44.244.51 successful in coro discover_gateways() [monitorBGW.py:2485]
+2025-03-24 17:04:45,784 -     INFO - Discovery 10.10.48.58 successful in coro discover_gateways() [monitorBGW.py:2485]
+2025-03-24 17:04:45,796 -     INFO - Received: 100 [monitorBGW.py:2029]
+2025-03-24 17:04:45,797 -     INFO - Received: 100 [monitorBGW.py:1585]
+2025-03-24 17:06:50,535 -     INFO - Received: 100 [monitorBGW.py:2029]
+2025-03-24 17:06:50,538 -     INFO - Received: 100 [monitorBGW.py:1585]
+2025-03-24 17:06:50,560 -     INFO - Scheduled 2 tasks in coro discover_gateways() [monitorBGW.py:2476]
+2025-03-24 17:06:50,563 -     INFO - Acquired semaphore in coro query_gateway() for 10.10.48.58, free 18 [monitorBGW.py:2416]
+2025-03-24 17:06:50,576 -     INFO - Acquired semaphore in coro query_gateway() for 10.44.244.51, free 18 [monitorBGW.py:2416]
+2025-03-24 17:06:50,589 -     INFO - Created process PID 3377 in coro exec_script() for 10.10.48.58 [monitorBGW.py:2358]
+2025-03-24 17:06:50,595 -     INFO - Created process PID 3378 in coro exec_script() for 10.44.244.51 [monitorBGW.py:2358]
+2025-03-24 17:06:58,652 -     INFO - Discovery 10.44.244.51 successful in coro discover_gateways() [monitorBGW.py:2485]
+2025-03-24 17:06:58,808 -     INFO - Discovery 10.10.48.58 successful in coro discover_gateways() [monitorBGW.py:2485]
+2025-03-24 17:06:58,858 -     INFO - Received: 100 [monitorBGW.py:2029]
+2025-03-24 17:06:58,859 -     INFO - Received: 100 [monitorBGW.py:1585]
+2025-03-24 17:10:42,216 -     INFO - Received: 100 [monitorBGW.py:2029]
+2025-03-24 17:10:42,220 -     INFO - Received: 100 [monitorBGW.py:1585]
+2025-03-24 17:10:42,251 -     INFO - Scheduled 2 tasks in coro discover_gateways() [monitorBGW.py:2476]
+2025-03-24 17:10:42,255 -     INFO - Acquired semaphore in coro query_gateway() for 10.10.48.58, free 18 [monitorBGW.py:2416]
+2025-03-24 17:10:42,266 -     INFO - Acquired semaphore in coro query_gateway() for 10.44.244.51, free 18 [monitorBGW.py:2416]
+2025-03-24 17:10:42,278 -     INFO - Created process PID 4426 in coro exec_script() for 10.10.48.58 [monitorBGW.py:2358]
+2025-03-24 17:10:42,282 -     INFO - Created process PID 4427 in coro exec_script() for 10.44.244.51 [monitorBGW.py:2358]
+2025-03-24 17:10:50,388 -     INFO - Discovery 10.44.244.51 successful in coro discover_gateways() [monitorBGW.py:2485]
+2025-03-24 17:10:50,545 -     INFO - Discovery 10.10.48.58 successful in coro discover_gateways() [monitorBGW.py:2485]
+2025-03-24 17:10:50,580 -     INFO - Received: 100 [monitorBGW.py:2029]
+2025-03-24 17:10:50,580 -     INFO - Received: 100 [monitorBGW.py:1585]
+2025-03-24 17:13:37,788 -     INFO - Received: 100 [monitorBGW.py:2029]
+2025-03-24 17:13:37,789 -     INFO - Received: 100 [monitorBGW.py:1585]
+2025-03-24 17:13:37,802 -     INFO - Scheduled 2 tasks in coro discover_gateways() [monitorBGW.py:2476]
+2025-03-24 17:13:37,804 -     INFO - Acquired semaphore in coro query_gateway() for 10.10.48.58, free 18 [monitorBGW.py:2416]
+2025-03-24 17:13:37,811 -     INFO - Acquired semaphore in coro query_gateway() for 10.44.244.51, free 18 [monitorBGW.py:2416]
+2025-03-24 17:13:37,826 -     INFO - Created process PID 5160 in coro exec_script() for 10.10.48.58 [monitorBGW.py:2358]
+2025-03-24 17:13:37,828 -     INFO - Created process PID 5161 in coro exec_script() for 10.44.244.51 [monitorBGW.py:2358]
+2025-03-24 17:13:45,842 -     INFO - Discovery 10.44.244.51 successful in coro discover_gateways() [monitorBGW.py:2485]
+2025-03-24 17:13:45,988 -     INFO - Discovery 10.10.48.58 successful in coro discover_gateways() [monitorBGW.py:2485]
+2025-03-24 17:13:46,004 -     INFO - Received: 100 [monitorBGW.py:2029]
+2025-03-24 17:13:46,005 -     INFO - Received: 100 [monitorBGW.py:1585]
+2025-03-24 17:19:16,185 -     INFO - Received: 100 [monitorBGW.py:2029]
+2025-03-24 17:19:16,185 -     INFO - Received: 100 [monitorBGW.py:1585]
+2025-03-24 17:19:16,189 -     INFO - Scheduled 2 tasks in coro discover_gateways() [monitorBGW.py:2476]
+2025-03-24 17:19:16,189 -     INFO - Acquired semaphore in coro query_gateway() for 10.10.48.58, free 18 [monitorBGW.py:2416]
+2025-03-24 17:19:16,191 -     INFO - Acquired semaphore in coro query_gateway() for 10.44.244.51, free 18 [monitorBGW.py:2416]
+2025-03-24 17:19:16,194 -     INFO - Created process PID 6706 in coro exec_script() for 10.10.48.58 [monitorBGW.py:2358]
+2025-03-24 17:19:16,194 -     INFO - Created process PID 6707 in coro exec_script() for 10.44.244.51 [monitorBGW.py:2358]
+2025-03-24 17:19:24,070 -     INFO - Discovery 10.44.244.51 successful in coro discover_gateways() [monitorBGW.py:2485]
+2025-03-24 17:19:24,365 -     INFO - Discovery 10.10.48.58 successful in coro discover_gateways() [monitorBGW.py:2485]
+2025-03-24 17:19:24,382 -     INFO - Received: 100 [monitorBGW.py:2029]
+2025-03-24 17:19:24,382 -     INFO - Received: 100 [monitorBGW.py:1585]
+2025-03-24 17:27:22,298 -     INFO - Received: 100 [monitorBGW.py:2029]
+2025-03-24 17:27:22,299 -     INFO - Received: 100 [monitorBGW.py:1585]
+2025-03-24 17:27:22,307 -     INFO - Scheduled 2 tasks in coro discover_gateways() [monitorBGW.py:2476]
+2025-03-24 17:27:22,308 -     INFO - Acquired semaphore in coro query_gateway() for 10.10.48.58, free 18 [monitorBGW.py:2416]
+2025-03-24 17:27:22,311 -     INFO - Acquired semaphore in coro query_gateway() for 10.44.244.51, free 18 [monitorBGW.py:2416]
+2025-03-24 17:27:22,319 -     INFO - Created process PID 8571 in coro exec_script() for 10.10.48.58 [monitorBGW.py:2358]
+2025-03-24 17:27:22,320 -     INFO - Created process PID 8572 in coro exec_script() for 10.44.244.51 [monitorBGW.py:2358]
+2025-03-24 17:27:30,368 -     INFO - Discovery 10.10.48.58 successful in coro discover_gateways() [monitorBGW.py:2485]
+2025-03-24 17:27:30,410 -     INFO - Discovery 10.44.244.51 successful in coro discover_gateways() [monitorBGW.py:2485]
+2025-03-24 17:27:30,418 -     INFO - Received: 100 [monitorBGW.py:2029]
+2025-03-24 17:27:30,418 -     INFO - Received: 100 [monitorBGW.py:1585]
+2025-03-24 17:27:52,269 -     INFO - Received: 100 [monitorBGW.py:2029]
+2025-03-24 17:27:52,270 -     INFO - Received: 100 [monitorBGW.py:1585]
+2025-03-24 17:27:52,281 -     INFO - Scheduled 2 tasks in coro discover_gateways() [monitorBGW.py:2476]
+2025-03-24 17:27:52,281 -     INFO - Acquired semaphore in coro query_gateway() for 10.10.48.58, free 18 [monitorBGW.py:2416]
+2025-03-24 17:27:52,286 -     INFO - Acquired semaphore in coro query_gateway() for 10.44.244.51, free 18 [monitorBGW.py:2416]
+2025-03-24 17:27:52,292 -     INFO - Created process PID 8797 in coro exec_script() for 10.10.48.58 [monitorBGW.py:2358]
+2025-03-24 17:27:52,293 -     INFO - Created process PID 8798 in coro exec_script() for 10.44.244.51 [monitorBGW.py:2358]
+2025-03-24 17:28:00,400 -     INFO - Discovery 10.44.244.51 successful in coro discover_gateways() [monitorBGW.py:2485]
+2025-03-24 17:28:00,480 -     INFO - Discovery 10.10.48.58 successful in coro discover_gateways() [monitorBGW.py:2485]
+2025-03-24 17:28:00,527 -     INFO - Received: 100 [monitorBGW.py:2029]
+2025-03-24 17:28:00,527 -     INFO - Received: 100 [monitorBGW.py:1585]
+2025-03-24 17:28:01,642 -     INFO - Received: 100 [monitorBGW.py:2029]
+2025-03-24 17:28:01,642 -     INFO - Received: 100 [monitorBGW.py:1585]
+2025-03-24 17:28:01,653 -     INFO - Scheduled 2 tasks in coro discover_gateways() [monitorBGW.py:2476]
+2025-03-24 17:28:01,654 -     INFO - Acquired semaphore in coro query_gateway() for 10.10.48.58, free 18 [monitorBGW.py:2416]
+2025-03-24 17:28:01,657 -     INFO - Acquired semaphore in coro query_gateway() for 10.44.244.51, free 18 [monitorBGW.py:2416]
+2025-03-24 17:28:01,662 -     INFO - Created process PID 8922 in coro exec_script() for 10.10.48.58 [monitorBGW.py:2358]
+2025-03-24 17:28:01,663 -     INFO - Created process PID 8923 in coro exec_script() for 10.44.244.51 [monitorBGW.py:2358]
+2025-03-24 17:28:09,722 -     INFO - Discovery 10.44.244.51 successful in coro discover_gateways() [monitorBGW.py:2485]
+2025-03-24 17:28:10,610 -     INFO - Discovery 10.10.48.58 successful in coro discover_gateways() [monitorBGW.py:2485]
+2025-03-24 17:28:10,660 -     INFO - Received: 100 [monitorBGW.py:2029]
+2025-03-24 17:28:10,660 -     INFO - Received: 100 [monitorBGW.py:1585]
+2025-03-24 17:32:55,559 -     INFO - Received: 100 [monitorBGW.py:2029]
+2025-03-24 17:32:55,560 -     INFO - Received: 100 [monitorBGW.py:1585]
+2025-03-24 17:32:55,570 -     INFO - Scheduled 2 tasks in coro discover_gateways() [monitorBGW.py:2478]
+2025-03-24 17:32:55,571 -     INFO - Acquired semaphore in coro query_gateway() for 10.10.48.58, free 18 [monitorBGW.py:2416]
+2025-03-24 17:32:55,575 -     INFO - Acquired semaphore in coro query_gateway() for 10.44.244.51, free 18 [monitorBGW.py:2416]
+2025-03-24 17:32:55,583 -     INFO - Created process PID 10028 in coro exec_script() for 10.10.48.58 [monitorBGW.py:2358]
+2025-03-24 17:32:55,584 -     INFO - Created process PID 10029 in coro exec_script() for 10.44.244.51 [monitorBGW.py:2358]
+2025-03-24 17:33:03,818 -     INFO - Discovery 10.10.48.58 successful in coro discover_gateways() [monitorBGW.py:2487]
+2025-03-24 17:33:04,285 -     INFO - Discovery 10.44.244.51 successful in coro discover_gateways() [monitorBGW.py:2487]
+2025-03-24 17:33:04,325 -     INFO - Received: 100 [monitorBGW.py:2029]
+2025-03-24 17:33:04,325 -     INFO - Received: 100 [monitorBGW.py:1585]
+2025-03-24 17:33:04,880 -     INFO - Received: 100 [monitorBGW.py:2029]
+2025-03-24 17:33:04,880 -     INFO - Received: 100 [monitorBGW.py:1585]
+2025-03-24 17:33:04,889 -     INFO - Scheduled 2 tasks in coro discover_gateways() [monitorBGW.py:2478]
+2025-03-24 17:33:04,890 -     INFO - Acquired semaphore in coro query_gateway() for 10.10.48.58, free 18 [monitorBGW.py:2416]
+2025-03-24 17:33:04,894 -     INFO - Acquired semaphore in coro query_gateway() for 10.44.244.51, free 18 [monitorBGW.py:2416]
+2025-03-24 17:33:04,899 -     INFO - Created process PID 10120 in coro exec_script() for 10.10.48.58 [monitorBGW.py:2358]
+2025-03-24 17:33:04,900 -     INFO - Created process PID 10121 in coro exec_script() for 10.44.244.51 [monitorBGW.py:2358]
+2025-03-24 17:33:12,924 -     INFO - Discovery 10.44.244.51 successful in coro discover_gateways() [monitorBGW.py:2487]
+2025-03-24 17:33:13,684 -     INFO - Discovery 10.10.48.58 successful in coro discover_gateways() [monitorBGW.py:2487]
+2025-03-24 17:33:13,686 -     INFO - Received: 100 [monitorBGW.py:2029]
+2025-03-24 17:33:13,687 -     INFO - Received: 100 [monitorBGW.py:1585]
+2025-03-24 17:34:20,658 -     INFO - Received: 100 [monitorBGW.py:2029]
+2025-03-24 17:34:20,659 -     INFO - Received: 100 [monitorBGW.py:1585]
+2025-03-24 17:34:20,670 -     INFO - Scheduled 2 tasks in coro discover_gateways() [monitorBGW.py:2478]
+2025-03-24 17:34:20,671 -     INFO - Acquired semaphore in coro query_gateway() for 10.10.48.58, free 18 [monitorBGW.py:2416]
+2025-03-24 17:34:20,674 -     INFO - Acquired semaphore in coro query_gateway() for 10.44.244.51, free 18 [monitorBGW.py:2416]
+2025-03-24 17:34:20,682 -     INFO - Created process PID 10494 in coro exec_script() for 10.10.48.58 [monitorBGW.py:2358]
+2025-03-24 17:34:20,682 -     INFO - Created process PID 10495 in coro exec_script() for 10.44.244.51 [monitorBGW.py:2358]
+2025-03-24 17:34:28,714 -     INFO - Discovery 10.44.244.51 successful in coro discover_gateways() [monitorBGW.py:2487]
+2025-03-24 17:34:28,823 -     INFO - Discovery 10.10.48.58 successful in coro discover_gateways() [monitorBGW.py:2487]
+2025-03-24 17:34:28,826 -     INFO - Received: 100 [monitorBGW.py:2029]
+2025-03-24 17:34:28,826 -     INFO - Received: 100 [monitorBGW.py:1585]
+2025-03-24 17:35:00,031 -     INFO - Received: 100 [monitorBGW.py:2029]
+2025-03-24 17:35:00,032 -     INFO - Received: 100 [monitorBGW.py:1585]
+2025-03-24 17:35:00,053 -     INFO - Scheduled 2 tasks in coro discover_gateways() [monitorBGW.py:2478]
+2025-03-24 17:35:00,056 -     INFO - Acquired semaphore in coro query_gateway() for 10.10.48.58, free 18 [monitorBGW.py:2416]
+2025-03-24 17:35:00,065 -     INFO - Acquired semaphore in coro query_gateway() for 10.44.244.51, free 18 [monitorBGW.py:2416]
+2025-03-24 17:35:00,080 -     INFO - Created process PID 10787 in coro exec_script() for 10.10.48.58 [monitorBGW.py:2358]
+2025-03-24 17:35:00,084 -     INFO - Created process PID 10788 in coro exec_script() for 10.44.244.51 [monitorBGW.py:2358]
+2025-03-24 17:35:08,143 -     INFO - Discovery 10.44.244.51 successful in coro discover_gateways() [monitorBGW.py:2487]
+2025-03-24 17:35:08,344 -     INFO - Discovery 10.10.48.58 successful in coro discover_gateways() [monitorBGW.py:2487]
+2025-03-24 17:42:13,402 -     INFO - Received: 100 [monitorBGW.py:2029]
+2025-03-24 17:42:13,404 -     INFO - Received: 100 [monitorBGW.py:1585]
+2025-03-24 17:42:13,419 -     INFO - Scheduled 2 tasks in coro discover_gateways() [monitorBGW.py:2478]
+2025-03-24 17:42:13,420 -     INFO - Acquired semaphore in coro query_gateway() for 10.10.48.58, free 18 [monitorBGW.py:2416]
+2025-03-24 17:42:13,428 -     INFO - Acquired semaphore in coro query_gateway() for 10.44.244.51, free 18 [monitorBGW.py:2416]
+2025-03-24 17:42:13,442 -     INFO - Created process PID 12390 in coro exec_script() for 10.10.48.58 [monitorBGW.py:2358]
+2025-03-24 17:42:13,453 -     INFO - Created process PID 12394 in coro exec_script() for 10.44.244.51 [monitorBGW.py:2358]
+2025-03-24 17:42:21,486 -     INFO - Discovery 10.44.244.51 successful in coro discover_gateways() [monitorBGW.py:2487]
+2025-03-24 17:42:21,524 -     INFO - Discovery 10.10.48.58 successful in coro discover_gateways() [monitorBGW.py:2487]
+2025-03-24 17:44:46,362 -     INFO - Received: 100 [monitorBGW.py:2029]
+2025-03-24 17:44:46,368 -     INFO - Received: 100 [monitorBGW.py:1585]
+2025-03-24 17:44:46,382 -     INFO - Scheduled 2 tasks in coro discover_gateways() [monitorBGW.py:2478]
+2025-03-24 17:44:46,383 -     INFO - Acquired semaphore in coro query_gateway() for 10.10.48.58, free 18 [monitorBGW.py:2416]
+2025-03-24 17:44:46,386 -     INFO - Acquired semaphore in coro query_gateway() for 10.44.244.51, free 18 [monitorBGW.py:2416]
+2025-03-24 17:44:46,392 -     INFO - Created process PID 13034 in coro exec_script() for 10.10.48.58 [monitorBGW.py:2358]
+2025-03-24 17:44:46,393 -     INFO - Created process PID 13035 in coro exec_script() for 10.44.244.51 [monitorBGW.py:2358]
+2025-03-24 17:44:54,511 -     INFO - Discovery 10.44.244.51 successful in coro discover_gateways() [monitorBGW.py:2487]
+2025-03-24 17:44:55,168 -     INFO - Discovery 10.10.48.58 successful in coro discover_gateways() [monitorBGW.py:2487]
+2025-03-24 17:44:55,191 -     INFO - Received: 100 [monitorBGW.py:2029]
+2025-03-24 17:44:55,192 -     INFO - Received: 100 [monitorBGW.py:1585]
+2025-03-24 17:45:31,935 -     INFO - Received: 100 [monitorBGW.py:2029]
+2025-03-24 17:45:31,936 -     INFO - Received: 100 [monitorBGW.py:1585]
+2025-03-24 17:45:31,945 -     INFO - Scheduled 2 tasks in coro discover_gateways() [monitorBGW.py:2478]
+2025-03-24 17:45:31,946 -     INFO - Acquired semaphore in coro query_gateway() for 10.10.48.58, free 18 [monitorBGW.py:2416]
+2025-03-24 17:45:31,950 -     INFO - Acquired semaphore in coro query_gateway() for 10.44.244.51, free 18 [monitorBGW.py:2416]
+2025-03-24 17:45:31,956 -     INFO - Created process PID 13360 in coro exec_script() for 10.10.48.58 [monitorBGW.py:2358]
+2025-03-24 17:45:31,957 -     INFO - Created process PID 13361 in coro exec_script() for 10.44.244.51 [monitorBGW.py:2358]
+2025-03-24 17:45:34,269 -     INFO - Received: 100 [monitorBGW.py:2029]
+2025-03-24 17:45:34,269 -     INFO - Received: 100 [monitorBGW.py:1585]
+2025-03-24 17:45:34,271 -    ERROR - CancelledError() in coro discover_gateways() [monitorBGW.py:2489]
+Traceback (most recent call last):
+  File "/home/ss/Projects/python36_async_playground/monitorBGW.py", line 2482, in discover_gateways
+    result = await fut
+  File "/usr/lib64/python3.6/asyncio/tasks.py", line 454, in _wait_for_one
+    f = yield from done.get()
+  File "/usr/lib64/python3.6/asyncio/queues.py", line 167, in get
+    yield from getter
+concurrent.futures._base.CancelledError
+2025-03-24 17:45:38,528 -     INFO - Received: 100 [monitorBGW.py:2029]
+2025-03-24 17:45:38,528 -     INFO - Received: 100 [monitorBGW.py:1585]
+2025-03-24 17:45:38,537 -     INFO - Scheduled 2 tasks in coro discover_gateways() [monitorBGW.py:2478]
+2025-03-24 17:45:38,538 -     INFO - Acquired semaphore in coro query_gateway() for 10.10.48.58, free 18 [monitorBGW.py:2416]
+2025-03-24 17:45:38,542 -     INFO - Acquired semaphore in coro query_gateway() for 10.44.244.51, free 18 [monitorBGW.py:2416]
+2025-03-24 17:45:38,549 -     INFO - Created process PID 13477 in coro exec_script() for 10.10.48.58 [monitorBGW.py:2358]
+2025-03-24 17:45:38,550 -     INFO - Created process PID 13478 in coro exec_script() for 10.44.244.51 [monitorBGW.py:2358]
+2025-03-24 17:45:39,999 -     INFO - Received: 100 [monitorBGW.py:2029]
+2025-03-24 17:45:39,999 -     INFO - Received: 100 [monitorBGW.py:1585]
+2025-03-24 17:45:40,000 -    ERROR - CancelledError() in coro discover_gateways() [monitorBGW.py:2489]
+Traceback (most recent call last):
+  File "/home/ss/Projects/python36_async_playground/monitorBGW.py", line 2482, in discover_gateways
+    result = await fut
+  File "/usr/lib64/python3.6/asyncio/tasks.py", line 454, in _wait_for_one
+    f = yield from done.get()
+  File "/usr/lib64/python3.6/asyncio/queues.py", line 167, in get
+    yield from getter
+concurrent.futures._base.CancelledError
+2025-03-24 17:45:41,117 -     INFO - Received: 100 [monitorBGW.py:2029]
+2025-03-24 17:45:41,117 -     INFO - Received: 100 [monitorBGW.py:1585]
+2025-03-24 17:45:41,126 -     INFO - Scheduled 2 tasks in coro discover_gateways() [monitorBGW.py:2478]
+2025-03-24 17:45:41,126 -     INFO - Acquired semaphore in coro query_gateway() for 10.10.48.58, free 18 [monitorBGW.py:2416]
+2025-03-24 17:45:41,130 -     INFO - Acquired semaphore in coro query_gateway() for 10.44.244.51, free 18 [monitorBGW.py:2416]
+2025-03-24 17:45:41,136 -     INFO - Created process PID 13565 in coro exec_script() for 10.10.48.58 [monitorBGW.py:2358]
+2025-03-24 17:45:41,138 -     INFO - Created process PID 13566 in coro exec_script() for 10.44.244.51 [monitorBGW.py:2358]
+2025-03-24 17:45:42,234 -     INFO - Received: 100 [monitorBGW.py:2029]
+2025-03-24 17:45:42,234 -     INFO - Received: 100 [monitorBGW.py:1585]
+2025-03-24 17:45:42,235 -    ERROR - CancelledError() in coro discover_gateways() [monitorBGW.py:2489]
+Traceback (most recent call last):
+  File "/home/ss/Projects/python36_async_playground/monitorBGW.py", line 2482, in discover_gateways
+    result = await fut
+  File "/usr/lib64/python3.6/asyncio/tasks.py", line 454, in _wait_for_one
+    f = yield from done.get()
+  File "/usr/lib64/python3.6/asyncio/queues.py", line 167, in get
+    yield from getter
+concurrent.futures._base.CancelledError
+2025-03-24 17:45:43,957 -     INFO - Terminating PID 13360 in coro exec_script() for 10.10.48.58 [monitorBGW.py:2373]
+2025-03-24 17:45:43,960 -    ERROR - TimeoutError in coro exec_script() for 10.10.48.58 [monitorBGW.py:2438]
+2025-03-24 17:45:48,323 -     INFO - Received: 100 [monitorBGW.py:2029]
+2025-03-24 17:45:48,323 -     INFO - Received: 100 [monitorBGW.py:1585]
+2025-03-24 17:45:48,332 -     INFO - Scheduled 2 tasks in coro discover_gateways() [monitorBGW.py:2478]
+2025-03-24 17:45:48,333 -     INFO - Acquired semaphore in coro query_gateway() for 10.10.48.58, free 18 [monitorBGW.py:2416]
+2025-03-24 17:45:48,337 -     INFO - Acquired semaphore in coro query_gateway() for 10.44.244.51, free 18 [monitorBGW.py:2416]
+2025-03-24 17:45:48,344 -     INFO - Created process PID 13807 in coro exec_script() for 10.10.48.58 [monitorBGW.py:2358]
+2025-03-24 17:45:48,344 -     INFO - Created process PID 13808 in coro exec_script() for 10.44.244.51 [monitorBGW.py:2358]
+2025-03-24 17:45:48,547 -    ERROR - ExpectTimeout for PID 13808 in coro exec_script() for 10.44.244.51 [monitorBGW.py:2368]
+2025-03-24 17:45:50,551 -     INFO - Terminating PID 13477 in coro exec_script() for 10.10.48.58 [monitorBGW.py:2373]
+2025-03-24 17:45:50,552 -     INFO - Terminating PID 13478 in coro exec_script() for 10.44.244.51 [monitorBGW.py:2373]
+2025-03-24 17:45:50,554 -    ERROR - TimeoutError in coro exec_script() for 10.10.48.58 [monitorBGW.py:2438]
+2025-03-24 17:45:50,555 -    ERROR - TimeoutError in coro exec_script() for 10.44.244.51 [monitorBGW.py:2438]
+2025-03-24 17:45:50,555 -    ERROR - TimeoutError() in coro discover_gateways() [monitorBGW.py:2489]
+Traceback (most recent call last):
+  File "/home/ss/Projects/python36_async_playground/monitorBGW.py", line 2482, in discover_gateways
+    result = await fut
+  File "/usr/lib64/python3.6/asyncio/tasks.py", line 458, in _wait_for_one
+    return f.result()  # May raise f.exception().
+  File "/home/ss/Projects/python36_async_playground/monitorBGW.py", line 2422, in query_gateway
+    stdout = await exec_script(*script, timeout=timeout, name=name)
+  File "/home/ss/Projects/python36_async_playground/monitorBGW.py", line 2360, in exec_script
+    stdout, stderr = await asyncio.wait_for(proc.communicate(), timeout)
+  File "/usr/lib64/python3.6/asyncio/tasks.py", line 362, in wait_for
+    raise futures.TimeoutError()
+concurrent.futures._base.TimeoutError
+2025-03-24 17:45:50,555 -    ERROR - TimeoutError() in coro discover_gateways() [monitorBGW.py:2489]
+Traceback (most recent call last):
+  File "/home/ss/Projects/python36_async_playground/monitorBGW.py", line 2482, in discover_gateways
+    result = await fut
+  File "/usr/lib64/python3.6/asyncio/tasks.py", line 458, in _wait_for_one
+    return f.result()  # May raise f.exception().
+  File "/home/ss/Projects/python36_async_playground/monitorBGW.py", line 2422, in query_gateway
+    stdout = await exec_script(*script, timeout=timeout, name=name)
+  File "/home/ss/Projects/python36_async_playground/monitorBGW.py", line 2360, in exec_script
+    stdout, stderr = await asyncio.wait_for(proc.communicate(), timeout)
+  File "/usr/lib64/python3.6/asyncio/tasks.py", line 362, in wait_for
+    raise futures.TimeoutError()
+concurrent.futures._base.TimeoutError
+2025-03-24 17:45:50,777 -     INFO - Discovery 10.44.244.51 successful in coro discover_gateways() [monitorBGW.py:2487]
+2025-03-24 17:45:50,778 -    ERROR - TimeoutError() silenced [monitorBGW.py:2203]
+2025-03-24 17:45:53,139 -     INFO - Terminating PID 13565 in coro exec_script() for 10.10.48.58 [monitorBGW.py:2373]
+2025-03-24 17:45:53,141 -    ERROR - TimeoutError in coro exec_script() for 10.10.48.58 [monitorBGW.py:2438]
+2025-03-24 17:45:53,141 -    ERROR - TimeoutError() silenced [monitorBGW.py:2203]
+2025-03-24 17:45:56,033 -     INFO - Received: 100 [monitorBGW.py:2029]
+2025-03-24 17:45:56,033 -     INFO - Received: 100 [monitorBGW.py:1585]
+2025-03-24 17:45:56,038 -    ERROR - CancelledError() in coro discover_gateways() [monitorBGW.py:2489]
+Traceback (most recent call last):
+  File "/home/ss/Projects/python36_async_playground/monitorBGW.py", line 2482, in discover_gateways
+    result = await fut
+  File "/usr/lib64/python3.6/asyncio/tasks.py", line 454, in _wait_for_one
+    f = yield from done.get()
+  File "/usr/lib64/python3.6/asyncio/queues.py", line 167, in get
+    yield from getter
+concurrent.futures._base.CancelledError
+2025-03-24 17:45:59,128 -     INFO - Received: 99 [monitorBGW.py:2029]
+2025-03-24 17:45:59,129 -     INFO - Received: 99 [monitorBGW.py:1585]
+2025-03-24 17:45:59,130 -     INFO - Created clear_storage_callback() [monitorBGW.py:2745]
+2025-03-24 17:46:00,079 -     INFO - Received: 121 [monitorBGW.py:1901]
+2025-03-24 17:46:01,014 -     INFO - Received: 100 [monitorBGW.py:2029]
+2025-03-24 17:46:01,015 -     INFO - Received: 100 [monitorBGW.py:1585]
+2025-03-24 17:46:01,024 -     INFO - Scheduled 2 tasks in coro discover_gateways() [monitorBGW.py:2478]
+2025-03-24 17:46:01,025 -     INFO - Acquired semaphore in coro query_gateway() for 10.10.48.58, free 18 [monitorBGW.py:2416]
+2025-03-24 17:46:01,028 -     INFO - Acquired semaphore in coro query_gateway() for 10.44.244.51, free 18 [monitorBGW.py:2416]
+2025-03-24 17:46:01,035 -     INFO - Created process PID 14002 in coro exec_script() for 10.10.48.58 [monitorBGW.py:2358]
+2025-03-24 17:46:01,037 -     INFO - Created process PID 14003 in coro exec_script() for 10.44.244.51 [monitorBGW.py:2358]
+2025-03-24 17:46:09,080 -     INFO - Discovery 10.44.244.51 successful in coro discover_gateways() [monitorBGW.py:2487]
+2025-03-24 17:46:09,227 -     INFO - Discovery 10.10.48.58 successful in coro discover_gateways() [monitorBGW.py:2487]
+2025-03-24 17:46:09,264 -     INFO - Received: 100 [monitorBGW.py:2029]
+2025-03-24 17:46:09,264 -     INFO - Received: 100 [monitorBGW.py:1585]
+2025-03-24 17:47:39,644 -     INFO - Received: 100 [monitorBGW.py:2030]
+2025-03-24 17:47:39,644 -     INFO - Received: 100 [monitorBGW.py:1586]
+2025-03-24 17:47:39,655 -     INFO - Scheduled 2 tasks in coro discover_gateways() [monitorBGW.py:2479]
+2025-03-24 17:47:39,656 -     INFO - Acquired semaphore in coro query_gateway() for 10.10.48.58, free 18 [monitorBGW.py:2417]
+2025-03-24 17:47:39,659 -     INFO - Acquired semaphore in coro query_gateway() for 10.44.244.51, free 18 [monitorBGW.py:2417]
+2025-03-24 17:47:39,665 -     INFO - Created process PID 14476 in coro exec_script() for 10.10.48.58 [monitorBGW.py:2359]
+2025-03-24 17:47:39,666 -     INFO - Created process PID 14477 in coro exec_script() for 10.44.244.51 [monitorBGW.py:2359]
+2025-03-24 17:47:48,872 -     INFO - Discovery 10.44.244.51 successful in coro discover_gateways() [monitorBGW.py:2488]
+2025-03-24 17:47:49,021 -     INFO - Discovery 10.10.48.58 successful in coro discover_gateways() [monitorBGW.py:2488]
+2025-03-24 17:47:49,025 -     INFO - Received: 100 [monitorBGW.py:2030]
+2025-03-24 17:47:49,025 -     INFO - Received: 100 [monitorBGW.py:1586]
+2025-03-24 17:50:15,795 -     INFO - Received: 100 [monitorBGW.py:2030]
+2025-03-24 17:50:15,795 -     INFO - Received: 100 [monitorBGW.py:1586]
+2025-03-24 17:50:15,803 -     INFO - Scheduled 2 tasks in coro discover_gateways() [monitorBGW.py:2479]
+2025-03-24 17:50:15,804 -     INFO - Acquired semaphore in coro query_gateway() for 10.10.48.58, free 18 [monitorBGW.py:2417]
+2025-03-24 17:50:15,808 -     INFO - Acquired semaphore in coro query_gateway() for 10.44.244.51, free 18 [monitorBGW.py:2417]
+2025-03-24 17:50:15,817 -     INFO - Created process PID 15136 in coro exec_script() for 10.10.48.58 [monitorBGW.py:2359]
+2025-03-24 17:50:15,819 -     INFO - Created process PID 15137 in coro exec_script() for 10.44.244.51 [monitorBGW.py:2359]
+2025-03-24 17:50:18,588 -     INFO - Received: 100 [monitorBGW.py:2030]
+2025-03-24 17:50:18,588 -     INFO - Received: 100 [monitorBGW.py:1586]
+2025-03-24 17:50:18,590 -    ERROR - CancelledError() in coro discover_gateways() [monitorBGW.py:2490]
+Traceback (most recent call last):
+  File "/home/ss/Projects/python36_async_playground/monitorBGW.py", line 2483, in discover_gateways
+    result = await fut
+  File "/usr/lib64/python3.6/asyncio/tasks.py", line 454, in _wait_for_one
+    f = yield from done.get()
+  File "/usr/lib64/python3.6/asyncio/queues.py", line 167, in get
+    yield from getter
+concurrent.futures._base.CancelledError
+2025-03-24 17:50:24,988 -     INFO - Discovery 10.44.244.51 successful in coro discover_gateways() [monitorBGW.py:2488]
+2025-03-24 17:50:27,370 -     INFO - Received: 100 [monitorBGW.py:2030]
+2025-03-24 17:50:27,371 -     INFO - Received: 100 [monitorBGW.py:1586]
+2025-03-24 17:50:27,382 -     INFO - Scheduled 2 tasks in coro discover_gateways() [monitorBGW.py:2479]
+2025-03-24 17:50:27,383 -     INFO - Acquired semaphore in coro query_gateway() for 10.10.48.58, free 18 [monitorBGW.py:2417]
+2025-03-24 17:50:27,387 -     INFO - Acquired semaphore in coro query_gateway() for 10.44.244.51, free 18 [monitorBGW.py:2417]
+2025-03-24 17:50:27,391 -     INFO - Created process PID 15304 in coro exec_script() for 10.10.48.58 [monitorBGW.py:2359]
+2025-03-24 17:50:27,392 -     INFO - Created process PID 15305 in coro exec_script() for 10.44.244.51 [monitorBGW.py:2359]
+2025-03-24 17:50:29,404 -     INFO - Received: 99 [monitorBGW.py:2030]
+2025-03-24 17:50:29,404 -     INFO - Received: 99 [monitorBGW.py:1586]
+2025-03-24 17:50:29,406 -     INFO - Created clear_storage_callback() [monitorBGW.py:2746]
+2025-03-24 17:50:30,479 -     INFO - Received: 121 [monitorBGW.py:1902]
+2025-03-24 17:50:31,291 -     INFO - Received: 100 [monitorBGW.py:2030]
+2025-03-24 17:50:31,292 -     INFO - Received: 100 [monitorBGW.py:1586]
+2025-03-24 17:50:31,293 -    ERROR - CancelledError() in coro discover_gateways() [monitorBGW.py:2490]
+Traceback (most recent call last):
+  File "/home/ss/Projects/python36_async_playground/monitorBGW.py", line 2483, in discover_gateways
+    result = await fut
+  File "/usr/lib64/python3.6/asyncio/tasks.py", line 454, in _wait_for_one
+    f = yield from done.get()
+  File "/usr/lib64/python3.6/asyncio/queues.py", line 167, in get
+    yield from getter
+concurrent.futures._base.CancelledError
+2025-03-24 17:50:36,530 -     INFO - Discovery 10.44.244.51 successful in coro discover_gateways() [monitorBGW.py:2488]
+2025-03-24 17:50:50,425 -     INFO - Received: 99 [monitorBGW.py:2030]
+2025-03-24 17:50:50,426 -     INFO - Received: 99 [monitorBGW.py:1586]
+2025-03-24 17:50:50,427 -     INFO - Created clear_storage_callback() [monitorBGW.py:2746]
+2025-03-24 17:50:51,382 -     INFO - Received: 121 [monitorBGW.py:1902]
+2025-03-24 17:50:56,372 -     INFO - Received: 100 [monitorBGW.py:2030]
+2025-03-24 17:50:56,373 -     INFO - Received: 100 [monitorBGW.py:1586]
+2025-03-24 17:50:56,383 -     INFO - Scheduled 2 tasks in coro discover_gateways() [monitorBGW.py:2479]
+2025-03-24 17:50:56,384 -     INFO - Acquired semaphore in coro query_gateway() for 10.10.48.58, free 18 [monitorBGW.py:2417]
+2025-03-24 17:50:56,387 -     INFO - Acquired semaphore in coro query_gateway() for 10.44.244.51, free 18 [monitorBGW.py:2417]
+2025-03-24 17:50:56,392 -     INFO - Created process PID 15613 in coro exec_script() for 10.10.48.58 [monitorBGW.py:2359]
+2025-03-24 17:50:56,394 -     INFO - Created process PID 15614 in coro exec_script() for 10.44.244.51 [monitorBGW.py:2359]
+2025-03-24 17:51:05,522 -     INFO - Discovery 10.44.244.51 successful in coro discover_gateways() [monitorBGW.py:2488]
+2025-03-24 17:51:05,689 -     INFO - Discovery 10.10.48.58 successful in coro discover_gateways() [monitorBGW.py:2488]
+2025-03-24 17:51:05,710 -     INFO - Received: 100 [monitorBGW.py:2030]
+2025-03-24 17:51:05,711 -     INFO - Received: 100 [monitorBGW.py:1586]

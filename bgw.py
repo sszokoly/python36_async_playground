@@ -141,23 +141,36 @@ data ={
 
         "show voip-dsp": '''
         DSP #1 PARAMETERS
-        ---------------------------------------------------------
-        Slot : 1
-        Board type : 8122
-        Hw Vintage : 3
-        FW Vintage : 235
-        DSP #1 CURRENT STATE
-        ---------------------------------------------------------
-        In Use : 10 of 80 channels, 37 of 300 points (0.0% used)
-        State : InUse
-        Admin State: Release
-        Core# Channels Admin state State Error
-        In Use Msg
-        ---- ------- ----------- ----- ------------------
-        1 4 of 20 Release InUse No Status Messages
-        2 1 of 20 Camp-on InUse No Status Messages
-        3 5 of 20 Release InUse No Status Messages
-        4 0 of 20 Busyout Idle No Status Messages
+        --------------------------------------------------------------
+        Board type     : MP160
+        Hw Vintage     : 0 B
+        Fw Vintage     : 182
+
+        DSP#1 CURRENT STATE
+        --------------------------------------------------------------
+        In Use         : 0 of 160 channels, 0 of 4800 points (0.0% used)
+        State          : Idle
+        Admin State    : Release
+
+        Core# Channels Admin     State
+            In Use   State
+        ----- -------- --------- -------
+            1  0 of 40   Busyout Idle
+            2  0 of 40   Busyout Idle
+            3  0 of 40   Release Idle
+            4  0 of 40   Release Idle
+
+
+        DSP #2 Not Present
+
+
+
+        DSP #3 Not Present
+
+
+        DSP #4 Not Present
+
+        Done!
         ''',
 
         "show sla-monitor": '''
