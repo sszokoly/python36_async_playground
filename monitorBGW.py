@@ -4,6 +4,7 @@
 import argparse
 import asyncio
 import atexit
+import base64
 import _curses, curses, curses.ascii, curses.panel
 import enum
 import functools
@@ -12,7 +13,9 @@ import logging
 import os
 import re
 import sys
+import textwrap
 import time
+import zlib
 from abc import ABC, abstractmethod
 from asyncio import coroutines
 from asyncio import events
@@ -30,7 +33,55 @@ logger = logging.getLogger(__name__)
 
 ############################ CONSTATS, VARIABLES ############################
 LOG_FORMAT = "%(asctime)s - %(levelname)8s - %(message)s [%(filename)s:%(lineno)s]"
-GATEWAYS = {}
+
+script_template_compressed = '''
+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
+/s+kYoN4pt7mr8uCdPY='''
+
+script_template = '''
+eJxtUcFugzAMvfMVVlSkdgMJWLsDU4+TtsNO22UaE2Lg0kiQIBJEJ5R/n0NoO03zAez3/PIcx1Oo4S
+iVhsl+jWfrQWEvihZhOmcO7wqlxgom93dYr7tc6YL058zhTaG0yBWWCqZr7rhStm0hKmImmM6FAbMo
+ZZ0feEPueOqw1DkBxnNm1CjbZ6Hhg7ie9FzotUXXG7iB7caYT+psEDtILmOQMwqrwBKqQiOwW/899N
+vQrwL/KfVfUv+VkY4f6MDV1WO/h9gYwjyg6AatIBRS4NhwgaB0hX0P7HEe8o23KAfNHgBPXEOy23l0
+nVnDpilj9ZiLof3CPmMpZCyK4owF4HDar0NX9gkc7rI/4OUyC/OrtvR5k5a1nuooR1DfSmPrBI0sC8
+2lSGFxnzv6QQgu6rCU4sDrfzqNsb3z86JShF4ckijZhnES3kVBHKfRfRrvgnneIKK4rtIduqjhL2co
+mPcDP4naQQ=='''
+
 CONFIG = {
     "username": "root",
     "passwd": "cmb@Dm1n",
@@ -44,6 +95,7 @@ CONFIG = {
     "ip_filter": None,
     "storage": None,
     "storage_maxlen": None,
+    "script_template": script_template,
     "discovery_commands": [ 
         "show running-config",
         "show system",
@@ -62,279 +114,6 @@ CONFIG = {
         "show rtp-stat summary",
     ]
 }
-
-
-script_template = '''
-#!/usr/bin/expect
-############################# Template Variables #############################
-
-set host {host}
-set username {username}
-set passwd {passwd}
-set rtp_stat {rtp_stat}
-set lastn_secs {lastn_secs}
-set commands {{ {commands} }}
-set log_file {expect_log}
-
-############################## Expect Variables ##############################
-
-set timeout 10
-set prompt "\\)# "
-array set commands_array {{}}
-array set rtp_sessions_array {{}}
-set global_ids [list]
-log_user 0
-
-if {{[info exists log_file] && $log_file ne "/dev/null"}} {{
-    if {{[file exists $log_file]}} {{
-        file delete $log_file
-    }}
-}}
-exp_internal -f $log_file 0
-
-################################# Procedures #################################
-
-proc to_json {{}} {{
-    global host gw_name gw_number last_seen commands_array rtp_sessions_array
-    set json "{{"
-    append json "\\"host\\": \\"$host\\", "
-    append json "\\"gw_name\\": \\"$gw_name\\", "
-    append json "\\"gw_number\\": \\"$gw_number\\", "
-    append json "\\"last_seen\\": \\"$last_seen\\", "
-    append json "\\"commands\\": {{"
-    foreach {{key value}} [array get commands_array] {{
-        append json "\\"$key\\": \\"$value\\", "
-    }}
-    set json [string trimright $json ", "]
-    append json "}}, "
-    append json "\\"rtp_sessions\\": {{"
-    foreach {{key value}} [array get rtp_sessions_array] {{
-        append json "\\"$key\\": \\"$value\\", "
-    }}
-    set json [string trimright $json ", "]
-    append json "}}}}"
-    return $json
-}}
-
-proc merge_lists {{list1 list2}} {{
-    set combined [concat $list1 $list2]
-    set result [lsort -unique $combined]
-    return $result
-}}
-
-proc clean_output {{output}} {{
-    set pattern {{\\r\\n\\-\\-type q to quit or space key to continue\\-\\- .+?K}}
-    regsub -all $pattern $output "" output
-    set lines [split $output "\\n"]
-    set prompt_removed [lrange $lines 0 end-1]
-    set output [join $prompt_removed "\\n"]
-    regsub -all {{"}} $output {{\\"}} output_escaped_quotes
-    set result [string trimright $output_escaped_quotes "\\r\\n"]
-    return $result
-}}
-
-proc cmd {{command}} {{
-    global prompt
-    set output ""
-    send "$command"
-    expect {{
-        $prompt {{
-            set current_output $expect_out(buffer)
-            append output $current_output
-        }}
-        "*continue-- " {{
-            set current_output $expect_out(buffer)
-            append output $current_output
-            send "\\n"
-            exp_continue
-        }}
-        "*to continue." {{
-            set current_output $expect_out(buffer)
-            append output $current_output
-            exp_continue
-        }}
-        "*." {{
-            set current_output $expect_out(buffer)
-            append output $current_output
-            sleep 1
-            exp_continue
-        }}
-        timeout {{
-            puts stderr "Timeout";
-            return ""
-        }}
-    }}
-    set result [clean_output $output]
-    return [string trimleft $result $command]
-}}
-
-proc get_active_global_ids {{}} {{
-    global cmd parse_session_summary_line, gw_number
-    set ids [list]
-    foreach line [split [cmd "show rtp-stat sessions active\\n"] "\\n"] {{
-        if {{[regexp {{^[0-9]+}} $line]}} {{
-            set result [parse_session_summary_line $line]
-            lassign $result session_id start_date start_time end_date end_time
-            lappend ids [format "%s,%s,%s,%s" $start_date $start_time $gw_number $session_id]
-        }}
-    }}
-    return $ids
-}}
-
-proc get_recent_global_ids {{{{lastn_secs {{20}}}}}} {{
-    global cmd parse_session_summary_line is_date1_gt_date2 gw_number
-    set ref_datetime [exec date "+%Y-%m-%d,%H:%M:%S" -d "now - $lastn_secs secs"]
-    set ids [list]
-    foreach line [split [cmd "show rtp-stat sessions last 20\\n"] "\\n"] {{
-        if {{[regexp {{^[0-9]+}} $line]}} {{
-            set result [parse_session_summary_line $line]
-            lassign $result session_id start_date start_time end_date end_time
-            if {{$end_time ne "-"}} {{
-                set end_datetime [format "%s,%s" $end_date $end_time]
-                set is_end_datetime_gt_ref_datetime [is_date1_gt_date2 $end_datetime $ref_datetime]
-                if {{$is_end_datetime_gt_ref_datetime}} {{
-                    lappend ids [format "%s,%s,%s,%s" $start_date $start_time $gw_number $session_id]
-                }}
-            }}
-        }}
-    }}
-    return $ids
-}}
-
-proc parse_session_summary_line {{input}} {{
-    set pattern {{^(\\S+)  (\\*|\\s)  (\\S+),(\\S+)\\s+(\\S+)\\s+.*$}}
-    if {{[regexp $pattern $input _ id qos start_date start_time end_time]}} {{
-        # if end time rolled over to the next day
-        if {{$end_time < $start_time}} {{
-            set end_date [exec date "+%Y-%m-%d" -d "$start_date + 1 day"]
-        }} else {{
-            set end_date $start_date
-        }}
-        return [list $id "$start_date" "$start_time" "$end_date" "$end_time"]
-    }} else {{
-        puts stderr "Error: Input format does not match: $input";
-        return ""
-    }}
-}}
-
-proc is_date1_gt_date2 {{date1 date2}} {{
-    # Convert the date strings into epoch timestamps
-    set timestamp1 [clock scan $date1 -format "%Y-%m-%d,%H:%M:%S"]
-    set timestamp2 [clock scan $date2 -format "%Y-%m-%d,%H:%M:%S"]
-    # Compare the timestamps
-    if {{$timestamp1 > $timestamp2}} {{
-        return 1
-    }} else {{
-        return 0 
-    }}
-}}
-
-################################# Main Script ################################
-
-#Spawn SSH connection
-spawn ssh -q -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null $username@$host
-
-#Handle SSH connection
-expect {{
-    "Password: " {{send "$passwd\\n"}}
-    timeout {{
-        puts -nonewline stderr "ExpectTimeout";
-        exit 255
-    }}
-    eof {{
-        puts -nonewline stderr "ExpectTimeout";
-        exit 255
-    }}
-}}
-expect {{
-    "*Permission denied*" {{
-        puts -nonewline stderr "PermissionDenied";
-        exit 255
-    }}
-    $prompt {{}}
-}}
-
-#Extract gateway name and number from prompt
-regexp {{([^\\s]+)-(\\d+)[\\(]}} $expect_out(buffer) "" gw_name gw_number
-if {{$gw_name ne ""}} {{
-    set gw_name $gw_name
-}} else {{
-    set gw_name ""
-}}
-if {{$gw_number ne ""}} {{
-    set gw_number $gw_number
-}} else {{
-    set gw_number ""
-}}
-
-#Capture last_seen
-set last_seen [exec date "+%Y-%m-%d,%H:%M:%S"]
-
-#Collect RTP statistics if requested
-if {{$rtp_stat}} {{
-    #Recent global session ids
-    set recent_global_ids [get_recent_global_ids $lastn_secs]
-    #Active global session ids
-    set active_global_ids [get_active_global_ids]
-    #Merged global session ids
-    set merged_global_ids [merge_lists $recent_global_ids $active_global_ids]
-
-    if {{$merged_global_ids ne {{}}}} {{
-        foreach global_id $merged_global_ids {{
-            lassign [split $global_id ","] start_date start_time gw_number session_id
-            set output [cmd "show rtp-stat detailed $session_id\\n"]
-            set status [catch {{set output [cmd "show rtp-stat detailed $session_id\\n"]}} errmsg]
-            if {{$status != 0}} {{
-                puts -nonewline stderr "ExpectTimeout during \\"show rtp-stat detailed $session_id\\"";
-                exit 255
-            }} else {{
-                if {{$output ne ""}} {{
-                    set rtp_sessions_array($global_id) $output
-                }}
-            }}
-        }}
-    }}
-}}
-
-#Iterate through "commands" and run each
-foreach command $commands {{
-    #set output [cmd "$command\\n"]
-    set status [catch {{set output [cmd "$command\\n"]}} errmsg]
-    if {{$status != 0}} {{
-        puts -nonewline stderr "ExpectTimeout during \\"$command\\"";
-        exit 255
-    }} else {{
-        if {{$output ne ""}} {{
-            set commands_array($command) $output
-        }}
-    }}
-}}
-
-#Output results in JSON format
-puts [to_json]
-
-send "exit\\n"
-'''
-
-script_template = '''
-set host {host}
-set username {username}
-set passwd {passwd}
-set rtp_stat {rtp_stat}
-set lastn_secs {lastn_secs}
-set commands {{ {commands} }}
-set log_file {expect_log}
-
-set randomInt [expr {{int(rand() * 4)}}]
-
-sleep 2
-set last_seen [exec date "+%Y-%m-%d,%H:%M:%S"]
-
-if {{$randomInt == 1}} {{
-    puts -nonewline stderr "ExpectTimeout"; exit 255
-}}
-puts "{{\\"gw_number\\": \\"001\\", \\"gw_name\\": \\"$host\\", \\"host\\": \\"$host\\", \\"last_seen\\": \\"$last_seen\\", \\"commands\\": {{\\"show system\\": \\"location: 1\\", \\"show running-config\\": \\"location: 1\\"}}, \\"rtp_sessions\\": {{\\"2024-12-30,11:06:15,$host,0000$randomInt\\": \\"session 0000$randomInt\\"}}}}"
-'''
 
 #System
 #+---+---------------+-----+--+--------+------------+------+---+---+-----+----+
@@ -408,7 +187,7 @@ SYSTEM_ATTRS = [
         'column_name': 'PSU',
     },
     {
-        'xpos': 68,
+        'xpos': 67,
         'column_attr': 'faults',
         'fmt': '>5',
         'color': 'base',
@@ -791,6 +570,325 @@ RTP_DETAILED_PATTERNS = (
 reDetailed = re.compile(r''.join(RTP_DETAILED_PATTERNS), re.M|re.S|re.I)
 
 ################################## CLASSES ##################################
+class SlicableOrderedDict(MutableMapping):
+    """
+    A mutable mapping that stores items in memory and supports a maximum
+    length, discarding the oldest items if the maximum length is exceeded.
+    Items are always stored ordered by keys. A key can also be integer or slice.
+    """
+    def __init__(self, items: Optional[Dict] = None, maxlen: Optional[int] = None) -> None:
+        """
+        Initialize the MemoryStorage object.
+
+        Parameters
+        ----------
+        items : dict, optional
+            Items to initialize the MemoryStorage with.
+        maxlen : int, optional
+            Maximum length of the MemoryStorage. If exceeded, oldest items are
+            discarded. If not provided, the MemoryStorage has no maximum length.
+        """
+        self._items = dict(items) if items else dict()
+        self._keys = deque(sorted(self._items.keys()) if items else [])
+        self.maxlen = maxlen
+
+    def __len__(self) -> int:
+        """Return the number of items stored in the MemoryStorage."""
+        return len(self._items)
+
+    def __iter__(self) -> Iterator[Any]:
+        """Return an iterator over the keys of the MemoryStorage."""
+        yield from self._keys
+
+    def __getitem__(self, key: Union[int, slice, Any]) -> Union[Any, List[Any]]:
+        """
+        Retrieve item(s) from the MemoryStorage using a key or slice.
+
+        Parameters
+        ----------
+        key : int | slice | Any
+            If an integer, returns the item at that index in the ordered keys.
+            If a slice, returns a list of items corresponding to the slice.
+            Otherwise, retrieves the item associated with the key.
+
+        Returns
+        -------
+        item : Any | List[Any]
+            The item associated with the key or a list of items if the key is a slice.
+
+        Raises
+        ------
+        KeyError
+            If the key is an integer and out of bounds, or if the key does not exist.
+        """
+        if isinstance(key, slice):
+            return [self._items[self._keys[k]] for k in
+                    range(len(self._items)).__getitem__(key)]
+        if isinstance(key, tuple):
+            return [self._items[self._keys[k]] for k in
+                    range(len(self._items)).__getitem__(slice(*key))]
+        if isinstance(key, int):
+            if self._items and len(self._items) > key:
+                return self._items[self._keys[key]]
+            else: 
+                raise KeyError
+        return self._items[key]
+
+    def get(self, key: Any, default: Any = None) -> Any:
+        """
+        Return the item associated with the key if it exists, otherwise return
+        the default if given.
+
+        Parameters
+        ----------
+        key : Any
+            The key of the item to retrieve.
+        default : Any, optional
+            The default value to return if the key does not exist.
+
+        Returns
+        -------
+        The item associated with the key, or the default if the key does not exist.
+        """
+        try:
+            return self[key]
+        except KeyError:
+            return default
+
+    def __setitem__(self, key: Any, item: Any) -> None:
+        """
+        Add or update an item in the MemoryStorage.
+
+        If the key does not exist, it is added to the MemoryStorage. If the
+        MemoryStorage has a maximum length and the addition of this item would
+        exceed that length, the oldest key is discarded before adding the new
+        key. The order of keys is preserved based on the insertion value.
+
+        Parameters
+        ----------
+        key : Any
+            The key to associate with the item.
+        item : Any
+            The item to store in the MemoryStorage.
+
+        Returns
+        -------
+        None
+        """
+        if key in self._items:
+            self._items[key] = item
+        else:
+            if self.maxlen and len(self._items) == self.maxlen:
+                first_key = self._keys.popleft()
+                del self._items[first_key]
+            insort_left(self._keys, key)
+            self._items[key] = item
+
+    def __delitem__(self, key: Any) -> None:
+        """
+        Remove the item associated with the key from the MemoryStorage.
+
+        Parameters
+        ----------
+        key : Any
+            The key of the item to remove.
+
+        Raises
+        ------
+        KeyError
+            If the key does not exist in the MemoryStorage.
+        """
+        if key in self._items:
+            del self._items[key]
+            self._keys.remove(key)
+        else:
+            raise KeyError
+
+    def __contains__(self, key: Any) -> bool:
+        """
+        Check if the specified key exists in the MemoryStorage.
+
+        Parameters
+        ----------
+        key : Any
+            The key to check for existence in the MemoryStorage.
+
+        Returns
+        -------
+        bool
+            True if the key exists in the MemoryStorage, False otherwise.
+        """
+        return key in self._items
+
+    def index(self, key: Any) -> int:
+        """
+        Return the index of the key in the MemoryStorage.
+
+        Parameters
+        ----------
+        key : Any
+            The key to return the index of.
+
+        Returns
+        -------
+        int
+            The index of the key in the MemoryStorage.
+
+        Raises
+        ------
+        ValueError
+            If the key does not exist in the MemoryStorage.
+        """
+        if key in self._keys:
+            return self._keys.index(key)
+        raise ValueError
+    
+    def keys(self) -> Iterator[Any]:
+        """
+        Generate an iterator over the keys in the MemoryStorage.
+
+        Returns
+        -------
+        Generator[Any]
+            An iterator over the keys in the order they were inserted.
+        """
+        return (key for key in self._keys)
+
+    def values(self) -> Iterator[Any]:
+        """
+        Generate an iterator over the values in the MemoryStorage.
+
+        Returns
+        -------
+        Generator[Any]
+            An iterator over the values in the order they were inserted.
+        """
+        return (self._items[key] for key in self._keys)
+
+    def items(self) -> Iterator[Tuple]:
+        """
+        Generate an iterator over the (key, value) pairs in the MemoryStorage.
+        The order of iteration is sorted by keys.
+
+        Returns
+        -------
+        Generator[Tuple]
+            An iterator over the (key, value) pairs in the MemoryStorage.
+        """
+        return ((key, self._items[key]) for key in self._keys)
+    
+    def clear(self) -> None:
+        """
+        Remove all items from the MemoryStorage.
+
+        This method clears the storage by removing all key-value pairs and 
+        resetting the internal key storage.
+        """
+        self._items.clear()
+        self._keys.clear()
+
+    def __repr__(self) -> str:
+        """
+        Return a string representation of the MemoryStorage instance.
+
+        The string includes the name of the class, the items currently stored,
+        and the maximum length of the storage if applicable.
+        """
+        return f"{type(self).__name__}=({self._items}, maxlen={self.maxlen})"
+
+    def __eq__(self, other) -> bool:
+        """
+        Check if two MemoryStorage instances are equal.
+
+        The comparison is done by checking if the items are equal and the maximum
+        length is the same. If the other object is not of the same class, it returns
+        NotImplemented.
+        """
+        if not isinstance(other, self.__class__):
+            return NotImplemented
+        return list(self.items()) == list(other.items()) and self.maxlen == other.maxlen
+
+class AsyncMemoryStorage(SlicableOrderedDict):
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        """
+        Initialize the AsyncMemoryStorage object.
+
+        Parameters
+        ----------
+        *args : Any
+            Arguments to be passed to the superclass SlicableOrderedDict initialization.
+        **kwargs : Any
+            Keyword arguments to be passed to the superclass SlicableOrderedDict initialization.
+
+        Attributes
+        ----------
+        _lock : Lock
+            A lock object used to protect against concurrent access to the storage.
+        """
+        super().__init__(*args, **kwargs)
+        self._lock: Lock = Lock()
+
+    async def put(self, itemdict: Dict[Any, Any]) -> None:
+        """
+        Asynchronously put items into the AsyncMemoryStorage.
+
+        This method puts each item in the given itemdict dictionary to the
+        AsyncMemoryStorage, overwriting any existing item with the same key.
+
+        Parameters
+        ----------
+        itemdict : Dict[Any, Any]
+            A dictionary of items to add to the AsyncMemoryStorage.
+
+        Returns
+        -------
+        None
+
+        Notes
+        -----
+        This coroutine does not block the event loop, it yields control back to the
+        event loop after each item is added.
+        """
+        async with self._lock:
+            for k, v in itemdict.items():
+                self[k] = v
+
+    async def get(self, key: Union[slice, Tuple[int, int], int, Any] = None) -> AsyncIterator[Any]:
+        """
+        Configure the iteration range in the AsyncMemoryStorage.
+
+        Parameters
+        ----------
+        key : Union[slice, Tuple[int, int], int, Any], optional
+            The key or slice of keys to iterate over. If None, the entire
+            AsyncMemoryStorage is iterated.
+
+        Yields
+        ------
+        item : Any
+            The next item in the iteration.
+        """
+        async with self._lock:
+            if not key:
+                key = slice(None, None)
+            for item in self[key]:
+                yield item
+
+    async def clear(self) -> None:
+        """
+        Clear all items from the AsyncMemoryStorage.
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        None
+        """
+        async with self._lock:
+            super().clear()
 
 class BGW():
     def __init__(self,
@@ -1134,7 +1232,7 @@ class BGW():
             except:
                 pass
         total = total if total > 0 else "?"
-        inuse = inuse if total > 0 else "?"
+        inuse = inuse if inuse > 0 else "?"
         return f"{inuse}/{total}"
 
     def update(
@@ -1300,326 +1398,6 @@ class RTPSession:
     def asdict(self):
         return self.__dict__
 
-class SlicableOrderedDict(MutableMapping):
-    """
-    A mutable mapping that stores items in memory and supports a maximum
-    length, discarding the oldest items if the maximum length is exceeded.
-    Items are always stored ordered by keys. A key can also be integer or slice.
-    """
-    def __init__(self, items: Optional[Dict] = None, maxlen: Optional[int] = None) -> None:
-        """
-        Initialize the MemoryStorage object.
-
-        Parameters
-        ----------
-        items : dict, optional
-            Items to initialize the MemoryStorage with.
-        maxlen : int, optional
-            Maximum length of the MemoryStorage. If exceeded, oldest items are
-            discarded. If not provided, the MemoryStorage has no maximum length.
-        """
-        self._items = dict(items) if items else dict()
-        self._keys = deque(sorted(self._items.keys()) if items else [])
-        self.maxlen = maxlen
-
-    def __len__(self) -> int:
-        """Return the number of items stored in the MemoryStorage."""
-        return len(self._items)
-
-    def __iter__(self) -> Iterator[Any]:
-        """Return an iterator over the keys of the MemoryStorage."""
-        yield from self._keys
-
-    def __getitem__(self, key: Union[int, slice, Any]) -> Union[Any, List[Any]]:
-        """
-        Retrieve item(s) from the MemoryStorage using a key or slice.
-
-        Parameters
-        ----------
-        key : int | slice | Any
-            If an integer, returns the item at that index in the ordered keys.
-            If a slice, returns a list of items corresponding to the slice.
-            Otherwise, retrieves the item associated with the key.
-
-        Returns
-        -------
-        item : Any | List[Any]
-            The item associated with the key or a list of items if the key is a slice.
-
-        Raises
-        ------
-        KeyError
-            If the key is an integer and out of bounds, or if the key does not exist.
-        """
-        if isinstance(key, slice):
-            return [self._items[self._keys[k]] for k in
-                    range(len(self._items)).__getitem__(key)]
-        if isinstance(key, tuple):
-            return [self._items[self._keys[k]] for k in
-                    range(len(self._items)).__getitem__(slice(*key))]
-        if isinstance(key, int):
-            if self._items and len(self._items) > key:
-                return self._items[self._keys[key]]
-            else: 
-                raise KeyError
-        return self._items[key]
-
-    def get(self, key: Any, default: Any = None) -> Any:
-        """
-        Return the item associated with the key if it exists, otherwise return
-        the default if given.
-
-        Parameters
-        ----------
-        key : Any
-            The key of the item to retrieve.
-        default : Any, optional
-            The default value to return if the key does not exist.
-
-        Returns
-        -------
-        The item associated with the key, or the default if the key does not exist.
-        """
-        try:
-            return self[key]
-        except KeyError:
-            return default
-
-    def __setitem__(self, key: Any, item: Any) -> None:
-        """
-        Add or update an item in the MemoryStorage.
-
-        If the key does not exist, it is added to the MemoryStorage. If the
-        MemoryStorage has a maximum length and the addition of this item would
-        exceed that length, the oldest key is discarded before adding the new
-        key. The order of keys is preserved based on the insertion value.
-
-        Parameters
-        ----------
-        key : Any
-            The key to associate with the item.
-        item : Any
-            The item to store in the MemoryStorage.
-
-        Returns
-        -------
-        None
-        """
-        if key in self._items:
-            self._items[key] = item
-        else:
-            if self.maxlen and len(self._items) == self.maxlen:
-                first_key = self._keys.popleft()
-                del self._items[first_key]
-            insort_left(self._keys, key)
-            self._items[key] = item
-
-    def __delitem__(self, key: Any) -> None:
-        """
-        Remove the item associated with the key from the MemoryStorage.
-
-        Parameters
-        ----------
-        key : Any
-            The key of the item to remove.
-
-        Raises
-        ------
-        KeyError
-            If the key does not exist in the MemoryStorage.
-        """
-        if key in self._items:
-            del self._items[key]
-            self._keys.remove(key)
-        else:
-            raise KeyError
-
-    def __contains__(self, key: Any) -> bool:
-        """
-        Check if the specified key exists in the MemoryStorage.
-
-        Parameters
-        ----------
-        key : Any
-            The key to check for existence in the MemoryStorage.
-
-        Returns
-        -------
-        bool
-            True if the key exists in the MemoryStorage, False otherwise.
-        """
-        return key in self._items
-
-    def index(self, key: Any) -> int:
-        """
-        Return the index of the key in the MemoryStorage.
-
-        Parameters
-        ----------
-        key : Any
-            The key to return the index of.
-
-        Returns
-        -------
-        int
-            The index of the key in the MemoryStorage.
-
-        Raises
-        ------
-        ValueError
-            If the key does not exist in the MemoryStorage.
-        """
-        if key in self._keys:
-            return self._keys.index(key)
-        raise ValueError
-    
-    def keys(self) -> Iterator[Any]:
-        """
-        Generate an iterator over the keys in the MemoryStorage.
-
-        Returns
-        -------
-        Generator[Any]
-            An iterator over the keys in the order they were inserted.
-        """
-        return (key for key in self._keys)
-
-    def values(self) -> Iterator[Any]:
-        """
-        Generate an iterator over the values in the MemoryStorage.
-
-        Returns
-        -------
-        Generator[Any]
-            An iterator over the values in the order they were inserted.
-        """
-        return (self._items[key] for key in self._keys)
-
-    def items(self) -> Iterator[Tuple]:
-        """
-        Generate an iterator over the (key, value) pairs in the MemoryStorage.
-        The order of iteration is sorted by keys.
-
-        Returns
-        -------
-        Generator[Tuple]
-            An iterator over the (key, value) pairs in the MemoryStorage.
-        """
-        return ((key, self._items[key]) for key in self._keys)
-    
-    def clear(self) -> None:
-        """
-        Remove all items from the MemoryStorage.
-
-        This method clears the storage by removing all key-value pairs and 
-        resetting the internal key storage.
-        """
-        self._items.clear()
-        self._keys.clear()
-
-    def __repr__(self) -> str:
-        """
-        Return a string representation of the MemoryStorage instance.
-
-        The string includes the name of the class, the items currently stored,
-        and the maximum length of the storage if applicable.
-        """
-        return f"{type(self).__name__}=({self._items}, maxlen={self.maxlen})"
-
-    def __eq__(self, other) -> bool:
-        """
-        Check if two MemoryStorage instances are equal.
-
-        The comparison is done by checking if the items are equal and the maximum
-        length is the same. If the other object is not of the same class, it returns
-        NotImplemented.
-        """
-        if not isinstance(other, self.__class__):
-            return NotImplemented
-        return list(self.items()) == list(other.items()) and self.maxlen == other.maxlen
-
-class AsyncMemoryStorage(SlicableOrderedDict):
-
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
-        """
-        Initialize the AsyncMemoryStorage object.
-
-        Parameters
-        ----------
-        *args : Any
-            Arguments to be passed to the superclass SlicableOrderedDict initialization.
-        **kwargs : Any
-            Keyword arguments to be passed to the superclass SlicableOrderedDict initialization.
-
-        Attributes
-        ----------
-        _lock : Lock
-            A lock object used to protect against concurrent access to the storage.
-        """
-        super().__init__(*args, **kwargs)
-        self._lock: Lock = Lock()
-
-    async def put(self, itemdict: Dict[Any, Any]) -> None:
-        """
-        Asynchronously put items into the AsyncMemoryStorage.
-
-        This method puts each item in the given itemdict dictionary to the
-        AsyncMemoryStorage, overwriting any existing item with the same key.
-
-        Parameters
-        ----------
-        itemdict : Dict[Any, Any]
-            A dictionary of items to add to the AsyncMemoryStorage.
-
-        Returns
-        -------
-        None
-
-        Notes
-        -----
-        This coroutine does not block the event loop, it yields control back to the
-        event loop after each item is added.
-        """
-        async with self._lock:
-            for k, v in itemdict.items():
-                self[k] = v
-
-    async def get(self, key: Union[slice, Tuple[int, int], int, Any] = None) -> AsyncIterator[Any]:
-        """
-        Configure the iteration range in the AsyncMemoryStorage.
-
-        Parameters
-        ----------
-        key : Union[slice, Tuple[int, int], int, Any], optional
-            The key or slice of keys to iterate over. If None, the entire
-            AsyncMemoryStorage is iterated.
-
-        Yields
-        ------
-        item : Any
-            The next item in the iteration.
-        """
-        async with self._lock:
-            if not key:
-                key = slice(None, None)
-            for item in self[key]:
-                yield item
-
-    async def clear(self) -> None:
-        """
-        Clear all items from the AsyncMemoryStorage.
-
-        Parameters
-        ----------
-        None
-
-        Returns
-        -------
-        None
-        """
-        async with self._lock:
-            super().clear()
-
 class Button:
     def __init__(self, *chars_int: int,
         win: "_curses._CursesWindow",
@@ -1710,7 +1488,7 @@ class Button:
         self.status_attr_off = status_attr_off or self.attr_off
         self.callback_kwargs = callback_kwargs or {}
         self.callback_kwargs = {**self.callback_kwargs, **{"button": self}}
-        self.state = False
+        self.state = False if callback_on and callback_off else True
         self.callback_on_task = None
         self.callback_off_task = None
 
@@ -1747,7 +1525,8 @@ class Button:
         -------
         None
         """
-        self.state = not self.state
+        if self.callback_on and self.callback_off: 
+            self.state = not self.state
 
     def press(self) -> None:
         """
@@ -1803,6 +1582,7 @@ class Button:
         None
         """
         if key in self.chars_int:
+            logging.info(f"Received: {key}")
             self.press()
 
     def status(self) -> str:
@@ -1868,8 +1648,6 @@ class Tab:
 
 class Workspace:
     def __init__(self, stdscr, column_attrs, *,
-        column_names=None,
-        column_widths=None,
         menubar=None,
         name=None,
         storage=None,
@@ -1881,11 +1659,9 @@ class Workspace:
     ):
         self.stdscr = stdscr
         self.column_attrs = column_attrs
-        self.column_names = column_names or column_attrs
-        self.column_widths = column_widths or [len(x) for x in column_attrs]
         self.menubar = menubar
         self.name = name
-        self.storage = storage or []
+        self.storage = storage if storage is not None else []
         self.attr = attr or curses.color_pair(0)
         self.offset_y = offset_y
         self.offset_x = offset_x
@@ -1895,7 +1671,7 @@ class Workspace:
         self.posx = 0
         self.row_pos = 0
         self.maxy = self.stdscr.getmaxyx()[0] - offset_y
-        self.maxx = sum(x + 1 for x in self.column_widths) + 1
+        self.maxx = self.stdscr.getmaxyx()[1]
         self.titlewin = stdscr.subwin(title_width, self.maxx,
             offset_y, offset_x)
         self.bodywin = self.stdscr.subwin(
@@ -1912,8 +1688,12 @@ class Workspace:
         self.titlewin.box()
         self.titlewin.attroff(self.attr)
         offset = 0
-        for idx, (cname, cwidth) in enumerate(zip(self.column_names,
-                                                self.column_widths)):
+
+        column_names = [x["column_name"] for x in self.column_attrs]
+        column_widths = [x["fmt"][1:] for x in self.column_attrs]
+
+        for idx, (cname, cwidth) in enumerate(zip(column_names,
+                                                column_widths)):
             cname = f"│{cname:^{cwidth}}"
             xpos = self.offset_x if idx == 0 else offset
             offset = xpos + len(cname)
@@ -1931,31 +1711,12 @@ class Workspace:
     def draw_bodywin(self):
         start_row = self.row_pos
         end_row = min(self.row_pos + (self.maxy - 3), len(self.storage))
-        for ridx, row in enumerate(self.storage[start_row:end_row]):
+        
+        for ridx, obj in enumerate(self.storage[start_row:end_row]):
             offset = 0
             try:
-                for cidx, (attr, width) in enumerate(zip(self.column_attrs,
-                                                         self.column_widths)):
-                    xpos = self.offset_x if cidx == 0 else offset
-                    
-                    if hasattr(row, attr):
-                        item = getattr(row, attr)
-                    else:
-                        item = row.get(attr)
-                    item = f"│{str(item)[-width:]:>{width}}"
-                    
-                    if hasattr(item, "attr"):
-                        cpair = getattr(row, "attr")
-                    elif hasattr(item, "get"):
-                        cpair = item.get("attr", self.attr)
-                    else:
-                        cpair = self.attr
-                    if ridx == self.posy:
-                        cpair = cpair|curses.A_REVERSE
-                    
-                    offset = xpos + len(item)
-                    self.bodywin.addstr(ridx, xpos, item, cpair)
-                self.bodywin.addstr(ridx, xpos + len(item), "│", cpair)
+                for xpos, _str, color in iter_attrs(obj, self.column_attrs):
+                    self.bodywin.addstr(ridx, xpos - 1, "│" + _str + "│", color)
             except curses.error:
                 pass
         self.bodywin.refresh()
@@ -2110,45 +1871,44 @@ class ProgressBar:
         self.win.erase()
         self.win.refresh()
 
-class Popup:
-    def __init__(
-        self,
-        stdscr,
-        body,
-        attr=None,
-        offset_y=-1,
-        margin=1,
+class Confirmation:
+    def __init__(self, stdscr, body=None, attr=None, yoffset=-1, margin=1,
     ) -> None:
         self.stdscr = stdscr
-        self.body = body
-        self.attr = attr if attr else curses.color_pair(0)
-        self.offset_y = offset_y
+        self.body = body or "Do you confirm (Y/N)?"
+        self.attr = attr or curses.color_pair(0)
+        self.yoffset = yoffset
         self.margin = margin
-        self._initialize()
+        
+        maxy, maxx = self.stdscr.getmaxyx()
+        nlines = 3 + (2 * self.margin)
+        ncols = len(self.body) + (2 * self.margin) + 2
+        begin_y = maxy // 2 + self.yoffset - (self.margin + 1)
+        begin_x = maxx // 2 - (len(self.body) // 2) - (self.margin + 1)
+        self.win = curses.newwin(nlines, ncols, begin_y, begin_x)
+        self.panel = curses.panel.new_panel(self.win)
+        self.win.attron(self.attr)
+        self.win.nodelay(True)
+        self.panel.top()
     
-    def draw(self, body=None):
-        if body:
-            self.win.erase()
-            self.body = body
+    async def draw(self):
         self.win.box()
         self.win.addstr(self.margin + 1, self.margin + 1, self.body, self.attr)
         self.win.refresh()
-        return self
+        while True:
+            char = self.win.getch()
+            if char in (ord('y'), ord('Y')):
+                logging.info(f"Received: {char}")
+                return True
+            elif char in (ord('n'), ord('N')):
+                logging.info(f"Received: {char}")
+                return False
+            else:
+                await asyncio.sleep(0.01)
 
     def erase(self):
         self.win.erase()
         self.win.refresh()
-        return self
-
-    def _initialize(self):
-        maxy, maxx = self.stdscr.getmaxyx()
-        nlines = 3 + (2 * self.margin)
-        ncols = len(self.body) + (2 * self.margin) + 2
-        begin_y = maxy // 2 + self.offset_y - (self.margin + 1)
-        begin_x = maxx // 2 - (len(self.body) // 2) - (self.margin + 1)
-        self.win = curses.newwin(nlines, ncols, begin_y, begin_x)
-        curses.panel.new_panel(self.win)
-        self.win.attron(self.attr)
 
 class Menubar:
     def __init__(self, stdscr: "_curses._CursesWindow",
@@ -2266,6 +2026,7 @@ class Menubar:
         chars_list = [b.chars_int for b in self.buttons]
         for idx, chars in enumerate(chars_list):
             if char in chars:
+                logging.info(f"Received: {char}")
                 await self.buttons[idx].handle_char(char)
                 self.draw()
                 break
@@ -2283,6 +2044,7 @@ class MyDisplay():
         self.minx = minx
         self.workspaces = workspaces
         self.tab = tab
+        self.confirmation = None
         self.done: bool = False
         self.posx = 1
         self.posy = 1
@@ -2338,8 +2100,6 @@ class MyDisplay():
                     break
             else:
                 await self.handle_char(char)
-                #self.stdscr.refresh()
-                #curses.doupdate()
 
     def make_display(self):
         self.maxy, self.maxx = self.stdscr.getmaxyx()
@@ -2366,37 +2126,9 @@ class MyDisplay():
             stdscr.addstr(maxy // 2, maxx // 2 - 6, text, attr)
             stdscr.refresh()
 
-    def start(self):
-        time.sleep(1)
-        return True
-
-    def stop(self):
-        time.sleep(1)
-        return True
-
-    def draw_rtppanel(self, stdscr, maxy, maxx, ypos):
-        rtppanel = MyPanel(stdscr, body="whatever")
-        time.sleep(0.2)
-        rtppanel.draw()
-        curses.panel.update_panels()
-        return True
-
-    def erase_rtppanel(self, ypos, rtppanel, stdpanel):
-        time.sleep(0.2)
-        rtppanel.erase()
-        return True
-
-    def discover_start(self, stdscr):
-        fraction = 0
-        progbar = ProgressBar(stdscr, fraction=fraction)
-        for _ in range(20):
-            fraction += 0.05
-            progbar.draw(fraction)
-            time.sleep(0.2)
-
-    def discover_stop():
-        curses.panel.update_panels()
-
+    @property
+    def active_workspace(self):
+        return self.workspaces[self.active_ws_idx]
 
 ################################# FUNCTIONS ################################# 
 
@@ -2477,35 +2209,26 @@ def iter_attrs(
     attrs: List[Dict[str, Any]],
     xoffset: int = 0
 ) -> Iterator[Tuple[int, str, str]]:
-    """
-    Iterate over the attributes of an object and yield a tuple of 3 values:
 
-    - `xpos`: The x position of the attribute in curses window
-    - `_str`: The text of the attribute, formatted according to the `fmt`
-    - `color`: The name of the color of the attribute
-
-    Parameters
-    ----------
-    obj : object
-        The object to get attributes from
-    attrs : List[Dict[str, Any]]
-        A list of dictionaries of the attributes of the object
-    xoffset : int, optional
-        The offset of xpos, by default 0
-
-    Returns
-    ------
-    Tuple[int, str, str]
-        A tuple of 3 values: xpos, _str, color
-    """
     for attr in attrs:
-        if hasattr(obj, attr['name']):
-            _str = getattr(obj, attr['name'])
+        if hasattr(obj, attr['column_attr']):
+            _str = str(getattr(obj, attr['column_attr']))
         else:
-            _str = obj.get(attr['name'], attr['name'])
-        color = attr['color']
-        _str = f"{_str:{attr['fmt']}}"
-        yield attr['xpos'] + xoffset, _str, color
+            _str = str(obj.get(attr['column_attr'], attr['column_attr']))
+        
+        if attr['fmt']:
+            _len = int(''.join(i for i in attr['fmt'] if i.isdigit()))
+            _str = f"{_str[:_len]:{attr['fmt']}}"
+        elif attr['column_name']:
+            _len = len(attr['column_name'])
+            _str = f"{_str[:_len]}"
+        else:
+            _len = len(attr['column_attr'])
+            _str = f"{_str[:_len]}"
+        
+        color = curses.color_pair(0) #attr['color']
+        xpos = attr['xpos'] if attr['xpos'] else 0
+        yield xpos + xoffset, _str, color
 
 def create_bgw_script(bgw: BGW) -> List[str]:
     """
@@ -2537,6 +2260,7 @@ def create_bgw_script(bgw: BGW) -> List[str]:
                 queued_commands = [queued_commands]
             commands.extend(queued_commands)
     
+    script_template = unwrap_and_decompress(CONFIG["script_template"])
     script = script_template.format(**{
         "host": bgw.host,
         "username": CONFIG["username"],
@@ -2720,7 +2444,6 @@ async def query_gateway(
             if not queue:
                 raise
 
-
 async def discover_gateways(storage=None, callback=None) -> Tuple[int, int]:
     """Discover all connected gateways and query them.
 
@@ -2739,7 +2462,7 @@ async def discover_gateways(storage=None, callback=None) -> Tuple[int, int]:
         total number of queries.
     """
 
-    global GATEWAYS
+    global GATEWAYS, BGWS
     ip_filter = CONFIG.get("ip_filter", None)
     maxlen = CONFIG.get("storage_maxlen", None)
     storage = storage or CONFIG.get("storage", AsyncMemoryStorage(maxlen))
@@ -2756,16 +2479,17 @@ async def discover_gateways(storage=None, callback=None) -> Tuple[int, int]:
         try:
             result = await fut
             if result:
-                bgw = await process_item(result, storage=storage, callback=callback)
+                bgw = await process_item(result, storage=storage)
                 if bgw:
                     ok += 1
                     logger.info(f"Discovery {bgw.host} successful in {name}")
-        except Exception:
-            pass
+        except Exception as e:
+            logging.exception(f"{repr(e)} in {name}")
 
         if callback:
             callback(idx/total)
-    
+
+    BGWS.extend(sorted(GATEWAYS.values(), key=lambda bgw: bgw.gw_number))
     return (idx/total)
 
 async def poll_gateways(
@@ -2870,7 +2594,7 @@ async def process_item(
                 )
             
             bgw = GATEWAYS[host]
-            bgw.update(data)
+            bgw.update(**data)
             
             if callback:
                 logger.info(f"Calling {callback.__name__}({bgw}) in {name}")
@@ -2970,22 +2694,10 @@ def must_resize(stdscr, miny, minx):
     stdscr.refresh()
     return True
 
-def draw_rtppanel(**kwargs):
-    print(kwargs)
-    rtppanel = MyPanel(kwargs['stdscr'], body="whatever")
-    rtppanel.draw()
-    return rtppanel
-
-def erase_rtppanel(**kwargs):
-    kwargs["rtppanel"].erase()
-    curses.panel.update_panels()
-
-
-async def discovery_on_callback(progressbar, *args, **kwargs):
+async def discovery_on_callback(progressbar, storage, *args, **kwargs):
     try:
-        for i in range(1, progressbar.width):
-            progressbar.draw(i / 20)
-            await asyncio.sleep(0.1)
+        await create_task(discover_gateways(storage=storage,
+            callback=progressbar.draw))
     except asyncio.CancelledError:
         return
 
@@ -3000,16 +2712,42 @@ async def discovery_off_callback(progressbar, *args, **kwargs):
             break
     progressbar.erase()
 
-def ungetch_done_callback(char, fut):
+def discovery_done_callback(char, mydisplay, fut):
     try:
-        fut.result()  # Will raise CancelledError if the task was cancelled.
+        fut.result()
     except asyncio.CancelledError:
-        # If cancelled, leave self.state True.
         return
     except Exception:
-        # Optionally log or handle exceptions here.
         return
     curses.ungetch(char)
+    mydisplay.active_workspace.draw_bodywin()
+
+def clear_done_callback(mydisplay, fut):
+    try:
+        fut.result()
+    except asyncio.CancelledError:
+        pass
+    except Exception:
+        pass
+    mydisplay.active_workspace.bodywin.erase()
+    mydisplay.active_workspace.bodywin.refresh()
+
+def unwrap_and_decompress(wrapped_text):
+    base64_str = wrapped_text.replace('\n', '')
+    compressed_bytes = base64.b64decode(base64_str)
+    original_string = zlib.decompress(compressed_bytes).decode('utf-8')
+    return original_string
+
+async def clear_storage_callback(stdscr, storage, *args, **kwargs):
+    logging.info("Created clear_storage_callback()")
+    confirmation = Confirmation(stdscr)
+    result = await confirmation.draw()
+    if result:
+        if asyncio.iscoroutinefunction(storage.clear):
+            await storage.clear()
+        else:
+            storage.clear()
+    confirmation.erase()
 
 def main(stdscr, miny: int = 24, minx: int = 80):
     curses.curs_set(0)
@@ -3033,32 +2771,82 @@ def main(stdscr, miny: int = 24, minx: int = 80):
     system_menubar = Menubar(stdscr)
     rtpstat_menubar = Menubar(stdscr)
     
+    workspaces = [
+        Workspace(
+            stdscr,
+            column_attrs=SYSTEM_ATTRS,
+            menubar=system_menubar,
+            storage=BGWS,
+            name="System",
+        ),
+
+        Workspace(
+            stdscr,
+            column_attrs=PORT_ATTRS,
+            menubar=system_menubar,
+            storage=BGWS,
+            name="Port",
+        ),
+
+        Workspace(
+            stdscr,
+            column_attrs=CONFIG_ATTRS,
+            menubar=system_menubar,
+            storage=BGWS,
+            name="Service",
+        ),
+
+        Workspace(
+            stdscr,
+            column_attrs=STATUS_ATTRS,
+            menubar=system_menubar,
+            storage=BGWS,
+            name="Status",
+        ),
+
+        Workspace(
+            stdscr,
+            column_attrs=RTPSTAT_ATTRS,
+            menubar=rtpstat_menubar,
+            storage=CONFIG["storage"],
+            name="RTP-Stat",
+        )   
+    ]
+
+    tab = Tab(stdscr, tab_names=[w.name for w in workspaces])
+    mydisplay = MyDisplay(stdscr, workspaces=workspaces, tab=tab)
+
     button_d = Button(ord("d"), ord("D"),
         win=system_menubar.win,
-        y=0, x=20,
+        y=0, x=18,
         char_alt="🄳 ",
         label_off="Discovery Start",
         label_on="Discovery Stop ",
         callback_on=discovery_on_callback,
         callback_off=discovery_off_callback,
-        done_callback_on=functools.partial(ungetch_done_callback, ord("d")),
+        done_callback_on=functools.partial(discovery_done_callback, ord("d"), mydisplay),
         status_label="Discovery",
         status_attr_on=curses.color_pair(42)|curses.A_REVERSE,
         status_attr_off=curses.color_pair(2)|curses.A_REVERSE,
         stdscr=stdscr,
-        progressbar=ProgressBar(stdscr)
+        progressbar=ProgressBar(stdscr),
+        storage=BGWS,
     )
 
-    button_c = Button(ord("c"), ord("C"),
+    button_c1 = Button(ord("c"), ord("C"),
         win=system_menubar.win,
-        y=0, x=45,
+        y=0, x=38,
         char_alt="🄲 ",
         label_on="Clear",
+        callback_on=clear_storage_callback,
+        done_callback_on=functools.partial(clear_done_callback, mydisplay),
+        stdscr=stdscr,
+        storage=BGWS,
     )
 
     button_s = Button(ord("s"), ord("S"),
         win=rtpstat_menubar.win,
-        y=0, x=20,
+        y=0, x=18,
         char_alt="🅂 ",
         label_off="Start Polling",
         label_on="Stop  Polling",
@@ -3073,7 +2861,7 @@ def main(stdscr, miny: int = 24, minx: int = 80):
 
     button_r = Button(ord("s"), ord("S"),
         win=rtpstat_menubar.win,
-        y=0, x=45,
+        y=0, x=38,
         char_alt="🅁 ",
         label_off="RTP Details",
         label_on="RTP Details",
@@ -3085,65 +2873,24 @@ def main(stdscr, miny: int = 24, minx: int = 80):
         stdscr=stdscr,
     )
 
-    system_menubar.buttons = [button_d, button_c]
-    rtpstat_menubar.buttons = [button_s, button_r]
+    button_c2 = Button(ord("c"), ord("C"),
+        win=system_menubar.win,
+        y=0, x=56,
+        char_alt="🄲 ",
+        label_on="Clear",
+        callback_on=clear_storage_callback,
+        done_callback_on=functools.partial(clear_done_callback, mydisplay),
+        stdscr=stdscr,
+        storage=BGWS,
+    )
 
-    workspaces = [
-        Workspace(
-            stdscr,
-            column_attrs = [x['column_attr'] for x in SYSTEM_ATTRS],
-            column_names = [x['column_name'] for x in SYSTEM_ATTRS],
-            column_widths = [int(x['fmt'][1:]) for x in SYSTEM_ATTRS],
-            menubar = system_menubar,
-            storage = GATEWAYS,
-            name = "System",
-        ),
-
-        Workspace(
-            stdscr,
-            column_attrs = [x['column_attr'] for x in PORT_ATTRS],
-            column_names = [x['column_name'] for x in PORT_ATTRS],
-            column_widths = [int(x['fmt'][1:]) for x in PORT_ATTRS],
-            menubar = system_menubar,
-            storage = GATEWAYS,
-            name = "Ports",
-        ),
-
-        Workspace(
-            stdscr,
-            column_attrs = [x['column_attr'] for x in CONFIG_ATTRS],
-            column_names = [x['column_name'] for x in CONFIG_ATTRS],
-            column_widths = [int(x['fmt'][1:]) for x in CONFIG_ATTRS],
-            menubar = system_menubar,
-            storage = GATEWAYS,
-            name = "Config",
-        ),
-
-        Workspace(
-            stdscr,
-            column_attrs = [x['column_attr'] for x in STATUS_ATTRS],
-            column_names = [x['column_name'] for x in STATUS_ATTRS],
-            column_widths = [int(x['fmt'][1:]) for x in STATUS_ATTRS],
-            menubar = system_menubar,
-            storage = GATEWAYS,
-            name = "Status",
-        ),
-
-        Workspace(
-            stdscr,
-            column_attrs = [x['column_attr'] for x in RTPSTAT_ATTRS],
-            column_names = [x['column_name'] for x in RTPSTAT_ATTRS],
-            column_widths = [int(x['fmt'][1:]) for x in RTPSTAT_ATTRS],
-            menubar = rtpstat_menubar,
-            storage = CONFIG["storage"],
-            name = "RTPStat",
-        )   
-    ]
+    system_menubar.buttons = [button_d, button_c1]
+    rtpstat_menubar.buttons = [button_s, button_r, button_c2]
     
-    tab = Tab(stdscr, tab_names=[w.name for w in workspaces])
-    display = MyDisplay(stdscr, workspaces=workspaces, tab=tab)
-    asyncio_run(display.run())
+    asyncio_run(mydisplay.run())
 
+GATEWAYS = {}
+BGWS = []
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Monitors Avaya Branch Gateways (BGW)')
