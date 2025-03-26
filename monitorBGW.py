@@ -117,6 +117,7 @@ CONFIG = {
 }
 
 #System
+#+---+--------+---------------+-----------------+-------------+-----+--+--------+
 #│BGW│  Name  |     LAN IP    │     LAN MAC     |   Uptime    |Model│HW│Firmware│
 #+---+--------+---------------+-----------------+-------------+-----+--+--------+
 #|001|        |192.168.111.111|34:75:c7:64:ef:08|153d05h23m06s| g430│1A│43.11.12│
@@ -124,7 +125,7 @@ CONFIG = {
 
 SYSTEM_ATTRS = [
     {
-        'xpos':  1,
+        'xpos': 1,
         'column_attr': 'gw_number',
         'fmt': '>3',
         'color': 'base',
@@ -132,64 +133,99 @@ SYSTEM_ATTRS = [
     },
     {
         'xpos':  5,
+        'column_attr': 'gw_name',
+        'fmt': '>8',
+        'color': 'base',
+        'column_name': 'Name',
+    },
+    {
+        'xpos': 14,
         'column_attr': 'host',
         'fmt': '>15',
         'color': 'base',
         'column_name': 'LAN IP',
     },
     {
-        'xpos': 21,
-        'column_attr': 'gw_name',
-        'fmt': '>13',
+        'xpos': 30,
+        'column_attr': 'mac',
+        'fmt': '>17',
         'color': 'base',
-        'column_name': 'Name',
+        'column_name': 'LAN MAC',
     },
     {
-        'xpos': 35,
+        'xpos': 48,
         'column_attr': 'uptime',
         'fmt': '>13',
         'color': 'base',
         'column_name': 'Uptime',
     },
     {
-        'xpos': 49,
+        'xpos': 62,
         'column_attr': 'model',
         'fmt': '>5',
         'color': 'base',
         'column_name': 'Model',
     },
     {
-        'xpos': 55,
+        'xpos': 68,
         'column_attr': 'hw',
         'fmt': '>2',
         'color': 'base',
         'column_name': 'HW',
     },
     {
-        'xpos': 58,
+        'xpos': 71,
         'column_attr': 'fw',
         'fmt': '>8',
         'color': 'base',
         'column_name': 'Firmware',
     },
-    {
-        'xpos': 67,
-        'column_attr': 'serial',
-        'fmt': '>12',
-        'color': 'base',
-        'column_name': 'Serial No.',
-    },
 ]
 
 #Hardware
-#│BGW│System Location| Serial Num |Chassis|Mainboard|Memory│DSP│Announ|Cmp.Flash|
+#+---+---------------+------------+-------+---------+------+---+------+---------+
+#│BGW│    Location   | Serial Num |Chassis|Mainboard|Memory│DSP│Announ|Cmp.Flash|
 #+---+---------------+------------+-------+---------+------+---+------+---------+
 #|001|               |13TG01116522|     1A|       3A| 256MB│160│   999|installed|
 #+---+---------------+------------+-------+---------+------+---+------+---------+
 
-
 HARDWARE_ATTRS = [
-{
+    {
+        'xpos': 1,
+        'column_attr': 'gw_number',
+        'fmt': '>3',
+        'color': 'base',
+        'column_name': 'BGW',
+    },
+    {
+        'xpos': 5,
+        'column_attr': 'location',
+        'fmt': '>15',
+        'color': 'base',
+        'column_name': 'Location',
+    },
+    {
+        'xpos': 21,
+        'column_attr': 'serial',
+        'fmt': '>12',
+        'color': 'base',
+        'column_name': 'Serial',
+    },
+    {
+        'xpos': 34,
+        'column_attr': 'chassis_hw',
+        'fmt': '>9',
+        'color': 'base',
+        'column_name': 'Chassis',
+    },
+    {
+        'xpos': 42,
+        'column_attr': 'mainboard_hw',
+        'fmt': '>7',
+        'color': 'base',
+        'column_name': 'Mainboard',
+    },
+    {
         'xpos': 52,
         'column_attr': 'memory',
         'fmt': '>6',
@@ -205,33 +241,113 @@ HARDWARE_ATTRS = [
     },
     {
         'xpos': 63,
-        'column_attr': 'psu',
-        'fmt': '>3',
-        'color': 'base',
-        'column_name': 'PSU',
-    },
-    {
-        'xpos': 67,
-        'column_attr': 'faults',
-        'fmt': '>5',
-        'color': 'base',
-        'column_name': 'Fault',
-    },
-    {
-        'xpos': 73,
         'column_attr': 'announcements',
-        'fmt': '>4',
+        'fmt': '>6',
         'color': 'base',
-        'column_name': 'Anns',
+        'column_name': 'Announ',
+    },
+    {
+        'xpos': 70,
+        'column_attr': 'comp_flash',
+        'fmt': '>9',
+        'color': 'base',
+        'column_name': 'Cmp.Flash',
     },
 ]
 
 #Module
+#+---+------+------+------+------+------+------+------+------+--------+----+----+
 #│BGW│  v1  |  v2  |  v3  |  v4  |  v5  |  v6  |  v7  |  v8  |   v10  |PSU1|PSU2|
 #+---+------+------+------+------+------+------+------+------+--------+----+----+
 #|001|S8300E│MM714B│MM714B│MM714B│MM714B│MM714B│S8300E│S8300E│Mainboar|400W│400W|
 #+---+------+------+------+------+------+------+------+------+--------+----+----+
 
+MODULE_ATTRS = [
+    {
+        'xpos': 1,
+        'column_attr': 'gw_number',
+        'fmt': '>3',
+        'color': 'base',
+        'column_name': 'BGW',
+    },
+    {
+        'xpos': 5,
+        'column_attr': 'mm_v1',
+        'fmt': '>6',
+        'color': 'base',
+        'column_name': 'v1',
+    },
+    {
+        'xpos': 12,
+        'column_attr': 'mm_v2',
+        'fmt': '>6',
+        'color': 'base',
+        'column_name': 'v2',
+    },
+    {
+        'xpos': 19,
+        'column_attr': 'mm_v3',
+        'fmt': '>6',
+        'color': 'base',
+        'column_name': 'v3',
+    },
+    {
+        'xpos': 27,
+        'column_attr': 'mm_v4',
+        'fmt': '>6',
+        'color': 'base',
+        'column_name': 'v4',
+    },
+    {
+        'xpos': 33,
+        'column_attr': 'mm_v5',
+        'fmt': '>6',
+        'color': 'base',
+        'column_name': 'v5',
+    },
+    {
+        'xpos': 40,
+        'column_attr': 'mm_v6',
+        'fmt': '>6',
+        'color': 'base',
+        'column_name': 'v6',
+    },
+    {
+        'xpos': 47,
+        'column_attr': 'mm_v7',
+        'fmt': '>6',
+        'color': 'base',
+        'column_name': 'v7',
+    },
+    {
+        'xpos': 54,
+        'column_attr': 'mm_v8',
+        'fmt': '>6',
+        'color': 'base',
+        'column_name': 'v8',
+    },
+    {
+        'xpos': 61,
+        'column_attr': 'mm_v10',
+        'fmt': '>6',
+        'color': 'base',
+        'column_name': 'v10',
+    },
+    {
+        'xpos': 70,
+        'column_attr': 'psu1',
+        'fmt': '>4',
+        'color': 'base',
+        'column_name': 'PSU1',
+    },
+    {
+        'xpos': 75,
+        'column_attr': 'psu2',
+        'fmt': '>4',
+        'color': 'base',
+        'column_name': 'PSU2',
+    },
+]
 
 #Port
 #+---+----+---------+--------+---------+----+---------+--------+----+----+------+
@@ -242,14 +358,14 @@ HARDWARE_ATTRS = [
 
 PORT_ATTRS = [
     {
-        'xpos':  1,
+        'xpos': 1,
         'column_attr': 'gw_number',
         'fmt': '>3',
         'color': 'base',
         'column_name': 'BGW',
     },
     {
-        'xpos':  5,
+        'xpos': 5,
         'column_attr': 'port1',
         'fmt': '>4',
         'color': 'base',
@@ -265,23 +381,23 @@ PORT_ATTRS = [
     {
         'xpos': 20,
         'column_attr': 'port1_neg',
-        'fmt': '>7',
+        'fmt': '>8',
         'color': 'base',
         'column_name': 'Neg',
     },
     {
-        'xpos': 28,
+        'xpos': 29,
         'column_attr': 'port1_speed',
-        'fmt': '>5',
+        'fmt': '>4',
         'color': 'base',
-        'column_name': 'Speed',
+        'column_name': 'Spd.',
     },
     {
         'xpos': 34,
         'column_attr': 'port1_duplex',
         'fmt': '>4',
         'color': 'base',
-        'column_name': 'Dupl',
+        'column_name': 'Dup.',
     },
     {
         'xpos': 39,
@@ -300,30 +416,30 @@ PORT_ATTRS = [
     {
         'xpos': 54,
         'column_attr': 'port2_neg',
-        'fmt': '>7',
+        'fmt': '>8',
         'color': 'base',
         'column_name': 'Neg',
     },
     {
-        'xpos': 62,
+        'xpos': 63,
         'column_attr': 'port2_speed',
-        'fmt': '>5',
+        'fmt': '>4',
         'color': 'base',
-        'column_name': 'Speed',
+        'column_name': 'Spd.',
     },
     {
         'xpos': 68,
         'column_attr': 'port2_duplex',
         'fmt': '>4',
         'color': 'base',
-        'column_name': 'Dupl',
+        'column_name': 'Dup.',
     },
     {
         'xpos': 73,
         'column_attr': 'port_redu',
-        'fmt': '>4',
+        'fmt': '>6',
         'color': 'base',
-        'column_name': 'Rdcy',
+        'column_name': 'Redund',
     },
 ]
 
@@ -334,16 +450,16 @@ PORT_ATTRS = [
 #|001| disabled|       disabled|v2&3|  enabled| enabled|101.101.111.198|disabled|
 #+---+---------+---------------+----+---------+--------+---------------+--------+
 
-CONFIG_ATTRS = [
+SERVICE_ATTRS = [
     {
-        'xpos':  1,
+        'xpos': 1,
         'column_attr': 'gw_number',
         'fmt': '>3',
         'color': 'base',
         'column_name': 'BGW',
     },
     {
-        'xpos':  5,
+        'xpos': 5,
         'column_attr': 'rtp_stat_service',
         'fmt': '>9',
         'color': 'base',
