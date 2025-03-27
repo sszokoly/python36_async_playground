@@ -87,7 +87,7 @@ data ={
 
         "show system": '''
         System Name :
-        System Location :
+        System Location : townhall
         System Contact :
         Uptime (d,h:m:s) : 8,00:23:27
         Call Controller Time : 11:11:22 22 JUL 2020
@@ -274,382 +274,529 @@ rtp_stat = {
     "qos": "ok",
 }
 
-# System
-# +---+---------------+-----+--+--------+------------+------+---+---+-----+----+
-# |BGW|     LAN IP    |Model|HW|Firmware|  Serial No |Memory|DSP|PSU|Fault|Anns|   
-# +---+---------------+-----+--+--------+------------+------+---+---+-----+----+
-# |001|192.168.111.111| g430|1A|43.11.12|13TG01116522| 256MB|160|  1|    3| 999|
-# +---+---------------+-----+--+--------+------------+------+---+---+-----+----+
+#System
+#+---+--------+---------------+-----------------+-------------+-----+--+--------+
+#│BGW│  Name  |     LAN IP    │     LAN MAC     |   Uptime    |Model│HW│Firmware│
+#+---+--------+---------------+-----------------+-------------+-----+--+--------+
+#|001|        |192.168.111.111|34:75:c7:64:ef:08|153d05h23m06s| g430│1A│43.11.12│
+#+---+--------+---------------+-----------------+-------------+-----+--+--------+
 
 SYSTEM_ATTRS = [
     {
-        'xpos':  1,
         'column_attr': 'gw_number',
-        'fmt': '>3',
-        'color': 'base',
         'column_name': 'BGW',
-    },
-    {
-        'xpos':  5,
-        'column_attr': 'host',
-        'fmt': '>15',
         'color': 'base',
-        'column_name': 'LAN IP',
+        'fmt': '>3',
+        'xpos': 1,
     },
     {
-        'xpos': 21,
-        'column_attr': 'model',
-        'fmt': '>5',
+        'column_attr': 'gw_name',
+        'column_name': 'Name',
         'color': 'base',
-        'column_name': 'Model',
-    },
-    {
-        'xpos': 27,
-        'column_attr': 'hw',
-        'fmt': '>2',
-        'color': 'base',
-        'column_name': 'HW',
-    },
-    {
-        'xpos': 30,
-        'column_attr': 'fw',
         'fmt': '>8',
-        'color': 'base',
-        'column_name': 'Firmware',
+        'xpos': 5,
     },
     {
-        'xpos': 39,
-        'column_attr': 'serial',
-        'fmt': '>12',
+        'column_attr': 'host',
+        'column_name': 'LAN IP',
         'color': 'base',
-        'column_name': 'Serial No',
+        'fmt': '>15',
+        'xpos': 14,
     },
     {
-        'xpos': 52,
-        'column_attr': 'memory',
-        'fmt': '>6',
+        'column_attr': 'mac',
+        'column_name': 'LAN MAC',
         'color': 'base',
-        'column_name': 'Memory',
+        'fmt': '>17',
+        'xpos': 30,
     },
     {
-        'xpos': 59,
-        'column_attr': 'dsp',
-        'fmt': '>3',
+        'column_attr': 'uptime',
+        'column_name': 'Uptime',
         'color': 'base',
-        'column_name': 'DSP',
+        'fmt': '>13',
+        'xpos': 48,
     },
     {
-        'xpos': 63,
-        'column_attr': 'psu',
-        'fmt': '>3',
+        'column_attr': 'model',
+        'column_name': 'Model',
         'color': 'base',
-        'column_name': 'PSU',
-    },
-    {
-        'xpos': 68,
-        'column_attr': 'faults',
         'fmt': '>5',
-        'color': 'base',
-        'column_name': 'Fault',
+        'xpos': 62,
     },
     {
-        'xpos': 73,
-        'column_attr': 'announcements',
-        'fmt': '>4',
+        'column_attr': 'hw',
+        'column_name': 'HW',
         'color': 'base',
-        'column_name': 'Anns',
+        'fmt': '>2',
+        'xpos': 68,
+    },
+    {
+        'column_attr': 'fw',
+        'column_name': 'Firmware',
+        'color': 'base',
+        'fmt': '>8',
+        'xpos': 71,
     },
 ]
 
-# Port
-# +---+----+---------+-------+-----+----+----+---------+-------+-----+----+----+
-# |BGW|Port| Status  |  Neg  |Speed|Dupl|Port| Status  |  Neg  |Speed|Dupl|Redu|
-# +---+----+---------+-------+-----+----+----+---------+-------+-----+----+----+
-# |001|10/4|connected|disable| 100M|half|10/5|connected|disable| 100M|half| 4&5|
-# +---+----+---------+-------+-----+----+----+---------+-------+-----+----+----+
+#Hardware
+#+---+---------------+------------+-------+---------+------+---+------+---------+
+#│BGW│    Location   | Serial Num |Chassis|Mainboard|Memory│DSP│Announ|Cmp.Flash|
+#+---+---------------+------------+-------+---------+------+---+------+---------+
+#|001|               |13TG01116522|     1A|       3A| 256MB│160│   999|installed|
+#+---+---------------+------------+-------+---------+------+---+------+---------+
+
+HARDWARE_ATTRS = [
+    {
+        'column_attr': 'gw_number',
+        'column_name': 'BGW',
+        'color': 'base',
+        'fmt': '>3',
+        'xpos': 1,
+    },
+    {
+        'column_attr': 'location',
+        'column_name': 'Location',
+        'color': 'base',
+        'fmt': '>15',
+        'xpos': 5,
+    },
+    {
+        'column_attr': 'serial',
+        'column_name': 'Serial',
+        'color': 'base',
+        'fmt': '>12',
+        'xpos': 21,
+    },
+    {
+        'column_attr': 'chassis_hw',
+        'column_name': 'Chassis',
+        'color': 'base',
+        'fmt': '>9',
+        'xpos': 34,
+    },
+    {
+        'column_attr': 'mainboard_hw',
+        'column_name': 'Mainboard',
+        'color': 'base',
+        'fmt': '>7',
+        'xpos': 42,
+    },
+    {
+        'column_attr': 'memory',
+        'column_name': 'Memory',
+        'color': 'base',
+        'fmt': '>6',
+        'xpos': 52,
+    },
+    {
+        'column_attr': 'dsp',
+        'column_name': 'DSP',
+        'color': 'base',
+        'fmt': '>3',
+        'xpos': 59,
+    },
+    {
+        'column_attr': 'announcements',
+        'column_name': 'Announ',
+        'color': 'base',
+        'fmt': '>6',
+        'xpos': 63,
+    },
+    {
+        'column_attr': 'comp_flash',
+        'column_name': 'Cmp.Flash',
+        'color': 'base',
+        'fmt': '>9',
+        'xpos': 70,
+    },
+]
+
+#Module
+#+---+------+------+------+------+------+------+------+------+--------+----+----+
+#│BGW│  v1  |  v2  |  v3  |  v4  |  v5  |  v6  |  v7  |  v8  |   v10  |PSU1|PSU2|
+#+---+------+------+------+------+------+------+------+------+--------+----+----+
+#|001|S8300E│MM714B│MM714B│MM714B│MM714B│MM714B│S8300E│S8300E│Mainboar|400W│400W|
+#+---+------+------+------+------+------+------+------+------+--------+----+----+
+
+MODULE_ATTRS = [
+    {
+        'column_attr': 'gw_number',
+        'column_name': 'BGW',
+        'color': 'base',
+        'fmt': '>3',
+        'xpos': 1,
+    },
+    {
+        'column_attr': 'mm_v1',
+        'column_name': 'v1',
+        'color': 'base',
+        'fmt': '>6',
+        'xpos': 5,
+    },
+    {
+        'column_attr': 'mm_v2',
+        'column_name': 'v2',
+        'color': 'base',
+        'fmt': '>6',
+        'xpos': 12,
+    },
+    {
+        'column_attr': 'mm_v3',
+        'column_name': 'v3',
+        'color': 'base',
+        'fmt': '>6',
+        'xpos': 19,
+    },
+    {
+        'column_attr': 'mm_v4',
+        'column_name': 'v4',
+        'color': 'base',
+        'fmt': '>6',
+        'xpos': 27,
+    },
+    {
+        'column_attr': 'mm_v5',
+        'column_name': 'v5',
+        'color': 'base',
+        'fmt': '>6',
+        'xpos': 33,
+    },
+    {
+        'column_attr': 'mm_v6',
+        'column_name': 'v6',
+        'color': 'base',
+        'fmt': '>6',
+        'xpos': 40,
+    },
+    {
+        'column_attr': 'mm_v7',
+        'column_name': 'v7',
+        'color': 'base',
+        'fmt': '>6',
+        'xpos': 47,
+    },
+    {
+        'column_attr': 'mm_v8',
+        'column_name': 'v8',
+        'color': 'base',
+        'fmt': '>6',
+        'xpos': 54,
+    },
+    {
+        'column_attr': 'mm_v10',
+        'column_name': 'v10',
+        'color': 'base',
+        'fmt': '>6',
+        'xpos': 61,
+    },
+    {
+        'column_attr': 'psu1',
+        'column_name': 'PSU1',
+        'color': 'base',
+        'fmt': '>4',
+        'xpos': 70,
+    },
+    {
+        'column_attr': 'psu2',
+        'column_name': 'PSU2',
+        'color': 'base',
+        'fmt': '>4',
+        'xpos': 75,
+    },
+]
+
+#Port
+#+---+----+---------+--------+---------+----+---------+--------+----+----+------+
+#|BGW|Port| Status  |  Neg.  |Spd.|Dup.|Port| Status  |  Neg.  |Spd.|Dup.|Redund|
+#+---+----+---------+--------+----+----+----+---------+--------+----+----+------+
+#|001|10/4|connected| enabled|100M|full|10/5|  no link| enabled|100M|half|   5/4|
+#+---+----+---------+--------+----+----+----+---------+--------+----+----+------+
 
 PORT_ATTRS = [
     {
-        'xpos':  1,
         'column_attr': 'gw_number',
-        'fmt': '>3',
-        'color': 'base',
         'column_name': 'BGW',
+        'color': 'base',
+        'fmt': '>3',
+        'xpos': 1,
     },
     {
-        'xpos':  5,
         'column_attr': 'port1',
-        'fmt': '>4',
-        'color': 'base',
         'column_name': 'Port',
+        'color': 'base',
+        'fmt': '>4',
+        'xpos': 5,
     },
     {
-        'xpos': 10,
         'column_attr': 'port1_status',
-        'fmt': '>9',
-        'color': 'base',
         'column_name': 'Status',
+        'color': 'base',
+        'fmt': '>9',
+        'xpos': 10,
     },
     {
-        'xpos': 20,
         'column_attr': 'port1_neg',
-        'fmt': '>7',
-        'color': 'base',
         'column_name': 'Neg',
+        'color': 'base',
+        'fmt': '>8',
+        'xpos': 20,
     },
     {
-        'xpos': 28,
         'column_attr': 'port1_speed',
-        'fmt': '>5',
+        'column_name': 'Spd.',
         'color': 'base',
-        'column_name': 'Speed',
+        'fmt': '>4',
+        'xpos': 29,
     },
     {
-        'xpos': 34,
         'column_attr': 'port1_duplex',
-        'fmt': '>4',
+        'column_name': 'Dup.',
         'color': 'base',
-        'column_name': 'Duplex',
+        'fmt': '>4',
+        'xpos': 34,
     },
     {
-        'xpos': 39,
         'column_attr': 'port2',
-        'fmt': '>4',
-        'color': 'base',
         'column_name': 'Port',
+        'color': 'base',
+        'fmt': '>4',
+        'xpos': 39,
     },
     {
-        'xpos': 54,
         'column_attr': 'port2_status',
-        'fmt': '>9',
-        'color': 'base',
         'column_name': 'Status',
-    },
-    {
-        'xpos': 54,
-        'column_attr': 'port2_neg',
-        'fmt': '>7',
         'color': 'base',
-        'column_name': 'Neg',
-    },
-    {
-        'xpos': 62,
-        'column_attr': 'port2_speed',
-        'fmt': '>5',
-        'color': 'base',
-        'column_name': 'Speed',
-    },
-    {
-        'xpos': 68,
-        'column_attr': 'port2_duplex',
-        'fmt': '>4',
-        'color': 'base',
-        'column_name': 'Duplex',
-    },
-    {
-        'xpos': 73,
-        'column_attr': 'port_redu',
-        'fmt': '>4',
-        'color': 'base',
-        'column_name': 'Redu',
-    },
-]
-
-# Config
-# +---+---------+---------------+----+--------+---------------+--------+-------+
-# |BGW|rtp-stats|capture-service|snmp| slamon | slamon server |  lldp  |  lsp  |
-# +---+---------+---------------+----+--------+---------------+--------+-------+
-# |001| disabled|       disabled|v2&3|disabled|101.101.111.198|disabled| S8300E|
-# +---+---------+---------------+----+--------+---------------+--------+-------+
-
-CONFIG_ATTRS = [
-    {
-        'xpos':  1,
-        'column_attr': 'gw_number',
-        'fmt': '>3',
-        'color': 'base',
-        'column_name': 'BGW',
-    },
-    {
-        'xpos':  5,
-        'column_attr': 'rtp_stat_service',
         'fmt': '>9',
-        'color': 'base',
-        'column_name': 'rtp-stats',
+        'xpos': 44,
     },
     {
-        'xpos': 15,
-        'column_attr': 'capture_service',
-        'fmt': '>15',
+        'column_attr': 'port2_neg',
+        'column_name': 'Neg',
         'color': 'base',
-        'column_name': 'capture-service',
+        'fmt': '>8',
+        'xpos': 54,
     },
     {
-        'xpos': 31,
-        'column_attr': 'snmp',
+        'column_attr': 'port2_speed',
+        'column_name': 'Spd.',
+        'color': 'base',
         'fmt': '>4',
-        'color': 'base',
-        'column_name': 'snmp',
+        'xpos': 63,
     },
     {
-        'xpos': 36,
-        'column_attr': 'slamon_service',
-        'fmt': '>8',
+        'column_attr': 'port2_duplex',
+        'column_name': 'Dup.',
         'color': 'base',
-        'column_name': 'slamon',
+        'fmt': '>4',
+        'xpos': 68,
     },
     {
-        'xpos': 45,
-        'column_attr': 'sla_server',
-        'fmt': '>15',
+        'column_attr': 'port_redu',
+        'column_name': 'Redund',
         'color': 'base',
-        'column_name': 'slamon server',
-    },
-    {
-        'xpos': 61,
-        'column_attr': 'lldp',
-        'fmt': '>8',
-        'color': 'base',
-        'column_name': 'lldp',
-    },
-    {
-        'xpos': 70,
-        'column_attr': 'lsp',
-        'fmt': '>7',
-        'color': 'base',
-        'column_name': 'lsp',
+        'fmt': '>6',
+        'xpos': 73,
     },
 ]
 
-# Status
-# +---+-------------+------------+------------+---------------+----------+-----+
-# |BGW|    Uptime   |Act Sessions|Tot Sessions|In-Use/Tot DSPs|AvgPollSec|Polls|
-# +---+-------------+------------+------------+---------------+----------+-----+
-# |001|153d05h23m06s|         0/0|  32442/1443|        320/230|    120.32|    3|
-# +---+-------------+------------+------------+---------------+----------+-----+
+#Service
+#+---+---------+---------------+----+---------+--------+---------------+--------+
+#|BGW|rtp-stats|capture-service|snmp|snmp-trap| slamon | slamon server |  lldp  |
+#+---+---------+---------------+----+---------+--------+---------------+--------+
+#|001| disabled|       disabled|v2&3|  enabled| enabled|101.101.111.198|disabled|
+#+---+---------+---------------+----+---------+--------+---------------+--------+
+
+SERVICE_ATTRS = [
+    {
+        'column_attr': 'gw_number',
+        'column_name': 'BGW',
+        'color': 'base',
+        'fmt': '>3',
+        'xpos': 1,
+    },
+    {
+        'column_attr': 'rtp_stat_service',
+        'column_name': 'RTP-Stats',
+        'color': 'base',
+        'fmt': '>9',
+        'xpos': 5,
+    },
+    {
+        'column_attr': 'capture_service',
+        'column_name': 'Capture-Service',
+        'color': 'base',
+        'fmt': '>15',
+        'xpos': 15,
+    },
+    {
+        'column_attr': 'snmp',
+        'column_name': 'SNMP',
+        'color': 'base',
+        'fmt': '>4',
+        'xpos': 31,
+    },
+    {
+        'column_attr': 'slamon_service',
+        'column_name': 'SLAMon',
+        'color': 'base',
+        'fmt': '>8',
+        'xpos': 36,
+    },
+    {
+        'column_attr': 'sla_server',
+        'column_name': 'SLAMon Server',
+        'color': 'base',
+        'fmt': '>15',
+        'xpos': 45,
+    },
+    {
+        'column_attr': 'lldp',
+        'column_name': 'LLDP',
+        'color': 'base',
+        'fmt': '>8',
+        'xpos': 61,
+    },
+    {
+        'column_attr': 'lsp',
+        'column_name': 'LSP',
+        'color': 'base',
+        'fmt': '>7',
+        'xpos': 70,
+    },
+]
+
+#Status
+#+---+-----------+-----------+---------+--------+-----+--------+-------+--------+
+#|BGW|Act.Session|Tot.Session|InUse DSP|  Temp  |Fault|PollSecs| Polls |LastSeen|
+#+---+-----------+-----------+---------+--------+-----+--------+-------+--------+
+#|001|        0/0| 32442/1443|      320|39C/104F|    3|  120.32|      3|11:02:11|
+#+---+-----------+-----------+---------+--------+-----+--------+-------+--------+
+
 
 STATUS_ATTRS = [
     {
-        'xpos':  1,
         'column_attr': 'gw_number',
-        'fmt': '>3',
-        'color': 'base',
         'column_name': 'BGW',
+        'color': 'base',
+        'fmt': '>3',
+        'xpos': 1,
     },
     {
-        'xpos':  5,
         'column_attr': 'uptime',
-        'fmt': '>13',
-        'color': 'base',
         'column_name': 'Uptime',
+        'color': 'base',
+        'fmt': '>13',
+        'xpos': 5,
     },
     {
-        'xpos': 19,
         'column_attr': 'active_sessions',
-        'fmt': '>11',
+        'column_name': 'Act.Sessions',
         'color': 'base',
-        'column_name': 'Act Sessions',
+        'fmt': '>12',
+        'xpos': 19,
     },
     {
-        'xpos': 32,
         'column_attr': 'total_sessions',
-        'fmt': '>11',
+        'column_name': 'Tot.Sessions',
         'color': 'base',
-        'column_name': 'Tot Sessions',
+        'fmt': '>12',
+        'xpos': 32,
     },
     {
-        'xpos': 45,
         'column_attr': 'voip_dsp',
-        'fmt': '>14',
+        'column_name': 'In-Use/Tot.DSPs',
         'color': 'base',
-        'column_name': 'In-Use/Tot DSPs',
+        'fmt': '>15',
+        'xpos': 45,
     },
     {
-        'xpos': 61,
         'column_attr': 'avg_poll_secs',
-        'fmt': '>9',
-        'color': 'base',
         'column_name': 'AvgPollSec',
+        'color': 'base',
+        'fmt': '>10',
+        'xpos': 61,
     },
     {
-        'xpos': 72,
         'column_attr': 'polls',
-        'fmt': '>5',
-        'color': 'base',
         'column_name': 'Polls',
+        'color': 'base',
+        'fmt': '>5',
+        'xpos': 72,
     },
 ]
 
-# RTP-Stat
-# +--------+--------+---+---------------+-----+---------------+-----+-----+----+
-# |  Start |   End  |BGW| Local-Address |LPort| Remote-Address|RPort|Codec| QoS|
-# +--------+--------+---+---------------+-----+---------------+-----+-----+----+
-# |11:09:07|11:11:27|001|192.168.111.111|55555|100.100.100.100|55555|G711U|  OK|
-# +--------+--------+---+---------------+-----+---------------+-----+-----+----+
+#RTP-Stat
+#+--------+--------+---+---------------+-----+---------------+-----+--------+---+
+#|  Start |   End  |BGW| Local-Address |LPort| Remote-Address|RPort|Codec/pt|QoS|
+#+--------+--------+---+---------------+-----+---------------+-----+--------+---+
+#|11:09:07|11:11:27|001|192.168.111.111|55555|100.100.100.100|55555|G711U/20| OK|
+#+--------+--------+---+---------------+-----+---------------+-----+--------+---+
 
 RTPSTAT_ATTRS = [
     {
-        'xpos':  1,
         'column_attr': 'start_time',
-        'fmt': '>8',
-        'color': 'base',
         'column_name': 'Start',
-    },
-    {
-        'xpos': 10,
-        'column_attr': 'end_time',
+        'color': 'base',
         'fmt': '>8',
-        'color': 'base',
+        'xpos': 1,
+    },
+    {
+        'column_attr': 'end_time',
         'column_name': 'End',
+        'color': 'base',
+        'fmt': '>8',
+        'xpos': 10,
     },
     {
-        'xpos': 19,
         'column_attr': 'gw_number',
-        'fmt': '>3',
-        'color': 'base',
         'column_name': 'BGW',
+        'color': 'base',
+        'fmt': '>3',
+        'xpos': 19,
     },
     {
-        'xpos': 23,
         'column_attr': 'local_addr',
-        'fmt': '>15',
-        'color': 'base',
         'column_name': 'Local-Address',
-    },
-    {
-        'xpos': 39,
-        'column_attr': 'local_port',
-        'fmt': '>5',
         'color': 'base',
-        'column_name': 'LPort',
-    },
-    {
-        'xpos': 45,
-        'column_attr': 'remote_addr',
         'fmt': '>15',
+        'xpos': 23,
+    },
+    {
+        'column_attr': 'local_port',
+        'column_name': 'LPort',
         'color': 'base',
+        'fmt': '>5',
+        'xpos': 39,
+    },
+    {
+        'column_attr': 'remote_addr',
         'column_name': 'Remote-Address',
-    }, 
+        'color': 'base',
+        'fmt': '>15',
+        'xpos': 45,
+    },
     {
-        'xpos': 61,
         'column_attr': 'remote_port',
-        'fmt': '>5',
-        'color': 'base',
         'column_name': 'RPort',
-    },
-    {
-        'xpos': 67,
-        'column_attr': 'codec',
+        'color': 'base',
         'fmt': '>5',
-        'color': 'base',
-        'column_name': 'Codec',
+        'xpos': 61,
     },
     {
-        'xpos': 74,
-        'column_attr': 'qos',
-        'fmt': '^4',
+        'column_attr': 'codec',
+        'column_name': 'Codec',
         'color': 'base',
+        'fmt': '>5',
+        'xpos': 67,
+    },
+    {
+        'column_attr': 'qos',
         'column_name': 'QoS',
+        'color': 'base',
+        'fmt': '^4',
+        'xpos': 74,
     },
 ]
 
@@ -697,12 +844,17 @@ class BGW():
         self._active_sessions = None
         self._announcements = None
         self._capture_service = None
+        self._chassis_hw = None
+        self._comp_flash = None
         self._dsp = None
         self._faults = None
         self._fw = None
         self._hw = None
         self._lldp = None
+        self._location = None
         self._lsp = None
+        self._mac = None
+        self._mainboard_hw = None
         self._memory = None
         self._model = None
         self._port1 = None
@@ -717,6 +869,8 @@ class BGW():
         self._port2_speed = None
         self._port_redu = None
         self._psu = None
+        self._psu1 = None
+        self._psu2 = None
         self._rtp_stat_service = None
         self._serial = None
         self._slamon_service = None
@@ -736,8 +890,8 @@ class BGW():
     @property
     def announcements(self):
         if self.dir:
-            if not self._announcements:
-                m = re.findall(r"Announcements.*?", self.dir)
+            if self._announcements is None:
+                m = re.findall(r"Annc files", self.dir)
                 self._announcements = len(m)
             return self._announcements
         return "NA"
@@ -745,17 +899,39 @@ class BGW():
     @property
     def capture_service(self):
         if self.show_capture:
-            if not self._capture_service:
+            if self._capture_service is None:
                 m = re.search(r' service is (\w+)', self.show_capture)
                 self._capture_service = m.group(1) if m else "?"
             return self._capture_service
         return "NA"
 
     @property
+    def chassis_hw(self):
+        if self.show_system:
+            if self._chassis_hw is None:
+                v = re.search(r'Chassis HW Vintage\s+:\s+(\S+)', self.show_system)
+                s = re.search(r"Chassis HW Suffix\s+:\s+(\S+)", self.show_system)
+                self._chassis_hw = v.group(1) if v else "?" + s.group(1) if s else "?"
+            return self._chassis_hw
+        return "NA"
+
+    @property
+    def comp_flash(self):
+        if self.show_system:
+            if self._comp_flash is None:
+                m = re.search(r'Flash Memory\s+:\s+(\S+)', self.show_system)
+                if m and "Compact" in m.group(1):
+                    self._comp_flash = "installed"
+                else:
+                    self._comp_flash = ""
+            return self._comp_flash
+        return "NA"
+
+    @property
     def dsp(self):
         if self.show_system:
-            if not self._dsp:
-                m = re.findall(r"Media Socket.*?MP(\d+)", self.show_system)
+            if self._dsp is None:
+                m = re.findall(r"Media Socket .*?: M?P?(\d+) ", self.show_system)
                 self._dsp = sum(int(x) for x in m) if m else "?"
             return self._dsp
         return "NA"
@@ -763,7 +939,7 @@ class BGW():
     @property
     def faults(self):
         if self.show_faults:
-            if not self._faults:
+            if self._faults is None:
                 if "No Fault Messages" in self.show_faults:
                     self._faults = 0
                 else:
@@ -775,7 +951,7 @@ class BGW():
     @property
     def fw(self):
         if self.show_system:
-            if not self._fw:
+            if self._fw is None:
                 m = re.search(r'FW Vintage\s+:\s+(\S+)', self.show_system)
                 self._fw = m.group(1) if m else "?"
             return self._fw
@@ -784,7 +960,7 @@ class BGW():
     @property
     def hw(self):
         if self.show_system:
-            if not self._hw:
+            if self._hw is None:
                 m = re.search(r'HW Vintage\s+:\s+(\S+)', self.show_system)
                 hw_vintage = m.group(1) if m else "?"
                 m = re.search(r'HW Suffix\s+:\s+(\S+)', self.show_system)
@@ -796,7 +972,7 @@ class BGW():
     @property
     def lldp(self):
         if self.show_lldp_config:
-            if not self._lldp:
+            if self._lldp is None:
                 if "Application status: disable" in self.show_lldp_config:
                    self._lldp = "disabled"
                 else:
@@ -805,18 +981,46 @@ class BGW():
         return "NA"
 
     @property
+    def location(self):
+        if self.show_system:
+            if self._location is None:
+                m = re.search(r'System Location\s+:\s+(\S+)', self.show_system)
+                self._location = m.group(1) if m else ""
+            return self._location
+        return "NA"
+
+    @property
     def lsp(self):
         if self.show_mg_list:
-            if not self._lsp:
+            if self._lsp is None:
                 m = re.search(r'ICC\s+(\S)', self.show_mg_list)
-                self._lsp = f"S8300{m.group(1)}" if m else "?"
+                self._lsp = f"S8300{m.group(1)}" if m else ""
             return self._lsp
+        return "NA"
+
+    @property
+    def mac(self):
+        if self.show_system:
+            if self._mac is None:
+                m = re.search(r"LAN MAC Address\s+:\s+(\S+)", self.show_system)
+                self._mac = m.group(1) if m else "?"
+            return self._mac
+        return "NA"
+
+    @property
+    def mainboard_hw(self):
+        if self.show_system:
+            if self._mainboard_hw is None:
+                v = re.search(r'Mainboard HW Vintage\s+:\s+(\S+)', self.show_system)
+                s = re.search(r"Mainboard HW Suffix\s+:\s+(\S+)", self.show_system)
+                self._mainboard_hw = v.group(1) if v else "?" + s.group(1) if s else "?"
+            return self._mainboard_hw
         return "NA"
 
     @property
     def memory(self):
         if self.show_system:
-            if not self._memory:
+            if self._memory is None:
                 m = re.findall(r"Memory #\d+\s+:\s+(\S+)", self.show_system)
                 self._memory = f"{sum(self._to_mbyte(x) for x in m)}MB"
             return self._memory
@@ -825,7 +1029,7 @@ class BGW():
     @property
     def model(self):
         if self.show_system:
-            if not self._model:
+            if self._model is None:
                 m = re.search(r'Model\s+:\s+(\S+)', self.show_system)
                 self._model = m.group(1) if m else "?"
             return self._model
@@ -833,70 +1037,70 @@ class BGW():
 
     @property
     def port1(self):
-        if not self._port1:
+        if self._port1 is None:
             pdict = self._port_groupdict(0)
             self._port1 = pdict.get("port", "?") if pdict else "NA"
         return self._port1
 
     @property
     def port1_status(self):
-        if not self._port1_status:
+        if self._port1_status is None:
             pdict = self._port_groupdict(0)
             self._port1_status = pdict.get("status", "?") if pdict else "NA"
         return self._port1_status
 
     @property
     def port1_neg(self):
-        if not self._port1_neg:
+        if self._port1_neg is None:
             pdict = self._port_groupdict(0)
             self._port1_neg = pdict.get("neg", "?") if pdict else "NA"
         return self._port1_neg
 
     @property
     def port1_duplex(self):
-        if not self._port1_duplex:
+        if self._port1_duplex is None:
             pdict = self._port_groupdict(0)
             self._port1_duplex = pdict.get("duplex", "?") if pdict else "NA"
         return self._port1_duplex
 
     @property
     def port1_speed(self):
-        if not self._port1_speed:
+        if self._port1_speed is None:
             pdict = self._port_groupdict(0)
             self._port1_speed = pdict.get("speed", "?") if pdict else "NA"
         return self._port1_speed
 
     @property
     def port2(self):
-        if not self._port2:
+        if self._port2 is None:
             pdict = self._port_groupdict(1)
             self._port2 = pdict.get("port", "?") if pdict else "NA"
         return self._port2
 
     @property
     def port2_status(self):
-        if not self._port2_status:
+        if self._port2_status is None:
             pdict = self._port_groupdict(1)
             self._port2_status = pdict.get("status", "?") if pdict else "NA"
         return self._port2_status
 
     @property
     def port2_neg(self):
-        if not self._port2_neg:
+        if self._port2_neg is None:
             pdict = self._port_groupdict(1)
             self._port2_neg = pdict.get("neg", "?") if pdict else "NA"
         return self._port2_neg
 
     @property
     def port2_duplex(self):
-        if not self._port2_duplex:
+        if self._port2_duplex is None:
             pdict = self._port_groupdict(1)
             self._port2_duplex = pdict.get("duplex", "?") if pdict else "NA"
         return self._port2_duplex
 
     @property
     def port2_speed(self):
-        if not self._port2_speed:
+        if self._port2_speed is None:
             pdict = self._port_groupdict(1)
             self._port2_speed = pdict.get("speed", "?") if pdict else "NA"
         return self._port2_speed
@@ -904,25 +1108,43 @@ class BGW():
     @property
     def port_redu(self):
         if self.show_running_config:
-            if not self._port_redu:
+            if self._port_redu is None:
                 m = re.search(r'port redundancy \d+/(\d+) \d+/(\d+)',
                     self.show_running_config)
-                self._port_redu = f"{m.group(1)}/{m.group(2)}" if m else "?/?"
+                self._port_redu = f"{m.group(1)}/{m.group(2)}" if m else ""
             return self._port_redu
         return "NA"
 
     @property
     def psu(self):
         if self.show_system:
-            if not self._psu:
+            if self._psu is None:
                 m = re.findall(r"PSU #\d+", self.show_system)
                 self._psu = len(m)
             return self._psu
         return "NA"
 
     @property
+    def psu1(self):
+        if self.show_system:
+            if self._psu1 is None:
+                m = re.search(r"PSU #1\s+:\s+\S+ (\S+)", self.show_system)
+                self._psu1 = m.group(1) if m else ""
+            return self._psu1
+        return "NA"
+
+    @property
+    def psu2(self):
+        if self.show_system:
+            if self._psu2 is None:
+                m = re.search(r"PSU #2\s+:\s+\S+ (\S+)", self.show_system)
+                self._psu2 = m.group(1) if m else ""
+            return self._psu2
+        return "NA"
+
+    @property
     def rtp_stat_service(self):
-        if not self._rtp_stat_service:
+        if self._rtp_stat_service is None:
             m = re.search(r'rtp-stat-service', self.show_running_config)
             self._rtp_stat_service = "enabled" if m else "disabled"
         return self._rtp_stat_service
@@ -930,7 +1152,7 @@ class BGW():
     @property
     def serial(self):
         if self.show_system:
-            if not self._serial:
+            if self._serial is None:
                 m = re.search(r'Serial No\s+:\s+(\S+)', self.show_system)
                 self._serial = m.group(1) if m else "?"
             return self._serial
@@ -939,8 +1161,8 @@ class BGW():
     @property
     def slamon_service(self):
         if self.show_sla_monitor:
-            if not self._slamon_service:
-                m = re.search(r'SLA Monitor: (\S+)', self.show_sla_monitor)
+            if self._slamon_service is None:
+                m = re.search(r'SLA Monitor:\s+(\S+)', self.show_sla_monitor)
                 self._slamon_service = m.group(1).lower() if m else "?"
             return self._slamon_service
         return "NA"
@@ -948,7 +1170,7 @@ class BGW():
     @property
     def sla_server(self):
         if self.show_sla_monitor:
-            if not self._sla_server:
+            if self._sla_server is None:
                 m = re.search(r'Registered Server IP Address:\s+(\S+)',
                               self.show_sla_monitor)
                 self._sla_server = m.group(1) if m else ""
@@ -958,7 +1180,7 @@ class BGW():
     @property
     def snmp(self):
         if self.show_running_config:
-            if not self._snmp:
+            if self._snmp is None:
                 snmp = []
                 if "snmp-server comm" in self.show_running_config:
                     snmp.append("2")
@@ -978,9 +1200,16 @@ class BGW():
 
     @property
     def uptime(self):
-        if self.show_rtp_stat_summary:
-            m = re.search(r'nal\s+(\S+)', self.show_rtp_stat_summary)
-            return m.group(1) if m else "?"
+        if self.show_system:
+            if self._uptime is None:
+                m = re.search(r'Uptime \(\S+\)\s+:\s+(\S+)', self.show_system)
+                if m:
+                    self._uptime = m.group(1).replace(",", "d")\
+                                    .replace(":", "h", 1)\
+                                    .replace(":", "m") + "s"
+                else:
+                    self._uptime = "?"
+            return self._uptime
         return "NA"
 
     @property
@@ -995,8 +1224,8 @@ class BGW():
                 total += int(dsp_total)
             except:
                 pass
-        total = total if total > 0 else "?"
-        inuse = inuse if total > 0 else "?"
+        #total = total if total > 0 else "?"
+        #inuse = inuse if inuse > 0 else "?"
         return f"{inuse}/{total}"
 
     def update(
@@ -1070,6 +1299,11 @@ class BGW():
                         r'.*?(?P<speed>\S+)')), line).groupdict()
         return {}
 
+    def _mm_groupdict(self):
+        if self.show_mg_list:
+            return re.search(r'.*?(?P<mm>\S+)', self.show_mg_list).groupdict()
+        return {}
+
     @staticmethod
     def _to_mbyte(str):
         m = re.search(r'(\d+)([MG]B)', str)
@@ -1118,6 +1352,7 @@ class BGW():
         attrs = self.__dict__
         return {**self.properties_asdict(), **attrs}
 
+
 def iter_attrs(
     obj: object,
     attrs: List[Dict[str, Any]],
@@ -1147,7 +1382,7 @@ def iter_attrs(
 def main():
     bgw = BGW("192.168.111.111")
     bgw.update(**data)
-    for xpos, str, color in iter_attrs(bgw, STATUS_ATTRS):
+    for xpos, str, color in iter_attrs(bgw, HARDWARE_ATTRS):
         print(f"{xpos:3} {str:20} {color}")
     for xpos, str, color in iter_attrs(rtp_stat, RTPSTAT_ATTRS):
         print(f"{xpos:3} {str:20} {color}")
