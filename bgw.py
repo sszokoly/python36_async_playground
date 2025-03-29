@@ -342,7 +342,7 @@ SYSTEM_ATTRS = [
 
 #Hardware
 #+---+---------------+------------+-------+---------+------+---+------+---------+
-#│BGW│    Location   | Serial Num |Chassis|Mainboard|Memory│DSP│Announ|Cmp.Flash|
+#│BGW│    Location   | Serial Num |Chassis|Mainboard|Memory│DSP│Announ| C.Flash |
 #+---+---------------+------------+-------+---------+------+---+------+---------+
 #|001|               |13TG01116522|     1A|       3A| 256MB│160│   999|installed|
 #+---+---------------+------------+-------+---------+------+---+------+---------+
@@ -406,7 +406,7 @@ HARDWARE_ATTRS = [
     },
     {
         'column_attr': 'comp_flash',
-        'column_name': 'Cmp.Flash',
+        'column_name': 'C.Flash',
         'color': 'base',
         'fmt': '>9',
         'xpos': 70,
@@ -638,32 +638,32 @@ SERVICE_ATTRS = [
         'xpos': 31,
     },
     {
+        'column_attr': 'snmp_trap',
+        'column_name': 'snmp-trap',
+        'color': 'base',
+        'fmt': '>9',
+        'xpos': 36,
+    },
+    {
         'column_attr': 'slamon_service',
         'column_name': 'SLAMon',
         'color': 'base',
         'fmt': '>8',
-        'xpos': 36,
+        'xpos': 46,
     },
     {
         'column_attr': 'sla_server',
         'column_name': 'SLAMon Server',
         'color': 'base',
         'fmt': '>15',
-        'xpos': 45,
+        'xpos': 55,
     },
     {
         'column_attr': 'lldp',
         'column_name': 'LLDP',
         'color': 'base',
         'fmt': '>8',
-        'xpos': 61,
-    },
-    {
-        'column_attr': 'lsp',
-        'column_name': 'LSP',
-        'color': 'base',
-        'fmt': '>7',
-        'xpos': 70,
+        'xpos': 71,
     },
 ]
 
@@ -674,7 +674,6 @@ SERVICE_ATTRS = [
 #|001|        0/0| 32442/1443|      320|39C/104F|    3|  120.32|      3|11:02:11|
 #+---+-----------+-----------+---------+--------+-----+--------+-------+--------+
 
-
 STATUS_ATTRS = [
     {
         'column_attr': 'gw_number',
@@ -684,32 +683,32 @@ STATUS_ATTRS = [
         'xpos': 1,
     },
     {
-        'column_attr': 'uptime',
-        'column_name': 'Uptime',
+        'column_attr': 'active_session',
+        'column_name': 'Act.Session',
         'color': 'base',
-        'fmt': '>13',
+        'fmt': '>11',
         'xpos': 5,
     },
     {
-        'column_attr': 'active_sessions',
-        'column_name': 'Act.Sessions',
+        'column_attr': 'total_session',
+        'column_name': 'Tot.Session',
         'color': 'base',
         'fmt': '>12',
-        'xpos': 19,
-    },
-    {
-        'column_attr': 'total_sessions',
-        'column_name': 'Tot.Sessions',
-        'color': 'base',
-        'fmt': '>12',
-        'xpos': 32,
+        'xpos': 17,
     },
     {
         'column_attr': 'voip_dsp',
-        'column_name': 'In-Use/Tot.DSPs',
+        'column_name': 'InUse DSP',
         'color': 'base',
-        'fmt': '>15',
-        'xpos': 45,
+        'fmt': '>9',
+        'xpos': 29,
+    },
+    {
+        'column_attr': 'temp',
+        'column_name': 'Temp',
+        'color': 'base',
+        'fmt': '>8',
+        'xpos': 39,
     },
     {
         'column_attr': 'avg_poll_secs',
@@ -818,6 +817,7 @@ class BGW():
         show_running_config: str = '',
         show_sla_monitor: str = '',
         show_system: str = '',
+        show_temp: str = '',
         show_voip_dsp: str = '',
         **kwargs,
     ) -> None:
@@ -839,9 +839,10 @@ class BGW():
         self.show_running_config = show_running_config
         self.show_sla_monitor = show_sla_monitor
         self.show_system = show_system
+        self.show_temp = show_temp
         self.show_voip_dsp = show_voip_dsp
         self.queue = Queue()
-        self._active_sessions = None
+        self._active_session = None
         self._announcements = None
         self._capture_service = None
         self._chassis_hw = None
@@ -876,12 +877,12 @@ class BGW():
         self._slamon_service = None
         self._sla_server = None
         self._snmp = None
-        self._total_sessions = None
+        self._total_session = None
         self._uptime = None
         self._voip_dsp = None
 
     @property
-    def active_sessions(self):
+    def active_session(self):
         if self.show_rtp_stat_summary:
             m = re.search(r'nal\s+\S+\s+(\S+)', self.show_rtp_stat_summary)
             return m.group(1) if m else "?/?"
@@ -1191,7 +1192,14 @@ class BGW():
         return "NA"
 
     @property
-    def total_sessions(self):
+    def temp(self):
+        if self.show_temp:
+            m = re.search(r'Temp\s+:\s+(\S+)', self.show_temp)
+            return self._snmp
+        return "NA"
+
+    @property
+    def total_session(self):
         if self.show_rtp_stat_summary:
             m = re.search(r'nal\s+\S+\s+\S+\s+(\S+)',
                           self.show_rtp_stat_summary)
