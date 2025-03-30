@@ -66,7 +66,11 @@ data ={
         set logging file condition all Error
         set logging file condition BOOT Debug
         !
+        no snmp-server community
+        !
         encrypted-snmp-server community read-only aC02uV3t/hD2WRQ2KzJZuA== read-write tIWV4hWxJEarok2vUVEgc0dBcaOywSBPgPnkHU0qOuo=
+        snmp-server group v3ReadISO v3 priv read iso
+        snmp-server host 10.62.17.5 traps v3 priv bbysnmpv3trap
         !
         ip default-gateway 10.10.48.254    1 low
         !
@@ -84,6 +88,36 @@ data ={
         !#
         !# End of configuration file. Press Enter to continue.
         ''',
+
+        "show system2": '''
+        System Name             : cityhall
+        System Location         : CityHall
+        System Contact          :
+        Uptime (d,h:m:s)        : 108,18:21:26
+        Call Controller Time    : 17:32:47 29 MAR 2025
+        Serial No               : 22TN07201536
+        Model                   : G450v4
+        Chassis HW Vintage      : 4
+        Chassis HW Suffix       : A
+        Mainboard HW Vintage    : 4
+        Mainboard HW Suffix     : A
+        Mainboard HW CS         : 4.0.0
+        Mainboard FW Vintage    : 42.32.0
+        LAN MAC Address         : c8:1f:ea:d5:cf:40
+        WAN1 MAC Address        : c8:1f:ea:d5:cf:41
+        WAN2 MAC Address        : c8:1f:ea:d5:cf:42
+        SERVICES MAC address    : c8:1f:ea:d5:cf:43
+        Memory #1               : 1GB
+        Compact Flash Memory    : 1.0 GB
+        PSU #1                  : AC 400W
+        PSU #2                  : AC 400W
+        Media Socket #1         : MP160 VoIP DSP Module
+        Media Socket #2         : MP160 VoIP DSP Module
+
+        Media Socket #3         : Not present
+        Media Socket #4         : Not present
+        FAN Tray                : Present
+        '''
 
         "show system": '''
         System Name :
@@ -155,20 +189,38 @@ data ={
         Core# Channels Admin     State
             In Use   State
         ----- -------- --------- -------
-            1  0 of 40   Busyout Idle
-            2  0 of 40   Busyout Idle
+            1  0 of 40   Release Idle
+            2  0 of 40   Release Idle
             3  0 of 40   Release Idle
             4  0 of 40   Release Idle
 
+        DSP #2 PARAMETERS
+        --------------------------------------------------------------
+        Board type     : MP160
 
-        DSP #2 Not Present
+        Hw Vintage     : 0 B
+        Fw Vintage     : 182
 
+        DSP#2 CURRENT STATE
+        --------------------------------------------------------------
+        In Use         : 0 of 160 channels, 0 of 4800 points (0.0% used)
+        State          : Idle
+        Admin State    : Release
+
+        Core# Channels Admin     State
+            In Use   State
+        ----- -------- --------- -------
+            1  0 of 40   Release Idle
+            2  0 of 40   Release Idle
+            3  0 of 40   Release Idle
+            4  0 of 40   Release Idle
 
 
         DSP #3 Not Present
 
 
         DSP #4 Not Present
+
 
         Done!
         ''',
@@ -190,7 +242,7 @@ data ={
         Engine                            Active   Total    Mean      Tx
         ID   Description     Uptime       Session  Session  Duration  TTL
         ---  --------------  -----------  -------  -------  --------  ----
-        010        internal  53,05:23:06   123/12   32442/1443   00:05:17    64
+        010        internal  53,05:23:06   123/12   332442/1443   00:05:17    64
         ''',
 
         "show lldp config": '''
@@ -223,6 +275,211 @@ data ={
         v7     -- Not Installed --
         v8     -- Not Installed --
         v10    Mainboard    G430        A       3           42.32.0(A)
+        ''',
+
+        "show_temp": '''
+        Ambient
+        -------
+        Temperature : 22C (72F)
+        High Warning: 42C (108F)
+        Low Warning : -5C (23F)
+
+        Devices
+        -------
+        CPU     : 38C (100F)
+        FPGA    : 29C (84F)
+        ''',
+
+        "show announcements files": '''
+        ID      File               Description    Size (Bytes)      Date
+        ---- ------------------ ------------------ ------------ -------------------
+        101   moh_upbeat.wav     announcement file     1268110    2022-08-15,8:48:48
+        102   moh_sooth.wav      announcement file      239798    2022-08-15,8:48:48
+        103   Fire_Main_Grtg.wa  announcement file      162186    2022-08-25,13:59:00
+        104   3441_P&D_Main_Grt  announcement file      179642    2023-02-11,10:48:18
+        105   6400_Fire_Main_Gr  announcement file      306098    2023-06-16,8:42:56
+        106   3070_HR_ABH_Grtg.  announcement file      203898    2022-11-29,9:16:40
+        107   3070_HR_Main_Grtg  announcement file      162058    2022-11-29,9:16:02
+        108   3441_P&D_Inspect_  announcement file      240050    2023-02-11,11:00:48
+        109   3441_P&D_FlrPl_Sr  announcement file      326826    2023-02-11,11:05:50
+        110   3441_P&D_Agents_U  announcement file      296458    2023-05-17,9:49:16
+        111   3430_P&D_LandZone  announcement file      375482    2023-02-23,14:23:34
+        112   3400_BldgPmt_Cons  announcement file      158594    2022-10-24,11:38:42
+        113   6027_PoirierSport  announcement file      186770    2023-05-18,10:05:52
+        114   3930_PRCF_Facilit  announcement file      169362    2022-11-29,8:00:50
+        115   3930_PRCF_Facilit  announcement file      228666    2022-11-29,7:59:32
+        116   3441_P&D_Menu_Opt  announcement file      193842    2023-02-11,10:59:28
+        117   3939_PRCF_AC_Clk_  announcement file      116634    2022-11-28,13:31:58
+        118   3939_PRCF_AC_Clk_  announcement file      106074    2022-11-28,13:32:24
+        119   3939_PRCF_AC_Clk_  announcement file       61314    2022-11-28,13:34:16
+        120   Wait_To_Be_Connec  announcement file       42042    2023-02-14,14:11:36
+        121   3040_Finance_AP_H  announcement file      115154    2023-02-24,10:56:38
+        122   3040_Finance_AP_A  announcement file       85266    2023-02-24,10:56:56
+        123   3040_Finance_AP_N  announcement file       72898    2023-02-24,10:57:16
+        124   3430_P&D_LndZnSig  announcement file      225666    2023-02-24,10:52:28
+        125   3430_P&D_ABH.wav   announcement file      278658    2023-02-24,10:54:16
+        126   3441_P&D_ABH_Grtg  announcement file      297834    2023-03-02,14:34:18
+        127   3636_EPW_WaterCon  announcement file      100474    2023-03-30,14:12:46
+        128   3636_EPW_WaterCon  announcement file       78058    2023-03-30,14:13:10
+        129   3636_EPW_WaterCon  announcement file       45378    2023-03-30,14:13:44
+        130   3660_EPQ_UrbanWil  announcement file       92530    2023-03-30,14:31:20
+        131   3660_EPW_UrbanWil  announcement file       79850    2023-03-30,14:31:38
+        132   3660_EPW_UrbanWil  announcement file       43178    2023-03-30,14:31:52
+        133   3550_EPQ_PWL&CDP_  announcement file       98978    2023-03-30,14:38:46
+        134   3550_EPW_PWL&CDP_  announcement file       88018    2023-03-30,14:39:04
+        135   3550_EPW_PWL&CDP_  announcement file       48242    2023-03-30,14:39:20
+        136   3010_Clerks_Hol.w  announcement file       99122    2023-04-03,13:13:08
+        137   3010_Clerks_ABH.w  announcement file       78754    2023-04-03,13:13:28
+        138   3010_Clerks_NotAv  announcement file       71898    2023-04-03,13:13:46
+        139   6070_CulturalSvcs  announcement file       65626    2023-04-10,11:35:00
+        140   6070_CulturalSvcs  announcement file      112626    2023-04-10,11:34:42
+        141   6070_CulturalSvcs  announcement file      122802    2023-04-10,11:34:18
+        142   3482_UrbanForestr  announcement file      112762    2023-04-10,11:23:36
+        143   3482_UrbanForestr  announcement file      110010    2023-04-10,11:24:00
+        144   3482_UrbanForestr  announcement file       72274    2023-04-10,11:24:16
+        145   3571_CmtyGrantCoo  announcement file       69626    2023-04-11,14:11:22
+        146   3571_CmtyGrantCoo  announcement file      112538    2023-04-10,11:44:38
+        147   3571_CmtyGrantCoo  announcement file      116146    2023-04-11,14:11:02
+        148   6016_PRCF_FAC_Boo  announcement file      137738    2023-04-11,8:26:50
+        149   6016_PRCF_FAC_Boo  announcement file      125538    2023-04-11,8:27:12
+        150   6016_PRCF_FAC_Boo  announcement file       71882    2023-04-11,8:27:28
+        151   6020_RobinsonMemP  announcement file      121346    2023-04-11,14:12:28
+        152   6020_RobinsonMemP  announcement file      112610    2023-04-11,14:12:50
+        153   6020_RobinsonMemP  announcement file      115090    2023-10-11,14:31:08
+        154   6778_DepCityMgr_H  announcement file      150634    2024-12-17,7:44:36
+        155   6778_DepCityMgr_A  announcement file      130866    2024-12-17,7:45:54
+        156   6778_DepCityMgr_A  announcement file      104634    2024-12-17,7:46:16
+        157   6777_CityMgrOfc_H  announcement file      138674    2024-12-17,7:49:20
+        158   6777_CityMgrOfc_A  announcement file      124298    2024-12-17,7:49:44
+        159   6777_CityMgrOfc_A  announcement file      103802    2024-12-17,7:50:06
+        160   3001_MayorOfc_Hol  announcement file      114194    2023-04-25,7:52:50
+        161   3001_MayorOfc_ABH  announcement file      103506    2023-04-25,7:53:32
+        162   3001_MayorOfc_Agt  announcement file       76258    2023-04-25,7:53:50
+        163   6076_CmtySvce_Hol  announcement file      122898    2023-04-25,8:09:58
+        164   6076_CmtySvce_ABH  announcement file      108170    2023-04-25,8:10:20
+        165   6076_CmtySvce_Agt  announcement file       71082    2023-04-25,8:10:44
+        166   3900_Archives_Hol  announcement file      116538    2023-04-25,8:25:14
+        167   3900_Archives_ABH  announcement file       71810    2023-04-25,8:25:52
+        168   3905_EconomicDev_  announcement file      120370    2023-04-25,8:32:24
+        169   3905_EconomicDev_  announcement file      119042    2023-04-25,8:32:48
+        170   3905_EconomicDev_  announcement file       79202    2023-04-25,8:33:06
+        171   3912_Tourism_Hol.  announcement file      116594    2023-04-25,8:39:22
+        172   3912_Tourism_ABH.  announcement file      103378    2023-04-25,8:39:42
+        173   3912_Tourism_Agt_  announcement file       73418    2023-04-25,8:40:00
+        174   3548_FilmOfc_Hol.  announcement file      110282    2023-04-25,8:49:18
+        175   3548_FilmOfc_ABH.  announcement file      100194    2023-04-25,8:49:38
+        176   3548_FilmOfc_Agt_  announcement file       71922    2023-04-25,8:50:04
+        177   4390_FOI_Privacy_  announcement file      134194    2023-04-25,10:30:16
+        178   4390_FOI_Privacy_  announcement file      124450    2023-04-25,10:30:40
+        179   4390_FOI_Privacy_  announcement file       97250    2023-04-25,10:31:02
+        180   3575_FacCS_ABH.wa  announcement file      231066    2023-04-25,10:45:22
+        181   3575_FacCS_Hol.wa  announcement file      172794    2023-04-25,10:45:56
+        182   3575_FacCS_Agt_NA  announcement file       95242    2023-04-25,10:46:22
+        183   6027_PoirierSport  announcement file      129266    2023-07-10,12:51:56
+        184   6027_PoirierSport  announcement file      205754    2023-05-16,14:34:28
+        185   Audio_Ext_3004.wa  announcement file      118394    2023-06-01,11:10:56
+        186   6027_PoirierSport  announcement file      113914    2023-08-18,11:28:46
+        187   4386_ProgActRegLi  announcement file      132914    2023-06-07,10:41:38
+        188   6999_CityCntrAqua  announcement file      194474    2023-05-19,8:31:36
+        189   6999_CityCntrAqua  announcement file      117434    2023-07-10,12:53:00
+        190   6999_CityCntrAqua  announcement file      116162    2023-08-18,11:29:10
+        191   6940_GlenPinePavP  announcement file      174154    2023-05-19,8:38:02
+        192   6940_GlenPinePavH  announcement file      105570    2023-07-10,12:50:56
+        193   6940_GlenPinePavR  announcement file      100034    2023-08-18,11:28:20
+        194   6098_DogwoodPavPr  announcement file      170794    2023-05-19,8:42:18
+        195   6098_DogwoodPavHr  announcement file      110938    2023-07-10,12:50:04
+        196   6098_DogwoodPavRA  announcement file      100842    2023-08-18,11:27:58
+        197   6960_PinetreeCmty  announcement file      179514    2023-05-19,8:47:42
+        198   6960_PinetreeCmty  announcement file      117114    2023-07-10,12:45:06
+        199   6960_PinetreeCmty  announcement file      104290    2023-08-18,11:27:16
+        200   6760_Maillardvill  announcement file      186914    2023-06-07,10:40:44
+        201   6760_Maillardvill  announcement file      125322    2023-07-10,12:48:38
+        202   6760_Maillardvill  announcement file      105618    2023-08-18,11:26:16
+        203   2207_PoirierCmtyC  announcement file      175162    2023-05-19,9:03:40
+        204   2207_PoirierCmtyC  announcement file      109202    2023-07-10,12:46:12
+        205   2207_PoirierCmtyC  announcement file      101226    2023-08-18,11:25:26
+        206   6300_ParksService  announcement file      134610    2023-05-19,11:16:42
+        207   6300_ParksService  announcement file      215354    2023-05-19,11:17:36
+        208   6300_ParksService  announcement file       76562    2023-05-19,11:17:54
+        209   6329_ParksSpark_H  announcement file      118418    2023-05-19,12:56:08
+        210   6329_ParksSpark_A  announcement file      111154    2023-05-19,12:56:32
+        211   6329_ParksSpark_A  announcement file       65282    2023-05-19,12:56:48
+        212   3000_City_Hall_Ma  announcement file      349538    2023-08-28,13:06:40
+        213   3000_ByLaw_AmlPet  announcement file      121738    2023-08-28,12:59:54
+        214   3000_BldgPrmt_Lan  announcement file      107474    2023-08-28,13:03:04
+        215   6433_FirePreventi  announcement file      108946    2023-06-12,9:53:12
+        216   6433_FirePreventi  announcement file      103306    2023-06-12,9:53:34
+        217   6433_FirePreventi  announcement file       75210    2023-06-12,9:53:52
+        218   6400_Fire_Hol.wav  announcement file      328114    2023-06-16,8:42:04
+        219   6400_Fire_Agt_NA.  announcement file      329706    2023-06-26,7:38:30
+        220   3000_COQ_Receptio  announcement file       38050    2023-08-24,9:50:44
+        221   3000_COQ_Receptio  announcement file      240474    2024-01-17,10:15:16
+        222   6200_AWY_Receptio  announcement file      195986    2023-08-18,10:36:58
+        223   6200_AWY_Receptio  announcement file      194162    2023-08-18,10:38:22
+        224   6200_AWY_Receptio  announcement file      196538    2023-08-18,10:39:34
+        225   3430_P&D_DevInfo_  announcement file      364578    2023-08-22,13:15:22
+        226   3037_Purchasing_A  announcement file       93170    2023-08-22,13:23:46
+        227   3037_Purchasing_H  announcement file      119866    2023-08-22,13:24:12
+        228   3900_Archives_Agt  announcement file       82554    2023-08-22,13:53:50
+        229   3070_HR_Hol.wav    announcement file      245474    2023-08-23,13:47:58
+        230   3000_COQ_Receptio  announcement file      238306    2023-08-28,13:05:48
+        231   3000_COQ_Recept_D  announcement file      218354    2023-08-29,8:13:10
+        232   3000_COQ_Recept_N  announcement file      317786    2023-12-22,10:06:42
+        233   3575_FacCS_Christ  announcement file      217370    2023-09-21,14:50:40
+        234   6950_TCPCCProgA.w  announcement file      240738    2024-04-08,8:33:32
+        235   3030_Finance_Dept  announcement file      120082    2023-10-31,13:33:36
+        236   3030_Finance_Dept  announcement file       91226    2023-10-31,13:33:56
+        237   3030_Finance_Dept  announcement file       73410    2023-10-31,13:34:14
+        238   6211_Garage_Hol.w  announcement file      145490    2023-12-07,12:26:20
+        239   6211_Garage_ABH.w  announcement file      133562    2023-12-07,12:27:10
+        240   6211_Garage_Agt_N  announcement file       92930    2023-12-07,12:27:30
+        241   6950_TCPCCHrsLoc.  announcement file      154146    2024-04-08,8:34:34
+        242   6950_TCPCC_ABH.wa  announcement file      129050    2024-04-08,8:35:04
+        243   Test.wav           announcement file      119866    2024-05-23,8:51:04
+        244   4357_Emergency_Ca  announcement file      191850    2024-12-10,16:25:36
+        245   6778_DepCityMgr_D  announcement file      141338    2024-12-17,7:46:44
+        246   6777_CityMgrOfc_D  announcement file      153690    2024-12-17,7:50:34
+        247   3070_HR_Dec_Grtg.  announcement file      243802    2024-12-17,7:53:40
+        248   3548_FilmOfc_Dec_  announcement file      133938    2024-12-17,7:55:06
+        249   3905_EconomicDev_  announcement file      123490    2024-12-17,8:08:54
+        250   3912_Tourism_Dec_  announcement file      130130    2024-12-17,8:10:10
+        251   3660_EPQ_UrbanWil  announcement file      107154    2024-12-17,8:11:58
+        252   3636_EPW_WaterCon  announcement file      105282    2024-12-17,8:13:00
+        253   3550_EPQ_PWL&CDP_  announcement file      103890    2024-12-17,8:15:16
+        254   6200_AWY_Recept_D  announcement file      278786    2024-12-17,8:18:16
+        255   3040_Finance_AP_D  announcement file      132922    2024-12-17,8:19:44
+        256   3037_Purchasing_D  announcement file      136834    2024-12-17,8:21:26
+        257   3030_Finance_Dept  announcement file      140042    2024-12-17,8:22:46
+        258   3010_Clerks_Dec_G  announcement file      113058    2024-12-17,9:36:32
+        259   3000_COQ_Recept_D  announcement file      261954    2024-12-17,9:39:00
+        260   4390_FOI_Privacy_  announcement file      158842    2024-12-17,9:40:54
+        261   3900_Archives_Dec  announcement file      119898    2024-12-17,9:42:00
+        262   3001_MayorOfc_Dec  announcement file      129170    2024-12-17,9:43:04
+        263   6016_PRCF_FAC_Boo  announcement file      157474    2024-12-17,9:45:06
+        264   3939_PRCF_AC_Clk_  announcement file      136690    2024-12-17,9:46:26
+        265   6070_CulturalSvcs  announcement file      133034    2024-12-17,9:47:38
+        266   6076_CmtySvce_Dec  announcement file      161626    2024-12-17,9:48:48
+        267   3482_UrbanForestr  announcement file      155578    2024-12-17,9:50:26
+        268   3571_CmtyGrantCoo  announcement file      157562    2024-12-17,9:53:28
+        269   6329_ParksSpark_D  announcement file      154426    2024-12-17,9:54:48
+        270   6020_RobinMemPkCe  announcement file      162034    2024-12-17,9:56:18
+        271   6300_ParksService  announcement file      165034    2024-12-17,9:58:14
+        272   3430_P&D_Dec_Grtg  announcement file      363154    2024-12-17,10:00:20
+        273   3441_P&D_Dec_Grtg  announcement file      279722    2024-12-17,10:02:22
+
+        Compact-Flash:
+        Total bytes used             : 26423808
+        Total bytes free             : 96049152
+        Total bytes capacity (fixed) : 122472960
+        ''',
+
+        '''show utilization''': '''
+
+        Mod   CPU      CPU     RAM      RAM
+            5sec     60sec   used(%)  Total(Kb)
+        ---   ------   -----  -------  ----------
+        10      21%       4%    47%     447489 Kb
+        
         '''
         },
     "rtp_sessions": {
@@ -807,7 +1064,7 @@ class BGW():
         polling_secs = 10,
         gw_name: str = '',
         gw_number: str = '',
-        dir = '',
+        show_announcements_files = '',
         show_capture: str = '',
         show_faults: str = '',
         show_lldp_config: str = '',
@@ -829,7 +1086,7 @@ class BGW():
         self.polls = 0
         self.avg_poll_secs = 0
         self.last_seen = None
-        self.dir = dir
+        self.show_announcements_files = show_announcements_files
         self.show_capture = show_capture
         self.show_faults = show_faults
         self.show_lldp_config = show_lldp_config

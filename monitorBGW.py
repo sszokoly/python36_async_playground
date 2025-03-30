@@ -97,7 +97,8 @@ CONFIG = {
     "storage_maxlen": None,
     "script_template": script_template,
     "discovery_commands": [
-        "dir",
+        "set utilization cpu",
+        "show announcements files",
         "show running-config",
         "show system",
         "show faults",
