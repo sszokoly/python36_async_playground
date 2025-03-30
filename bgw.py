@@ -89,7 +89,7 @@ data ={
         !# End of configuration file. Press Enter to continue.
         ''',
 
-        "show system2": '''
+        "show system": '''
         System Name             : cityhall
         System Location         : CityHall
         System Contact          :
@@ -117,9 +117,9 @@ data ={
         Media Socket #3         : Not present
         Media Socket #4         : Not present
         FAN Tray                : Present
-        '''
+        ''',
 
-        "show system": '''
+        "show system2": '''
         System Name :
         System Location : townhall
         System Contact :
@@ -182,15 +182,15 @@ data ={
 
         DSP#1 CURRENT STATE
         --------------------------------------------------------------
-        In Use         : 0 of 160 channels, 0 of 4800 points (0.0% used)
+        In Use         : 2 of 160 channels, 0 of 4800 points (0.0% used)
         State          : Idle
         Admin State    : Release
 
         Core# Channels Admin     State
             In Use   State
         ----- -------- --------- -------
-            1  0 of 40   Release Idle
-            2  0 of 40   Release Idle
+            1  1 of 40   Release Idle
+            2  1 of 40   Release Idle
             3  0 of 40   Release Idle
             4  0 of 40   Release Idle
 
@@ -203,17 +203,17 @@ data ={
 
         DSP#2 CURRENT STATE
         --------------------------------------------------------------
-        In Use         : 0 of 160 channels, 0 of 4800 points (0.0% used)
+        In Use         : 8 of 160 channels, 0 of 4800 points (0.0% used)
         State          : Idle
         Admin State    : Release
 
         Core# Channels Admin     State
             In Use   State
         ----- -------- --------- -------
-            1  0 of 40   Release Idle
+            1  4 of 40   Release Idle
             2  0 of 40   Release Idle
             3  0 of 40   Release Idle
-            4  0 of 40   Release Idle
+            4  4 of 40   Release Idle
 
 
         DSP #3 Not Present
@@ -226,7 +226,6 @@ data ={
         ''',
 
         "show sla-monitor": '''
-        show sla-monitor
         SLA Monitor: Disabled
         Server Address: 0.0.0.0
         Registered Server IP Address: 0.0.0.0
@@ -271,7 +270,7 @@ data ={
         v2     Analog       MM714       B       31          104
         v3     -- Not Installed --
         v5     -- Not Installed --
-        v6     -- Not Installed --
+        v6     Analog       MM714       C       30          104
         v7     -- Not Installed --
         v8     -- Not Installed --
         v10    Mainboard    G430        A       3           42.32.0(A)
@@ -298,170 +297,6 @@ data ={
         103   Fire_Main_Grtg.wa  announcement file      162186    2022-08-25,13:59:00
         104   3441_P&D_Main_Grt  announcement file      179642    2023-02-11,10:48:18
         105   6400_Fire_Main_Gr  announcement file      306098    2023-06-16,8:42:56
-        106   3070_HR_ABH_Grtg.  announcement file      203898    2022-11-29,9:16:40
-        107   3070_HR_Main_Grtg  announcement file      162058    2022-11-29,9:16:02
-        108   3441_P&D_Inspect_  announcement file      240050    2023-02-11,11:00:48
-        109   3441_P&D_FlrPl_Sr  announcement file      326826    2023-02-11,11:05:50
-        110   3441_P&D_Agents_U  announcement file      296458    2023-05-17,9:49:16
-        111   3430_P&D_LandZone  announcement file      375482    2023-02-23,14:23:34
-        112   3400_BldgPmt_Cons  announcement file      158594    2022-10-24,11:38:42
-        113   6027_PoirierSport  announcement file      186770    2023-05-18,10:05:52
-        114   3930_PRCF_Facilit  announcement file      169362    2022-11-29,8:00:50
-        115   3930_PRCF_Facilit  announcement file      228666    2022-11-29,7:59:32
-        116   3441_P&D_Menu_Opt  announcement file      193842    2023-02-11,10:59:28
-        117   3939_PRCF_AC_Clk_  announcement file      116634    2022-11-28,13:31:58
-        118   3939_PRCF_AC_Clk_  announcement file      106074    2022-11-28,13:32:24
-        119   3939_PRCF_AC_Clk_  announcement file       61314    2022-11-28,13:34:16
-        120   Wait_To_Be_Connec  announcement file       42042    2023-02-14,14:11:36
-        121   3040_Finance_AP_H  announcement file      115154    2023-02-24,10:56:38
-        122   3040_Finance_AP_A  announcement file       85266    2023-02-24,10:56:56
-        123   3040_Finance_AP_N  announcement file       72898    2023-02-24,10:57:16
-        124   3430_P&D_LndZnSig  announcement file      225666    2023-02-24,10:52:28
-        125   3430_P&D_ABH.wav   announcement file      278658    2023-02-24,10:54:16
-        126   3441_P&D_ABH_Grtg  announcement file      297834    2023-03-02,14:34:18
-        127   3636_EPW_WaterCon  announcement file      100474    2023-03-30,14:12:46
-        128   3636_EPW_WaterCon  announcement file       78058    2023-03-30,14:13:10
-        129   3636_EPW_WaterCon  announcement file       45378    2023-03-30,14:13:44
-        130   3660_EPQ_UrbanWil  announcement file       92530    2023-03-30,14:31:20
-        131   3660_EPW_UrbanWil  announcement file       79850    2023-03-30,14:31:38
-        132   3660_EPW_UrbanWil  announcement file       43178    2023-03-30,14:31:52
-        133   3550_EPQ_PWL&CDP_  announcement file       98978    2023-03-30,14:38:46
-        134   3550_EPW_PWL&CDP_  announcement file       88018    2023-03-30,14:39:04
-        135   3550_EPW_PWL&CDP_  announcement file       48242    2023-03-30,14:39:20
-        136   3010_Clerks_Hol.w  announcement file       99122    2023-04-03,13:13:08
-        137   3010_Clerks_ABH.w  announcement file       78754    2023-04-03,13:13:28
-        138   3010_Clerks_NotAv  announcement file       71898    2023-04-03,13:13:46
-        139   6070_CulturalSvcs  announcement file       65626    2023-04-10,11:35:00
-        140   6070_CulturalSvcs  announcement file      112626    2023-04-10,11:34:42
-        141   6070_CulturalSvcs  announcement file      122802    2023-04-10,11:34:18
-        142   3482_UrbanForestr  announcement file      112762    2023-04-10,11:23:36
-        143   3482_UrbanForestr  announcement file      110010    2023-04-10,11:24:00
-        144   3482_UrbanForestr  announcement file       72274    2023-04-10,11:24:16
-        145   3571_CmtyGrantCoo  announcement file       69626    2023-04-11,14:11:22
-        146   3571_CmtyGrantCoo  announcement file      112538    2023-04-10,11:44:38
-        147   3571_CmtyGrantCoo  announcement file      116146    2023-04-11,14:11:02
-        148   6016_PRCF_FAC_Boo  announcement file      137738    2023-04-11,8:26:50
-        149   6016_PRCF_FAC_Boo  announcement file      125538    2023-04-11,8:27:12
-        150   6016_PRCF_FAC_Boo  announcement file       71882    2023-04-11,8:27:28
-        151   6020_RobinsonMemP  announcement file      121346    2023-04-11,14:12:28
-        152   6020_RobinsonMemP  announcement file      112610    2023-04-11,14:12:50
-        153   6020_RobinsonMemP  announcement file      115090    2023-10-11,14:31:08
-        154   6778_DepCityMgr_H  announcement file      150634    2024-12-17,7:44:36
-        155   6778_DepCityMgr_A  announcement file      130866    2024-12-17,7:45:54
-        156   6778_DepCityMgr_A  announcement file      104634    2024-12-17,7:46:16
-        157   6777_CityMgrOfc_H  announcement file      138674    2024-12-17,7:49:20
-        158   6777_CityMgrOfc_A  announcement file      124298    2024-12-17,7:49:44
-        159   6777_CityMgrOfc_A  announcement file      103802    2024-12-17,7:50:06
-        160   3001_MayorOfc_Hol  announcement file      114194    2023-04-25,7:52:50
-        161   3001_MayorOfc_ABH  announcement file      103506    2023-04-25,7:53:32
-        162   3001_MayorOfc_Agt  announcement file       76258    2023-04-25,7:53:50
-        163   6076_CmtySvce_Hol  announcement file      122898    2023-04-25,8:09:58
-        164   6076_CmtySvce_ABH  announcement file      108170    2023-04-25,8:10:20
-        165   6076_CmtySvce_Agt  announcement file       71082    2023-04-25,8:10:44
-        166   3900_Archives_Hol  announcement file      116538    2023-04-25,8:25:14
-        167   3900_Archives_ABH  announcement file       71810    2023-04-25,8:25:52
-        168   3905_EconomicDev_  announcement file      120370    2023-04-25,8:32:24
-        169   3905_EconomicDev_  announcement file      119042    2023-04-25,8:32:48
-        170   3905_EconomicDev_  announcement file       79202    2023-04-25,8:33:06
-        171   3912_Tourism_Hol.  announcement file      116594    2023-04-25,8:39:22
-        172   3912_Tourism_ABH.  announcement file      103378    2023-04-25,8:39:42
-        173   3912_Tourism_Agt_  announcement file       73418    2023-04-25,8:40:00
-        174   3548_FilmOfc_Hol.  announcement file      110282    2023-04-25,8:49:18
-        175   3548_FilmOfc_ABH.  announcement file      100194    2023-04-25,8:49:38
-        176   3548_FilmOfc_Agt_  announcement file       71922    2023-04-25,8:50:04
-        177   4390_FOI_Privacy_  announcement file      134194    2023-04-25,10:30:16
-        178   4390_FOI_Privacy_  announcement file      124450    2023-04-25,10:30:40
-        179   4390_FOI_Privacy_  announcement file       97250    2023-04-25,10:31:02
-        180   3575_FacCS_ABH.wa  announcement file      231066    2023-04-25,10:45:22
-        181   3575_FacCS_Hol.wa  announcement file      172794    2023-04-25,10:45:56
-        182   3575_FacCS_Agt_NA  announcement file       95242    2023-04-25,10:46:22
-        183   6027_PoirierSport  announcement file      129266    2023-07-10,12:51:56
-        184   6027_PoirierSport  announcement file      205754    2023-05-16,14:34:28
-        185   Audio_Ext_3004.wa  announcement file      118394    2023-06-01,11:10:56
-        186   6027_PoirierSport  announcement file      113914    2023-08-18,11:28:46
-        187   4386_ProgActRegLi  announcement file      132914    2023-06-07,10:41:38
-        188   6999_CityCntrAqua  announcement file      194474    2023-05-19,8:31:36
-        189   6999_CityCntrAqua  announcement file      117434    2023-07-10,12:53:00
-        190   6999_CityCntrAqua  announcement file      116162    2023-08-18,11:29:10
-        191   6940_GlenPinePavP  announcement file      174154    2023-05-19,8:38:02
-        192   6940_GlenPinePavH  announcement file      105570    2023-07-10,12:50:56
-        193   6940_GlenPinePavR  announcement file      100034    2023-08-18,11:28:20
-        194   6098_DogwoodPavPr  announcement file      170794    2023-05-19,8:42:18
-        195   6098_DogwoodPavHr  announcement file      110938    2023-07-10,12:50:04
-        196   6098_DogwoodPavRA  announcement file      100842    2023-08-18,11:27:58
-        197   6960_PinetreeCmty  announcement file      179514    2023-05-19,8:47:42
-        198   6960_PinetreeCmty  announcement file      117114    2023-07-10,12:45:06
-        199   6960_PinetreeCmty  announcement file      104290    2023-08-18,11:27:16
-        200   6760_Maillardvill  announcement file      186914    2023-06-07,10:40:44
-        201   6760_Maillardvill  announcement file      125322    2023-07-10,12:48:38
-        202   6760_Maillardvill  announcement file      105618    2023-08-18,11:26:16
-        203   2207_PoirierCmtyC  announcement file      175162    2023-05-19,9:03:40
-        204   2207_PoirierCmtyC  announcement file      109202    2023-07-10,12:46:12
-        205   2207_PoirierCmtyC  announcement file      101226    2023-08-18,11:25:26
-        206   6300_ParksService  announcement file      134610    2023-05-19,11:16:42
-        207   6300_ParksService  announcement file      215354    2023-05-19,11:17:36
-        208   6300_ParksService  announcement file       76562    2023-05-19,11:17:54
-        209   6329_ParksSpark_H  announcement file      118418    2023-05-19,12:56:08
-        210   6329_ParksSpark_A  announcement file      111154    2023-05-19,12:56:32
-        211   6329_ParksSpark_A  announcement file       65282    2023-05-19,12:56:48
-        212   3000_City_Hall_Ma  announcement file      349538    2023-08-28,13:06:40
-        213   3000_ByLaw_AmlPet  announcement file      121738    2023-08-28,12:59:54
-        214   3000_BldgPrmt_Lan  announcement file      107474    2023-08-28,13:03:04
-        215   6433_FirePreventi  announcement file      108946    2023-06-12,9:53:12
-        216   6433_FirePreventi  announcement file      103306    2023-06-12,9:53:34
-        217   6433_FirePreventi  announcement file       75210    2023-06-12,9:53:52
-        218   6400_Fire_Hol.wav  announcement file      328114    2023-06-16,8:42:04
-        219   6400_Fire_Agt_NA.  announcement file      329706    2023-06-26,7:38:30
-        220   3000_COQ_Receptio  announcement file       38050    2023-08-24,9:50:44
-        221   3000_COQ_Receptio  announcement file      240474    2024-01-17,10:15:16
-        222   6200_AWY_Receptio  announcement file      195986    2023-08-18,10:36:58
-        223   6200_AWY_Receptio  announcement file      194162    2023-08-18,10:38:22
-        224   6200_AWY_Receptio  announcement file      196538    2023-08-18,10:39:34
-        225   3430_P&D_DevInfo_  announcement file      364578    2023-08-22,13:15:22
-        226   3037_Purchasing_A  announcement file       93170    2023-08-22,13:23:46
-        227   3037_Purchasing_H  announcement file      119866    2023-08-22,13:24:12
-        228   3900_Archives_Agt  announcement file       82554    2023-08-22,13:53:50
-        229   3070_HR_Hol.wav    announcement file      245474    2023-08-23,13:47:58
-        230   3000_COQ_Receptio  announcement file      238306    2023-08-28,13:05:48
-        231   3000_COQ_Recept_D  announcement file      218354    2023-08-29,8:13:10
-        232   3000_COQ_Recept_N  announcement file      317786    2023-12-22,10:06:42
-        233   3575_FacCS_Christ  announcement file      217370    2023-09-21,14:50:40
-        234   6950_TCPCCProgA.w  announcement file      240738    2024-04-08,8:33:32
-        235   3030_Finance_Dept  announcement file      120082    2023-10-31,13:33:36
-        236   3030_Finance_Dept  announcement file       91226    2023-10-31,13:33:56
-        237   3030_Finance_Dept  announcement file       73410    2023-10-31,13:34:14
-        238   6211_Garage_Hol.w  announcement file      145490    2023-12-07,12:26:20
-        239   6211_Garage_ABH.w  announcement file      133562    2023-12-07,12:27:10
-        240   6211_Garage_Agt_N  announcement file       92930    2023-12-07,12:27:30
-        241   6950_TCPCCHrsLoc.  announcement file      154146    2024-04-08,8:34:34
-        242   6950_TCPCC_ABH.wa  announcement file      129050    2024-04-08,8:35:04
-        243   Test.wav           announcement file      119866    2024-05-23,8:51:04
-        244   4357_Emergency_Ca  announcement file      191850    2024-12-10,16:25:36
-        245   6778_DepCityMgr_D  announcement file      141338    2024-12-17,7:46:44
-        246   6777_CityMgrOfc_D  announcement file      153690    2024-12-17,7:50:34
-        247   3070_HR_Dec_Grtg.  announcement file      243802    2024-12-17,7:53:40
-        248   3548_FilmOfc_Dec_  announcement file      133938    2024-12-17,7:55:06
-        249   3905_EconomicDev_  announcement file      123490    2024-12-17,8:08:54
-        250   3912_Tourism_Dec_  announcement file      130130    2024-12-17,8:10:10
-        251   3660_EPQ_UrbanWil  announcement file      107154    2024-12-17,8:11:58
-        252   3636_EPW_WaterCon  announcement file      105282    2024-12-17,8:13:00
-        253   3550_EPQ_PWL&CDP_  announcement file      103890    2024-12-17,8:15:16
-        254   6200_AWY_Recept_D  announcement file      278786    2024-12-17,8:18:16
-        255   3040_Finance_AP_D  announcement file      132922    2024-12-17,8:19:44
-        256   3037_Purchasing_D  announcement file      136834    2024-12-17,8:21:26
-        257   3030_Finance_Dept  announcement file      140042    2024-12-17,8:22:46
-        258   3010_Clerks_Dec_G  announcement file      113058    2024-12-17,9:36:32
-        259   3000_COQ_Recept_D  announcement file      261954    2024-12-17,9:39:00
-        260   4390_FOI_Privacy_  announcement file      158842    2024-12-17,9:40:54
-        261   3900_Archives_Dec  announcement file      119898    2024-12-17,9:42:00
-        262   3001_MayorOfc_Dec  announcement file      129170    2024-12-17,9:43:04
-        263   6016_PRCF_FAC_Boo  announcement file      157474    2024-12-17,9:45:06
-        264   3939_PRCF_AC_Clk_  announcement file      136690    2024-12-17,9:46:26
-        265   6070_CulturalSvcs  announcement file      133034    2024-12-17,9:47:38
-        266   6076_CmtySvce_Dec  announcement file      161626    2024-12-17,9:48:48
-        267   3482_UrbanForestr  announcement file      155578    2024-12-17,9:50:26
-        268   3571_CmtyGrantCoo  announcement file      157562    2024-12-17,9:53:28
-        269   6329_ParksSpark_D  announcement file      154426    2024-12-17,9:54:48
         270   6020_RobinMemPkCe  announcement file      162034    2024-12-17,9:56:18
         271   6300_ParksService  announcement file      165034    2024-12-17,9:58:14
         272   3430_P&D_Dec_Grtg  announcement file      363154    2024-12-17,10:00:20
@@ -537,15 +372,16 @@ rtp_stat = {
     "remote_addr": "11.11.11.11",
     "remote_port": "55556",
     "codec": "G711U",
+    "ptime": "20",
     "qos": "ok",
 }
 
 #System
-#+---+--------+---------------+-----------------+-------------+-----+--+--------+
-#│BGW│  Name  |     LAN IP    │     LAN MAC     |   Uptime    |Model│HW│Firmware│
-#+---+--------+---------------+-----------------+-------------+-----+--+--------+
-#|001|        |192.168.111.111|34:75:c7:64:ef:08|153d05h23m06s| g430│1A│43.11.12│
-#+---+--------+---------------+-----------------+-------------+-----+--+--------+
+#+---+-------------+---------------+------------+-------------+-----+--+--------+
+#│BGW│    Name     |     LAN IP    │  LAN MAC   |   Uptime    |Model│HW│Firmware│
+#+---+-------------+---------------+------------+-------------+-----+--+--------+
+#|001|             |192.168.111.111|3475c764ef08|153d05h23m06s| g430│1A│43.11.12│
+#+---+-------------+---------------+------------+-------------+-----+--+--------+
 
 SYSTEM_ATTRS = [
     {
@@ -559,7 +395,7 @@ SYSTEM_ATTRS = [
         'column_attr': 'gw_name',
         'column_name': 'Name',
         'color': 'base',
-        'fmt': '>8',
+        'fmt': '>13',
         'xpos': 5,
     },
     {
@@ -567,14 +403,14 @@ SYSTEM_ATTRS = [
         'column_name': 'LAN IP',
         'color': 'base',
         'fmt': '>15',
-        'xpos': 14,
+        'xpos': 19,
     },
     {
         'column_attr': 'mac',
         'column_name': 'LAN MAC',
         'color': 'base',
-        'fmt': '>17',
-        'xpos': 30,
+        'fmt': '>12',
+        'xpos': 35,
     },
     {
         'column_attr': 'uptime',
@@ -607,13 +443,13 @@ SYSTEM_ATTRS = [
 ]
 
 #Hardware
-#+---+---------------+------------+-------+---------+------+---+------+---------+
-#│BGW│    Location   | Serial Num |Chassis|Mainboard|Memory│DSP│Announ| C.Flash |
-#+---+---------------+------------+-------+---------+------+---+------+---------+
-#|001|               |13TG01116522|     1A|       3A| 256MB│160│   999|installed|
-#+---+---------------+------------+-------+---------+------+---+------+---------+
+#+---+----------+--------+------------+-----+----+------+---+----+-------+------+
+#│BGW│ Location |  Temp  |   Serial   |Chass|Main|Memory│DSP│Anno|C.Flash|Faults|
+#+---+----------+--------+------------+-----+----+------+---+----+-------+------+
+#|001|          |42C/108F|13TG01116522|   1A|  3A| 256MB│160│ 999|    1GB|     4|
+#+---+----------+--------+------------+-----+----+------+---+----+-------+------+
 
-HARDWARE_ATTRS = [
+HW_ATTRS = [
     {
         'column_attr': 'gw_number',
         'column_name': 'BGW',
@@ -625,65 +461,79 @@ HARDWARE_ATTRS = [
         'column_attr': 'location',
         'column_name': 'Location',
         'color': 'base',
-        'fmt': '>15',
+        'fmt': '>10',
         'xpos': 5,
+    },
+    {
+        'column_attr': 'temp',
+        'column_name': 'Temp',
+        'color': 'base',
+        'fmt': '>8',
+        'xpos': 16,
     },
     {
         'column_attr': 'serial',
         'column_name': 'Serial',
         'color': 'base',
         'fmt': '>12',
-        'xpos': 21,
+        'xpos': 25,
     },
     {
         'column_attr': 'chassis_hw',
-        'column_name': 'Chassis',
+        'column_name': 'Chass',
         'color': 'base',
-        'fmt': '>9',
-        'xpos': 34,
+        'fmt': '>5',
+        'xpos': 38,
     },
     {
         'column_attr': 'mainboard_hw',
-        'column_name': 'Mainboard',
+        'column_name': 'Main',
         'color': 'base',
-        'fmt': '>7',
-        'xpos': 42,
+        'fmt': '>4',
+        'xpos': 44,
     },
     {
         'column_attr': 'memory',
         'column_name': 'Memory',
         'color': 'base',
         'fmt': '>6',
-        'xpos': 52,
+        'xpos': 49,
     },
     {
         'column_attr': 'dsp',
         'column_name': 'DSP',
         'color': 'base',
         'fmt': '>3',
-        'xpos': 59,
+        'xpos': 56,
     },
     {
         'column_attr': 'announcements',
-        'column_name': 'Announ',
+        'column_name': 'Anno',
         'color': 'base',
-        'fmt': '>6',
-        'xpos': 63,
+        'fmt': '>4',
+        'xpos': 60,
     },
     {
         'column_attr': 'comp_flash',
         'column_name': 'C.Flash',
         'color': 'base',
-        'fmt': '>9',
-        'xpos': 70,
+        'fmt': '>7',
+        'xpos': 65,
+    },
+    {
+        'column_attr': 'faults',
+        'column_name': 'Faults',
+        'color': 'base',
+        'fmt': '>6',
+        'xpos': 73,
     },
 ]
 
 #Module
 #+---+------+------+------+------+------+------+------+------+--------+----+----+
-#│BGW│  v1  |  v2  |  v3  |  v4  |  v5  |  v6  |  v7  |  v8  |   v10  |PSU1|PSU2|
+#│BGW│  v1  |  v2  |  v3  |  v4  |  v5  |  v6  |  v7  |  v8  | v10 hw |PSU1|PSU2|
 #+---+------+------+------+------+------+------+------+------+--------+----+----+
-#|001|S8300E│MM714B│MM714B│MM714B│MM714B│MM714B│S8300E│S8300E│Mainboar|400W│400W|
+#|001|S8300E│MM714B│MM714B│MM714B│MM714B│MM714B│S8300E│S8300E│      3A|400W│400W|
 #+---+------+------+------+------+------+------+------+------+--------+----+----+
 
 MODULE_ATTRS = [
@@ -752,9 +602,9 @@ MODULE_ATTRS = [
     },
     {
         'column_attr': 'mm_v10',
-        'column_name': 'v10',
+        'column_name': 'v10 hw',
         'color': 'base',
-        'fmt': '>6',
+        'fmt': '>8',
         'xpos': 61,
     },
     {
@@ -869,7 +719,7 @@ PORT_ATTRS = [
 
 #Service
 #+---+---------+---------------+----+---------+--------+---------------+--------+
-#|BGW|rtp-stats|capture-service|snmp|snmp-trap| slamon | slamon server |  lldp  |
+#|BGW|RTP-Stats|Capture-Service|SNMP|SNMP-Trap| SLAMon | SLAMon Server |  LLDP  |
 #+---+---------+---------------+----+---------+--------+---------------+--------+
 #|001| disabled|       disabled|v2&3|  enabled| enabled|101.101.111.198|disabled|
 #+---+---------+---------------+----+---------+--------+---------------+--------+
@@ -905,7 +755,7 @@ SERVICE_ATTRS = [
     },
     {
         'column_attr': 'snmp_trap',
-        'column_name': 'snmp-trap',
+        'column_name': 'SNMP-Trap',
         'color': 'base',
         'fmt': '>9',
         'xpos': 36,
@@ -934,11 +784,11 @@ SERVICE_ATTRS = [
 ]
 
 #Status
-#+---+-----------+-----------+---------+--------+-----+--------+-------+--------+
-#|BGW|Act.Session|Tot.Session|InUse DSP|  Temp  |Fault|PollSecs| Polls |LastSeen|
-#+---+-----------+-----------+---------+--------+-----+--------+-------+--------+
-#|001|        0/0| 32442/1443|      320|39C/104F|    3|  120.32|      3|11:02:11|
-#+---+-----------+-----------+---------+--------+-----+--------+-------+--------+
+#+---+-----------+-----------+--------+----------+-----+-------+-------+--------+
+#|BGW|Act.Session|Tot.Session|InUseDSP|CPU 5s/60s| RAM |PollSec| Polls |LastSeen|
+#+---+-----------+-----------+--------+----------+-----+-------+-------+--------+
+#|001|        0/0| 32442/1443|     320| 100%/100%|  45%| 120.32|      3|11:02:11|
+#+---+-----------+-----------+--------+----------+-----+-------+-------+--------+
 
 STATUS_ATTRS = [
     {
@@ -963,41 +813,55 @@ STATUS_ATTRS = [
         'xpos': 17,
     },
     {
-        'column_attr': 'voip_dsp',
-        'column_name': 'InUse DSP',
+        'column_attr': 'inuse_dsp',
+        'column_name': 'InUseDSP',
         'color': 'base',
-        'fmt': '>9',
+        'fmt': '>8',
         'xpos': 29,
     },
     {
-        'column_attr': 'temp',
-        'column_name': 'Temp',
+        'column_attr': 'cpu_util',
+        'column_name': 'CPU 5s/60s',
         'color': 'base',
-        'fmt': '>8',
-        'xpos': 39,
+        'fmt': '>10',
+        'xpos': 38,
+    },
+    {
+        'column_attr': 'ram_util',
+        'column_name': 'RAM',
+        'color': 'base',
+        'fmt': '>5',
+        'xpos': 49,
     },
     {
         'column_attr': 'avg_poll_secs',
-        'column_name': 'AvgPollSec',
+        'column_name': 'PollSec',
         'color': 'base',
-        'fmt': '>10',
-        'xpos': 61,
+        'fmt': '>7',
+        'xpos': 55,
     },
     {
         'column_attr': 'polls',
         'column_name': 'Polls',
         'color': 'base',
-        'fmt': '>5',
-        'xpos': 72,
+        'fmt': '>7',
+        'xpos': 63,
+    },
+    {
+        'column_attr': 'last_seen',
+        'column_name': 'LastSeen',
+        'color': 'base',
+        'fmt': '%H:%M:%S',
+        'xpos': 71,
     },
 ]
 
 #RTP-Stat
-#+--------+--------+---+---------------+-----+---------------+-----+--------+---+
-#|  Start |   End  |BGW| Local-Address |LPort| Remote-Address|RPort|Codec/pt|QoS|
-#+--------+--------+---+---------------+-----+---------------+-----+--------+---+
-#|11:09:07|11:11:27|001|192.168.111.111|55555|100.100.100.100|55555|G711U/20| OK|
-#+--------+--------+---+---------------+-----+---------------+-----+--------+---+
+#+--------+--------+---+---------------+-----+---------------+-----+-----+--+---+
+#|  Start |   End  |BGW| Local-Address |LPort| Remote-Address|RPort|Codec|pt|QoS|
+#+--------+--------+---+---------------+-----+---------------+-----+-----+--+---+
+#|11:09:07|11:11:27|001|192.168.111.111|55555|100.100.100.100|55555|G711U|20| OK|
+#+--------+--------+---+---------------+-----+---------------+-----+-----+--+---+
 
 RTPSTAT_ATTRS = [
     {
@@ -1057,6 +921,13 @@ RTPSTAT_ATTRS = [
         'xpos': 67,
     },
     {
+        'column_attr': 'ptime',
+        'column_name': 'pt',
+        'color': 'base',
+        'fmt': '>2',
+        'xpos': 73,
+    },
+    {
         'column_attr': 'qos',
         'column_name': 'QoS',
         'color': 'base',
@@ -1084,6 +955,7 @@ class BGW():
         show_sla_monitor: str = '',
         show_system: str = '',
         show_temp: str = '',
+        show_utilization: str = '',
         show_voip_dsp: str = '',
         **kwargs,
     ) -> None:
@@ -1106,6 +978,7 @@ class BGW():
         self.show_sla_monitor = show_sla_monitor
         self.show_system = show_system
         self.show_temp = show_temp
+        self.show_utilization = show_utilization
         self.show_voip_dsp = show_voip_dsp
         self.queue = Queue()
         self._active_session = None
@@ -1113,16 +986,27 @@ class BGW():
         self._capture_service = None
         self._chassis_hw = None
         self._comp_flash = None
+        self._cpu_util = None
         self._dsp = None
         self._faults = None
         self._fw = None
         self._hw = None
+        self._inuse_dsp = None
         self._lldp = None
         self._location = None
         self._lsp = None
         self._mac = None
         self._mainboard_hw = None
         self._memory = None
+        self._mm_v1 = None
+        self._mm_v2 = None
+        self._mm_v3 = None
+        self._mm_v4 = None
+        self._mm_v5 = None
+        self._mm_v6 = None
+        self._mm_v7 = None
+        self._mm_v8 = None
+        self._mm_v10 = None
         self._model = None
         self._port1 = None
         self._port1_status = None
@@ -1135,17 +1019,19 @@ class BGW():
         self._port2_duplex = None
         self._port2_speed = None
         self._port_redu = None
-        self._psu = None
+        self._psus = None
         self._psu1 = None
         self._psu2 = None
+        self._ram_util = None
         self._rtp_stat_service = None
         self._serial = None
         self._slamon_service = None
         self._sla_server = None
         self._snmp = None
+        self._snmp_trap = None
+        self._temp = None
         self._total_session = None
         self._uptime = None
-        self._voip_dsp = None
 
     @property
     def active_session(self):
@@ -1156,9 +1042,11 @@ class BGW():
 
     @property
     def announcements(self):
-        if self.dir:
+        if self.show_announcements_files:
             if self._announcements is None:
-                m = re.findall(r"Annc files", self.dir)
+                m = re.findall(
+                    r"announcement file", self.show_announcements_files
+                )
                 self._announcements = len(m)
             return self._announcements
         return "NA"
@@ -1176,9 +1064,18 @@ class BGW():
     def chassis_hw(self):
         if self.show_system:
             if self._chassis_hw is None:
-                v = re.search(r'Chassis HW Vintage\s+:\s+(\S+)', self.show_system)
-                s = re.search(r"Chassis HW Suffix\s+:\s+(\S+)", self.show_system)
-                self._chassis_hw = v.group(1) if v else "?" + s.group(1) if s else "?"
+                
+                vintage = re.search(
+                    r'Chassis HW Vintage\s+:\s+(\S+)', self.show_system
+                )
+                vintage = vintage.group(1) if vintage else "?"
+                
+                suffix = re.search(
+                    r"Chassis HW Suffix\s+:\s+(\S+)", self.show_system
+                )
+                suffix = suffix.group(1) if suffix else "?"
+                
+                self._chassis_hw = f"{vintage}{suffix}"
             return self._chassis_hw
         return "NA"
 
@@ -1186,19 +1083,32 @@ class BGW():
     def comp_flash(self):
         if self.show_system:
             if self._comp_flash is None:
-                m = re.search(r'Flash Memory\s+:\s+(\S+)', self.show_system)
-                if m and "Compact" in m.group(1):
-                    self._comp_flash = "installed"
+                m = re.search(r'Flash Memory\s+:\s+(.*)', self.show_system)
+                if m:
+                    if "No" in m.group(1):
+                        self._comp_flash = ""
+                    else:
+                        self._comp_flash = m.group(1).replace(" ", "")
                 else:
                     self._comp_flash = ""
             return self._comp_flash
         return "NA"
 
     @property
+    def cpu_util(self):
+        if self.show_utilization:
+            m = re.search(r'10\s+(\d+)%\s+(\d+)%', self.show_utilization)
+            self._cpu_util = f"{m.group(1)}%/{m.group(2)}%" if m else "?/?"
+            return self._cpu_util
+        return "NA"
+
+    @property
     def dsp(self):
         if self.show_system:
             if self._dsp is None:
-                m = re.findall(r"Media Socket .*?: M?P?(\d+) ", self.show_system)
+                m = re.findall(
+                    r"Media Socket .*?: M?P?(\d+) ", self.show_system
+                )
                 self._dsp = sum(int(x) for x in m) if m else "?"
             return self._dsp
         return "NA"
@@ -1270,7 +1180,7 @@ class BGW():
         if self.show_system:
             if self._mac is None:
                 m = re.search(r"LAN MAC Address\s+:\s+(\S+)", self.show_system)
-                self._mac = m.group(1) if m else "?"
+                self._mac = m.group(1).replace(":", "") if m else "?"
             return self._mac
         return "NA"
 
@@ -1278,9 +1188,18 @@ class BGW():
     def mainboard_hw(self):
         if self.show_system:
             if self._mainboard_hw is None:
-                v = re.search(r'Mainboard HW Vintage\s+:\s+(\S+)', self.show_system)
-                s = re.search(r"Mainboard HW Suffix\s+:\s+(\S+)", self.show_system)
-                self._mainboard_hw = v.group(1) if v else "?" + s.group(1) if s else "?"
+                
+                vintage = re.search(
+                    r'Mainboard HW Vintage\s+:\s+(\S+)', self.show_system
+                )
+                vintage = vintage.group(1) if vintage else "?"
+
+                suffix = re.search(
+                    r"Mainboard HW Suffix\s+:\s+(\S+)", self.show_system
+                )
+                suffix = suffix.group(1) if suffix else "?"
+
+                self._mainboard_hw = f"{vintage}{suffix}"
             return self._mainboard_hw
         return "NA"
 
@@ -1291,6 +1210,121 @@ class BGW():
                 m = re.findall(r"Memory #\d+\s+:\s+(\S+)", self.show_system)
                 self._memory = f"{sum(self._to_mbyte(x) for x in m)}MB"
             return self._memory
+        return "NA"
+
+    @property
+    def mm_v1(self):
+        if self.show_mg_list:
+            if self._mm_v1 is None:
+                d = self._mm_groupdict().get("v1", {})
+                code = d.get("code", "")
+                if code == "ICC":
+                    code = d.get("type", "")
+                suffix = d.get("suffix", "")
+                self._mm_v1 = f"{code}{suffix}"
+            return self._mm_v1
+        return "NA"
+
+    @property
+    def mm_v2(self):
+        if self.show_mg_list:
+            if self._mm_v2 is None:
+                d = self._mm_groupdict().get("v2", {})
+                code = d.get("code", "")
+                if code == "ICC":
+                    code = d.get("type", "")
+                suffix = d.get("suffix", "")
+                self._mm_v2 = f"{code}{suffix}"
+            return self._mm_v2
+        return "NA"
+
+    @property
+    def mm_v3(self):
+        if self.show_mg_list:
+            if self._mm_v3 is None:
+                d = self._mm_groupdict().get("v3", {})
+                code = d.get("code", "")
+                if code == "ICC":
+                    code = d.get("type", "")
+                suffix = d.get("suffix", "")
+                self._mm_v3 = f"{code}{suffix}"
+            return self._mm_v3
+        return "NA"
+
+    @property
+    def mm_v4(self):
+        if self.show_mg_list:
+            if self._mm_v4 is None:
+                d = self._mm_groupdict().get("v4", {})
+                code = d.get("code", "")
+                if code == "ICC":
+                    code = d.get("type", "")
+                suffix = d.get("suffix", "")
+                self._mm_v4 = f"{code}{suffix}"
+            return self._mm_v4
+        return "NA"
+
+    @property
+    def mm_v5(self):
+        if self.show_mg_list:
+            if self._mm_v5 is None:
+                d = self._mm_groupdict().get("v5", {})
+                code = d.get("code", "")
+                if code == "ICC":
+                    code = d.get("type", "")
+                suffix = d.get("suffix", "")
+                self._mm_v5 = f"{code}{suffix}"
+            return self._mm_v5
+        return "NA"
+
+    @property
+    def mm_v6(self):
+        if self.show_mg_list:
+            if self._mm_v6 is None:
+                d = self._mm_groupdict().get("v6", {})
+                code = d.get("code", "")
+                if code == "ICC":
+                    code = d.get("type", "")
+                suffix = d.get("suffix", "")
+                self._mm_v6 = f"{code}{suffix}"
+            return self._mm_v6
+        return "NA"
+
+    @property
+    def mm_v7(self):
+        if self.show_mg_list:
+            if self._mm_v7 is None:
+                d = self._mm_groupdict().get("v7", {})
+                code = d.get("code", "")
+                if code == "ICC":
+                    code = d.get("type", "")
+                suffix = d.get("suffix", "")
+                self._mm_v7 = f"{code}{suffix}"
+            return self._mm_v7
+        return "NA"
+
+    @property
+    def mm_v8(self):
+        if self.show_mg_list:
+            if self._mm_v8 is None:
+                d = self._mm_groupdict().get("v8", {})
+                code = d.get("code", "")
+                if code == "ICC":
+                    code = d.get("type", "")
+                suffix = d.get("suffix", "")
+                self._mm_v8 = f"{code}{suffix}"
+            return self._mm_v8
+        return "NA"
+
+    @property
+    def mm_v10(self):
+        if self.show_mg_list:
+            if self._mm_v10 is None:
+                d = self._mm_groupdict().get("v10", {})
+                suffix = d.get("suffix", "")
+                hw_vintage = d.get("hw_vintage", "")
+                self._mm_v10 = f"{hw_vintage}{suffix}"
+            return self._mm_v10
         return "NA"
 
     @property
@@ -1383,12 +1417,12 @@ class BGW():
         return "NA"
 
     @property
-    def psu(self):
+    def psus(self):
         if self.show_system:
-            if self._psu is None:
+            if self._psus is None:
                 m = re.findall(r"PSU #\d+", self.show_system)
-                self._psu = len(m)
-            return self._psu
+                self._psus = len(m)
+            return self._psus
         return "NA"
 
     @property
@@ -1407,6 +1441,14 @@ class BGW():
                 m = re.search(r"PSU #2\s+:\s+\S+ (\S+)", self.show_system)
                 self._psu2 = m.group(1) if m else ""
             return self._psu2
+        return "NA"
+
+    @property
+    def ram_util(self):
+        if self.show_utilization:
+            m = re.search(r'10\s+S+\s+\S+\s+(\d+)%', self.show_utilization)
+            self._ram_util = f"{m.group(1)}%" if m else ""
+            return self._ram_util
         return "NA"
 
     @property
@@ -1449,19 +1491,36 @@ class BGW():
         if self.show_running_config:
             if self._snmp is None:
                 snmp = []
-                if "snmp-server comm" in self.show_running_config:
+                lines = [line.strip() for line in
+                    self.show_running_config.splitlines()]
+                if any(line.startswith("snmp-server community")
+                       for line in lines):
                     snmp.append("2")
-                if "encrypted-snmp-server comm" in self.show_running_config:
+                if any(line.startswith("encrypted-snmp-server community")
+                       for line in lines):
                     snmp.append("3")
                 self._snmp = "v" + "&".join(snmp) if snmp else ""
             return self._snmp
         return "NA"
 
     @property
+    def snmp_trap(self):
+        if self.show_running_config:
+            if self._snmp_trap is None:
+                m = re.search(
+                    r'snmp-server host (\S+) traps', self.show_running_config
+                )
+                self._snmp_trap = "enabled" if m else "disabled"
+            return self._snmp_trap
+        return "NA"
+
+    @property
     def temp(self):
         if self.show_temp:
-            m = re.search(r'Temp\s+:\s+(\S+)', self.show_temp)
-            return self._snmp
+            if self._temp is None:
+                m = re.search(r'Temperature\s+:\s+(\S+) \((\S+)\)', self.show_temp)
+                self._temp = f"{m.group(1)}/{m.group(2)}" if m else "?/?"
+            return self._temp
         return "NA"
 
     @property
@@ -1487,20 +1546,15 @@ class BGW():
         return "NA"
 
     @property
-    def voip_dsp(self):
-        inuse, total = 0, 0
-        dsps = re.findall(r"In Use\s+:\s+(\d+) of (\d+) channels",
-                          self.show_voip_dsp)
+    def inuse_dsp(self):
+        inuse = 0
+        dsps = re.findall(r"In Use\s+:\s+(\d+)", self.show_voip_dsp)
         for dsp in dsps:
             try:
-                dsp_inuse, dsp_total = dsp
-                inuse += int(dsp_inuse)
-                total += int(dsp_total)
+                inuse += int(dsp)
             except:
                 pass
-        #total = total if total > 0 else "?"
-        #inuse = inuse if inuse > 0 else "?"
-        return f"{inuse}/{total}"
+        return f"{inuse}"
 
     def update(
         self,
@@ -1575,7 +1629,20 @@ class BGW():
 
     def _mm_groupdict(self):
         if self.show_mg_list:
-            return re.search(r'.*?(?P<mm>\S+)', self.show_mg_list).groupdict()
+            groupdict = {}
+            for line in (l.strip() for l in self.show_mg_list.splitlines()):
+                if line.startswith("v") and "Not Installed" not in line:
+                    m = re.search(r"".join((
+                        r'.*?(?P<slot>\S+)',
+                        r'.*?(?P<type>\S+)',
+                        r'.*?(?P<code>\S+)',
+                        r'.*?(?P<suffix>\S+)',
+                        r'.*?(?P<hw_vintage>\S+)',
+                        r'.*?(?P<fw_vintage>\S+)',
+                    )), line)
+                    if m:
+                        groupdict.update({m.group("slot"): m.groupdict()})
+            return groupdict
         return {}
 
     @staticmethod
@@ -1635,19 +1702,12 @@ def iter_attrs(
 
     for attr in attrs:
         if hasattr(obj, attr['column_attr']):
-            _str = str(getattr(obj, attr['column_attr']))
+            _str = getattr(obj, attr['column_attr'])
         else:
-            _str = str(obj.get(attr['column_attr'], attr['column_attr']))
+            _str = obj.get(attr['column_attr'], attr['column_attr'])
         
         if attr['fmt']:
-            _len = int(''.join(i for i in attr['fmt'] if i.isdigit()))
-            _str = f"{_str[:_len]:{attr['fmt']}}"
-        elif attr['column_name']:
-            _len = len(attr['column_name'])
-            _str = f"{_str[:_len]}"
-        else:
-            _len = len(attr['column_attr'])
-            _str = f"{_str[:_len]}"
+            _str = f"{_str:{attr['fmt']}}"
         
         color = attr['color']
         xpos = attr['xpos'] if attr['xpos'] else 0
@@ -1656,8 +1716,8 @@ def iter_attrs(
 def main():
     bgw = BGW("192.168.111.111")
     bgw.update(**data)
-    for xpos, str, color in iter_attrs(bgw, HARDWARE_ATTRS):
-        print(f"{xpos:3} {str:20} {color}")
+    #for xpos, str, color in iter_attrs(bgw, SYSTEM_ATTRS):
+    #    print(f"{xpos:3} {str:20} {color}")
     for xpos, str, color in iter_attrs(rtp_stat, RTPSTAT_ATTRS):
         print(f"{xpos:3} {str:20} {color}")
 

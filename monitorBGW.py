@@ -108,8 +108,6 @@ CONFIG = {
         "show lldp config",
         "show port",
         "show mg list",
-        "show voip-dsp",
-        "show rtp-stat summary",
     ],
     "query_commands": [
         "show voip-dsp",
