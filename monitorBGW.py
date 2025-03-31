@@ -89,7 +89,7 @@ CONFIG = {
     "polling_secs": 5,
     "max_polling": 20,
     "lastn_secs": 30,
-    "loglevel": "INFO",
+    "loglevel": "ERROR",
     "logfile": "bgw.log",
     "expect_log": "expect_log",
     "ip_filter": None,
@@ -3724,7 +3724,7 @@ if __name__ == "__main__":
     parser.add_argument('-p', dest='passwd', default='', help='BGW password')
     parser.add_argument('-n', dest='lastn_secs', default=30, help='secs to look back in RTP statistics, default 30secs')
     parser.add_argument('-m', dest='max_polling', default=19, help='max simultaneous polling sessons, default 20')
-    parser.add_argument('-l', dest='loglevel', default="INFO", help='loglevel')
+    parser.add_argument('-l', dest='loglevel', default="ERROR", help='loglevel')
     parser.add_argument('-t', dest='timeout', default=12, help='timeout in secs, default 10secs')
     parser.add_argument('-f', dest='polling_secs', default=5, help='polling frequency in seconds, default 5secs')
     parser.add_argument('-i', dest='ip_filter', default=None, nargs='+', help='BGW IP filter')

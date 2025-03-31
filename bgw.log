@@ -2137,3 +2137,40 @@ Traceback (most recent call last):
   File "/root/Projects/python36_async_playground/monitorBGW.py", line 2424, in draw_bodywin
     ridx, xpos - 1, "│" + attr_value + "│", color
 TypeError: an integer is required (got type str)
+2025-03-31 09:12:21,509 -     INFO - Received: 100 [monitorBGW.py:2735]
+2025-03-31 09:12:21,509 -     INFO - Received: 100 [monitorBGW.py:2202]
+2025-03-31 09:12:21,528 -     INFO - Scheduled 2 tasks in coro discover_gateways() [monitorBGW.py:3255]
+2025-03-31 09:12:21,530 -     INFO - Acquired semaphore in coro query_gateway() for 10.10.48.58, free 18 [monitorBGW.py:3193]
+2025-03-31 09:12:21,536 -     INFO - Acquired semaphore in coro query_gateway() for 10.44.244.51, free 18 [monitorBGW.py:3193]
+2025-03-31 09:12:21,542 -     INFO - Created process PID 2564 in coro exec_script() for 10.10.48.58 [monitorBGW.py:3135]
+2025-03-31 09:12:21,544 -     INFO - Created process PID 2565 in coro exec_script() for 10.44.244.51 [monitorBGW.py:3135]
+2025-03-31 09:12:29,602 -     INFO - Discovery 10.10.48.58 successful in coro discover_gateways() [monitorBGW.py:3264]
+2025-03-31 09:12:29,641 -     INFO - Discovery 10.44.244.51 successful in coro discover_gateways() [monitorBGW.py:3264]
+2025-03-31 09:12:29,642 -    ERROR - Exception in callback discovery_done_callback(100, <__main__.MyD...x7ffa732f9438>)(<Task finishe...> result=None>) at /home/ss/Projects/python36_async_playground/monitorBGW.py:3495
+handle: <Handle discovery_done_callback(100, <__main__.MyD...x7ffa732f9438>)(<Task finishe...> result=None>) at /home/ss/Projects/python36_async_playground/monitorBGW.py:3495> [base_events.py:1285]
+Traceback (most recent call last):
+  File "/usr/lib64/python3.6/asyncio/events.py", line 145, in _run
+    self._callback(*self._args)
+  File "/home/ss/Projects/python36_async_playground/monitorBGW.py", line 3503, in discovery_done_callback
+    mydisplay.active_workspace.draw_bodywin()
+  File "/home/ss/Projects/python36_async_playground/monitorBGW.py", line 2424, in draw_bodywin
+    ridx, xpos - 1, "│" + attr_value + "│", color
+TypeError: an integer is required (got type str)
+2025-03-31 09:12:29,666 -     INFO - Received: 100 [monitorBGW.py:2735]
+2025-03-31 09:12:29,666 -     INFO - Received: 100 [monitorBGW.py:2202]
+2025-03-31 09:12:29,668 -    ERROR - unhandled exception during asyncio.run() shutdown
+task: <Task finished coro=<MyDisplay.run() done, defined at /home/ss/Projects/python36_async_playground/monitorBGW.py:2792> exception=TypeError('an integer is required (got type str)',)> [base_events.py:1285]
+Traceback (most recent call last):
+  File "/home/ss/Projects/python36_async_playground/monitorBGW.py", line 2874, in asyncio_run
+    return loop.run_until_complete(main)
+  File "/usr/lib64/python3.6/asyncio/base_events.py", line 484, in run_until_complete
+    return future.result()
+  File "/home/ss/Projects/python36_async_playground/monitorBGW.py", line 2808, in run
+    await self.handle_char(char)
+  File "/home/ss/Projects/python36_async_playground/monitorBGW.py", line 2826, in handle_char
+    await self.workspaces[self.active_ws_idx].handle_char(char)
+  File "/home/ss/Projects/python36_async_playground/monitorBGW.py", line 2455, in handle_char
+    self.draw_bodywin()
+  File "/home/ss/Projects/python36_async_playground/monitorBGW.py", line 2424, in draw_bodywin
+    ridx, xpos - 1, "│" + attr_value + "│", color
+TypeError: an integer is required (got type str)
