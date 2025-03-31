@@ -96,7 +96,7 @@ data ={
         Uptime (d,h:m:s)        : 108,18:21:26
         Call Controller Time    : 17:32:47 29 MAR 2025
         Serial No               : 22TN07201536
-        Model                   : G450v4
+        Model                   : G450
         Chassis HW Vintage      : 4
         Chassis HW Suffix       : A
         Mainboard HW Vintage    : 4
@@ -372,8 +372,7 @@ rtp_stat = {
     "remote_addr": "11.11.11.11",
     "remote_port": "55556",
     "codec": "G711U",
-    "ptime": "20",
-    "qos": "ok",
+    "qos": "Faulted",
 }
 
 #System
@@ -387,58 +386,58 @@ SYSTEM_ATTRS = [
     {
         'column_attr': 'gw_number',
         'column_name': 'BGW',
-        'color': 'base',
-        'fmt': '>3',
-        'xpos': 1,
+        'column_color': 'base',
+        'column_fmt_spec': '>3',
+        'column_xpos': 1,
     },
     {
         'column_attr': 'gw_name',
         'column_name': 'Name',
-        'color': 'base',
-        'fmt': '>13',
-        'xpos': 5,
+        'column_color': 'base',
+        'column_fmt_spec': '>13',
+        'column_xpos': 5,
     },
     {
         'column_attr': 'host',
         'column_name': 'LAN IP',
-        'color': 'base',
-        'fmt': '>15',
-        'xpos': 19,
+        'column_color': 'base',
+        'column_fmt_spec': '>15',
+        'column_xpos': 19,
     },
     {
         'column_attr': 'mac',
         'column_name': 'LAN MAC',
-        'color': 'base',
-        'fmt': '>12',
-        'xpos': 35,
+        'column_color': 'base',
+        'column_fmt_spec': '>12',
+        'column_xpos': 35,
     },
     {
         'column_attr': 'uptime',
         'column_name': 'Uptime',
-        'color': 'base',
-        'fmt': '>13',
-        'xpos': 48,
+        'column_color': 'base',
+        'column_fmt_spec': '>13',
+        'column_xpos': 48,
     },
     {
         'column_attr': 'model',
         'column_name': 'Model',
-        'color': 'base',
-        'fmt': '>5',
-        'xpos': 62,
+        'column_color': 'base',
+        'column_fmt_spec': '>5',
+        'column_xpos': 62,
     },
     {
         'column_attr': 'hw',
         'column_name': 'HW',
-        'color': 'base',
-        'fmt': '>2',
-        'xpos': 68,
+        'column_color': 'base',
+        'column_fmt_spec': '>2',
+        'column_xpos': 68,
     },
     {
         'column_attr': 'fw',
         'column_name': 'Firmware',
-        'color': 'base',
-        'fmt': '>8',
-        'xpos': 71,
+        'column_color': 'base',
+        'column_fmt_spec': '>8',
+        'column_xpos': 71,
     },
 ]
 
@@ -453,79 +452,79 @@ HW_ATTRS = [
     {
         'column_attr': 'gw_number',
         'column_name': 'BGW',
-        'color': 'base',
-        'fmt': '>3',
-        'xpos': 1,
+        'column_color': 'base',
+        'column_fmt_spec': '>3',
+        'column_xpos': 1,
     },
     {
         'column_attr': 'location',
         'column_name': 'Location',
-        'color': 'base',
-        'fmt': '>10',
-        'xpos': 5,
+        'column_color': 'base',
+        'column_fmt_spec': '>10',
+        'column_xpos': 5,
     },
     {
         'column_attr': 'temp',
         'column_name': 'Temp',
-        'color': 'base',
-        'fmt': '>8',
-        'xpos': 16,
+        'column_color': 'base',
+        'column_fmt_spec': '>8',
+        'column_xpos': 16,
     },
     {
         'column_attr': 'serial',
         'column_name': 'Serial',
-        'color': 'base',
-        'fmt': '>12',
-        'xpos': 25,
+        'column_color': 'base',
+        'column_fmt_spec': '>12',
+        'column_xpos': 25,
     },
     {
         'column_attr': 'chassis_hw',
         'column_name': 'Chass',
-        'color': 'base',
-        'fmt': '>5',
-        'xpos': 38,
+        'column_color': 'base',
+        'column_fmt_spec': '>5',
+        'column_xpos': 38,
     },
     {
         'column_attr': 'mainboard_hw',
         'column_name': 'Main',
-        'color': 'base',
-        'fmt': '>4',
-        'xpos': 44,
+        'column_color': 'base',
+        'column_fmt_spec': '>4',
+        'column_xpos': 44,
     },
     {
         'column_attr': 'memory',
         'column_name': 'Memory',
-        'color': 'base',
-        'fmt': '>6',
-        'xpos': 49,
+        'column_color': 'base',
+        'column_fmt_spec': '>6',
+        'column_xpos': 49,
     },
     {
         'column_attr': 'dsp',
         'column_name': 'DSP',
-        'color': 'base',
-        'fmt': '>3',
-        'xpos': 56,
+        'column_color': 'base',
+        'column_fmt_spec': '>3',
+        'column_xpos': 56,
     },
     {
         'column_attr': 'announcements',
         'column_name': 'Anno',
-        'color': 'base',
-        'fmt': '>4',
-        'xpos': 60,
+        'column_color': 'base',
+        'column_fmt_spec': '>4',
+        'column_xpos': 60,
     },
     {
         'column_attr': 'comp_flash',
         'column_name': 'C.Flash',
-        'color': 'base',
-        'fmt': '>7',
-        'xpos': 65,
+        'column_color': 'base',
+        'column_fmt_spec': '>7',
+        'column_xpos': 65,
     },
     {
         'column_attr': 'faults',
         'column_name': 'Faults',
-        'color': 'base',
-        'fmt': '>6',
-        'xpos': 73,
+        'column_color': 'base',
+        'column_fmt_spec': '>6',
+        'column_xpos': 73,
     },
 ]
 
@@ -540,86 +539,86 @@ MODULE_ATTRS = [
     {
         'column_attr': 'gw_number',
         'column_name': 'BGW',
-        'color': 'base',
-        'fmt': '>3',
-        'xpos': 1,
+        'column_color': 'base',
+        'column_fmt_spec': '>3',
+        'column_xpos': 1,
     },
     {
         'column_attr': 'mm_v1',
         'column_name': 'v1',
-        'color': 'base',
-        'fmt': '>6',
-        'xpos': 5,
+        'column_color': 'base',
+        'column_fmt_spec': '>6',
+        'column_xpos': 5,
     },
     {
         'column_attr': 'mm_v2',
         'column_name': 'v2',
-        'color': 'base',
-        'fmt': '>6',
-        'xpos': 12,
+        'column_color': 'base',
+        'column_fmt_spec': '>6',
+        'column_xpos': 12,
     },
     {
         'column_attr': 'mm_v3',
         'column_name': 'v3',
-        'color': 'base',
-        'fmt': '>6',
-        'xpos': 19,
+        'column_color': 'base',
+        'column_fmt_spec': '>6',
+        'column_xpos': 19,
     },
     {
         'column_attr': 'mm_v4',
         'column_name': 'v4',
-        'color': 'base',
-        'fmt': '>6',
-        'xpos': 27,
+        'column_color': 'base',
+        'column_fmt_spec': '>6',
+        'column_xpos': 27,
     },
     {
         'column_attr': 'mm_v5',
         'column_name': 'v5',
-        'color': 'base',
-        'fmt': '>6',
-        'xpos': 33,
+        'column_color': 'base',
+        'column_fmt_spec': '>6',
+        'column_xpos': 33,
     },
     {
         'column_attr': 'mm_v6',
         'column_name': 'v6',
-        'color': 'base',
-        'fmt': '>6',
-        'xpos': 40,
+        'column_color': 'base',
+        'column_fmt_spec': '>6',
+        'column_xpos': 40,
     },
     {
         'column_attr': 'mm_v7',
         'column_name': 'v7',
-        'color': 'base',
-        'fmt': '>6',
-        'xpos': 47,
+        'column_color': 'base',
+        'column_fmt_spec': '>6',
+        'column_xpos': 47,
     },
     {
         'column_attr': 'mm_v8',
         'column_name': 'v8',
-        'color': 'base',
-        'fmt': '>6',
-        'xpos': 54,
+        'column_color': 'base',
+        'column_fmt_spec': '>6',
+        'column_xpos': 54,
     },
     {
         'column_attr': 'mm_v10',
         'column_name': 'v10 hw',
-        'color': 'base',
-        'fmt': '>8',
-        'xpos': 61,
+        'column_color': 'base',
+        'column_fmt_spec': '>8',
+        'column_xpos': 61,
     },
     {
         'column_attr': 'psu1',
         'column_name': 'PSU1',
-        'color': 'base',
-        'fmt': '>4',
-        'xpos': 70,
+        'column_color': 'base',
+        'column_fmt_spec': '>4',
+        'column_xpos': 70,
     },
     {
         'column_attr': 'psu2',
         'column_name': 'PSU2',
-        'color': 'base',
-        'fmt': '>4',
-        'xpos': 75,
+        'column_color': 'base',
+        'column_fmt_spec': '>4',
+        'column_xpos': 75,
     },
 ]
 
@@ -634,86 +633,86 @@ PORT_ATTRS = [
     {
         'column_attr': 'gw_number',
         'column_name': 'BGW',
-        'color': 'base',
-        'fmt': '>3',
-        'xpos': 1,
+        'column_color': 'base',
+        'column_fmt_spec': '>3',
+        'column_xpos': 1,
     },
     {
         'column_attr': 'port1',
         'column_name': 'Port',
-        'color': 'base',
-        'fmt': '>4',
-        'xpos': 5,
+        'column_color': 'base',
+        'column_fmt_spec': '>4',
+        'column_xpos': 5,
     },
     {
         'column_attr': 'port1_status',
         'column_name': 'Status',
-        'color': 'base',
-        'fmt': '>9',
-        'xpos': 10,
+        'column_color': 'base',
+        'column_fmt_spec': '>9',
+        'column_xpos': 10,
     },
     {
         'column_attr': 'port1_neg',
         'column_name': 'Neg',
-        'color': 'base',
-        'fmt': '>8',
-        'xpos': 20,
+        'column_color': 'base',
+        'column_fmt_spec': '>8',
+        'column_xpos': 20,
     },
     {
         'column_attr': 'port1_speed',
         'column_name': 'Spd.',
-        'color': 'base',
-        'fmt': '>4',
-        'xpos': 29,
+        'column_color': 'base',
+        'column_fmt_spec': '>4',
+        'column_xpos': 29,
     },
     {
         'column_attr': 'port1_duplex',
         'column_name': 'Dup.',
-        'color': 'base',
-        'fmt': '>4',
-        'xpos': 34,
+        'column_color': 'base',
+        'column_fmt_spec': '>4',
+        'column_xpos': 34,
     },
     {
         'column_attr': 'port2',
         'column_name': 'Port',
-        'color': 'base',
-        'fmt': '>4',
-        'xpos': 39,
+        'column_color': 'base',
+        'column_fmt_spec': '>4',
+        'column_xpos': 39,
     },
     {
         'column_attr': 'port2_status',
         'column_name': 'Status',
-        'color': 'base',
-        'fmt': '>9',
-        'xpos': 44,
+        'column_color': 'base',
+        'column_fmt_spec': '>9',
+        'column_xpos': 44,
     },
     {
         'column_attr': 'port2_neg',
         'column_name': 'Neg',
-        'color': 'base',
-        'fmt': '>8',
-        'xpos': 54,
+        'column_color': 'base',
+        'column_fmt_spec': '>8',
+        'column_xpos': 54,
     },
     {
         'column_attr': 'port2_speed',
         'column_name': 'Spd.',
-        'color': 'base',
-        'fmt': '>4',
-        'xpos': 63,
+        'column_color': 'base',
+        'column_fmt_spec': '>4',
+        'column_xpos': 63,
     },
     {
         'column_attr': 'port2_duplex',
         'column_name': 'Dup.',
-        'color': 'base',
-        'fmt': '>4',
-        'xpos': 68,
+        'column_color': 'base',
+        'column_fmt_spec': '>4',
+        'column_xpos': 68,
     },
     {
         'column_attr': 'port_redu',
         'column_name': 'Redund',
-        'color': 'base',
-        'fmt': '>6',
-        'xpos': 73,
+        'column_color': 'base',
+        'column_fmt_spec': '>6',
+        'column_xpos': 73,
     },
 ]
 
@@ -728,58 +727,58 @@ SERVICE_ATTRS = [
     {
         'column_attr': 'gw_number',
         'column_name': 'BGW',
-        'color': 'base',
-        'fmt': '>3',
-        'xpos': 1,
+        'column_color': 'base',
+        'column_fmt_spec': '>3',
+        'column_xpos': 1,
     },
     {
         'column_attr': 'rtp_stat_service',
         'column_name': 'RTP-Stats',
-        'color': 'base',
-        'fmt': '>9',
-        'xpos': 5,
+        'column_color': 'base',
+        'column_fmt_spec': '>9',
+        'column_xpos': 5,
     },
     {
         'column_attr': 'capture_service',
         'column_name': 'Capture-Service',
-        'color': 'base',
-        'fmt': '>15',
-        'xpos': 15,
+        'column_color': 'base',
+        'column_fmt_spec': '>15',
+        'column_xpos': 15,
     },
     {
         'column_attr': 'snmp',
         'column_name': 'SNMP',
-        'color': 'base',
-        'fmt': '>4',
-        'xpos': 31,
+        'column_color': 'base',
+        'column_fmt_spec': '>4',
+        'column_xpos': 31,
     },
     {
         'column_attr': 'snmp_trap',
         'column_name': 'SNMP-Trap',
-        'color': 'base',
-        'fmt': '>9',
-        'xpos': 36,
+        'column_color': 'base',
+        'column_fmt_spec': '>9',
+        'column_xpos': 36,
     },
     {
         'column_attr': 'slamon_service',
         'column_name': 'SLAMon',
-        'color': 'base',
-        'fmt': '>8',
-        'xpos': 46,
+        'column_color': 'base',
+        'column_fmt_spec': '>8',
+        'column_xpos': 46,
     },
     {
         'column_attr': 'sla_server',
         'column_name': 'SLAMon Server',
-        'color': 'base',
-        'fmt': '>15',
-        'xpos': 55,
+        'column_color': 'base',
+        'column_fmt_spec': '>15',
+        'column_xpos': 55,
     },
     {
         'column_attr': 'lldp',
         'column_name': 'LLDP',
-        'color': 'base',
-        'fmt': '>8',
-        'xpos': 71,
+        'column_color': 'base',
+        'column_fmt_spec': '>8',
+        'column_xpos': 71,
     },
 ]
 
@@ -794,145 +793,138 @@ STATUS_ATTRS = [
     {
         'column_attr': 'gw_number',
         'column_name': 'BGW',
-        'color': 'base',
-        'fmt': '>3',
-        'xpos': 1,
+        'column_color': 'base',
+        'column_fmt_spec': '>3',
+        'column_xpos': 1,
     },
     {
         'column_attr': 'active_session',
         'column_name': 'Act.Session',
-        'color': 'base',
-        'fmt': '>11',
-        'xpos': 5,
+        'column_color': 'base',
+        'column_fmt_spec': '>11',
+        'column_xpos': 5,
     },
     {
         'column_attr': 'total_session',
         'column_name': 'Tot.Session',
-        'color': 'base',
-        'fmt': '>12',
-        'xpos': 17,
+        'column_color': 'base',
+        'column_fmt_spec': '>12',
+        'column_xpos': 17,
     },
     {
         'column_attr': 'inuse_dsp',
         'column_name': 'InUseDSP',
-        'color': 'base',
-        'fmt': '>8',
-        'xpos': 29,
+        'column_color': 'base',
+        'column_fmt_spec': '>8',
+        'column_xpos': 29,
     },
     {
         'column_attr': 'cpu_util',
         'column_name': 'CPU 5s/60s',
-        'color': 'base',
-        'fmt': '>10',
-        'xpos': 38,
+        'column_color': 'base',
+        'column_fmt_spec': '>10',
+        'column_xpos': 38,
     },
     {
         'column_attr': 'ram_util',
         'column_name': 'RAM',
-        'color': 'base',
-        'fmt': '>5',
-        'xpos': 49,
+        'column_color': 'base',
+        'column_fmt_spec': '>5',
+        'column_xpos': 49,
     },
     {
         'column_attr': 'avg_poll_secs',
         'column_name': 'PollSec',
-        'color': 'base',
-        'fmt': '>7',
-        'xpos': 55,
+        'column_color': 'base',
+        'column_fmt_spec': '>7',
+        'column_xpos': 55,
     },
     {
         'column_attr': 'polls',
         'column_name': 'Polls',
-        'color': 'base',
-        'fmt': '>7',
-        'xpos': 63,
+        'column_color': 'base',
+        'column_fmt_spec': '>7',
+        'column_xpos': 63,
     },
     {
-        'column_attr': 'last_seen',
+        'column_attr': 'last_seen_time',
         'column_name': 'LastSeen',
-        'color': 'base',
-        'fmt': '%H:%M:%S',
-        'xpos': 71,
+        'column_color': 'base',
+        'column_fmt_spec': '>8',
+        'column_xpos': 71,
     },
 ]
 
 #RTP-Stat
-#+--------+--------+---+---------------+-----+---------------+-----+-----+--+---+
-#|  Start |   End  |BGW| Local-Address |LPort| Remote-Address|RPort|Codec|pt|QoS|
-#+--------+--------+---+---------------+-----+---------------+-----+-----+--+---+
-#|11:09:07|11:11:27|001|192.168.111.111|55555|100.100.100.100|55555|G711U|20| OK|
-#+--------+--------+---+---------------+-----+---------------+-----+-----+--+---+
+#+--------+--------+---+---------------+-----+---------------+-----+------+-----+
+#|  Start |   End  |BGW| Local-Address |LPort| Remote-Address|RPort| Codec| QoS | 
+#+--------+--------+---+---------------+-----+---------------+-----+------+-----+
+#|11:09:07|11:11:27|001|192.168.111.111|55555|100.100.100.100|55555| G711U|Fault|
+#+--------+--------+---+---------------+-----+---------------+-----+------+-----+
 
 RTPSTAT_ATTRS = [
     {
         'column_attr': 'start_time',
         'column_name': 'Start',
-        'color': 'base',
-        'fmt': '>8',
-        'xpos': 1,
+        'column_color': 'base',
+        'column_fmt_spec': '>8',
+        'column_xpos': 1,
     },
     {
         'column_attr': 'end_time',
         'column_name': 'End',
-        'color': 'base',
-        'fmt': '>8',
-        'xpos': 10,
+        'column_color': 'base',
+        'column_fmt_spec': '>8',
+        'column_xpos': 10,
     },
     {
         'column_attr': 'gw_number',
         'column_name': 'BGW',
-        'color': 'base',
-        'fmt': '>3',
-        'xpos': 19,
+        'column_color': 'base',
+        'column_fmt_spec': '>3',
+        'column_xpos': 19,
     },
     {
         'column_attr': 'local_addr',
         'column_name': 'Local-Address',
-        'color': 'base',
-        'fmt': '>15',
-        'xpos': 23,
+        'column_color': 'base',
+        'column_fmt_spec': '>15',
+        'column_xpos': 23,
     },
     {
         'column_attr': 'local_port',
         'column_name': 'LPort',
-        'color': 'base',
-        'fmt': '>5',
-        'xpos': 39,
+        'column_color': 'base',
+        'column_fmt_spec': '>5',
+        'column_xpos': 39,
     },
     {
         'column_attr': 'remote_addr',
         'column_name': 'Remote-Address',
-        'color': 'base',
-        'fmt': '>15',
-        'xpos': 45,
+        'column_color': 'base',
+        'column_fmt_spec': '>15',
+        'column_xpos': 45,
     },
     {
         'column_attr': 'remote_port',
         'column_name': 'RPort',
-        'color': 'base',
-        'fmt': '>5',
-        'xpos': 61,
+        'column_color': 'base',
+        'column_fmt_spec': '>5',
+        'column_xpos': 61,
     },
     {
         'column_attr': 'codec',
         'column_name': 'Codec',
-        'color': 'base',
-        'fmt': '>5',
-        'xpos': 67,
-    },
-    {
-        'column_attr': 'ptime',
-        'column_name': 'pt',
-        'color': 'base',
-        'fmt': '>2',
-        'xpos': 73,
+        'column_color': 'base',
+        'column_fmt_spec': '>6',
+        'column_xpos': 67,
     },
     {
         'column_attr': 'qos',
         'column_name': 'QoS',
-        'color': 'base',
-        'fmt': '^4',
-        'xpos': 74,
+        'column_color': 'base',
+        'column_fmt_spec': '>5',
+        'column_xpos': 74,
     },
 ]
 
@@ -992,12 +984,13 @@ class BGW():
         self._fw = None
         self._hw = None
         self._inuse_dsp = None
+        self._last_seen_time = None
         self._lldp = None
         self._location = None
-        self._lsp = None
         self._mac = None
         self._mainboard_hw = None
         self._memory = None
+        self._mm_groupdict = None
         self._mm_v1 = None
         self._mm_v2 = None
         self._mm_v3 = None
@@ -1019,7 +1012,6 @@ class BGW():
         self._port2_duplex = None
         self._port2_speed = None
         self._port_redu = None
-        self._psus = None
         self._psu1 = None
         self._psu2 = None
         self._ram_util = None
@@ -1034,53 +1026,75 @@ class BGW():
         self._uptime = None
 
     @property
-    def active_session(self):
+    def active_session(self) -> str:
+        """
+        Returns the Active Session column from the RTP-Stat summary.
+        """
         if self.show_rtp_stat_summary:
             m = re.search(r'nal\s+\S+\s+(\S+)', self.show_rtp_stat_summary)
             return m.group(1) if m else "?/?"
         return "NA"
 
     @property
-    def announcements(self):
+    def announcements(self) -> str:
+        """
+        Returns the number of announcement files as a string.
+        """
         if self.show_announcements_files:
             if self._announcements is None:
                 m = re.findall(
                     r"announcement file", self.show_announcements_files
                 )
-                self._announcements = len(m)
+                self._announcements = str(len(m))
             return self._announcements
         return "NA"
 
     @property
-    def capture_service(self):
+    def capture_service(self) -> str:
+        """
+        Returns the capture service admin and running state.
+        """
         if self.show_capture:
             if self._capture_service is None:
-                m = re.search(r' service is (\w+)', self.show_capture)
-                self._capture_service = m.group(1) if m else "?"
+                m = re.search(
+                    r' service is (\w+) and (\w+)', self.show_capture
+                )
+                admin_state = m.group(1) if m else "?"
+                running_state = m.group(2) if m else "?"
+                if admin_state == "disabled":
+                    self._capture_service = "disabled"
+                else:
+                    self._capture_service = f"{admin_state}/{running_state}"
             return self._capture_service
         return "NA"
 
     @property
-    def chassis_hw(self):
+    def chassis_hw(self) -> str:
+        """
+        Returns the chassis hardware version as a string.
+        """
         if self.show_system:
             if self._chassis_hw is None:
-                
-                vintage = re.search(
+
+                vintage_search = re.search(
                     r'Chassis HW Vintage\s+:\s+(\S+)', self.show_system
                 )
-                vintage = vintage.group(1) if vintage else "?"
+                vintage = vintage_search.group(1) if vintage_search else "?"
                 
-                suffix = re.search(
+                suffix_search = re.search(
                     r"Chassis HW Suffix\s+:\s+(\S+)", self.show_system
                 )
-                suffix = suffix.group(1) if suffix else "?"
+                suffix = suffix_search.group(1) if suffix_search else "?"
                 
                 self._chassis_hw = f"{vintage}{suffix}"
             return self._chassis_hw
         return "NA"
 
     @property
-    def comp_flash(self):
+    def comp_flash(self) -> str:
+        """
+        Returns the compact flash memory if installed.
+        """
         if self.show_system:
             if self._comp_flash is None:
                 m = re.search(r'Flash Memory\s+:\s+(.*)', self.show_system)
@@ -1095,7 +1109,10 @@ class BGW():
         return "NA"
 
     @property
-    def cpu_util(self):
+    def cpu_util(self) -> str:
+        """
+        Returns the last 5s and 60s CPU utilization as a string in percentage.
+        """
         if self.show_utilization:
             m = re.search(r'10\s+(\d+)%\s+(\d+)%', self.show_utilization)
             self._cpu_util = f"{m.group(1)}%/{m.group(2)}%" if m else "?/?"
@@ -1103,30 +1120,39 @@ class BGW():
         return "NA"
 
     @property
-    def dsp(self):
+    def dsp(self) -> str:
+        """
+        Returns the total number of DSPs as a string.
+        """
         if self.show_system:
             if self._dsp is None:
                 m = re.findall(
                     r"Media Socket .*?: M?P?(\d+) ", self.show_system
                 )
-                self._dsp = sum(int(x) for x in m) if m else "?"
+                self._dsp = str(sum(int(x) for x in m)) if m else "?"
             return self._dsp
         return "NA"
 
     @property
-    def faults(self):
+    def faults(self) -> str:
+        """
+        Returns the number of faults as string.
+        """
         if self.show_faults:
             if self._faults is None:
                 if "No Fault Messages" in self.show_faults:
                     self._faults = 0
                 else:
                     m = re.findall(r"\s+\+ (\S+)", self.show_faults)
-                    self._faults = len(m)
+                    self._faults = str(len(m))
             return self._faults
         return "NA"
 
     @property
-    def fw(self):
+    def fw(self) -> str:
+        """
+        Returns the firmware version as a string.
+        """
         if self.show_system:
             if self._fw is None:
                 m = re.search(r'FW Vintage\s+:\s+(\S+)', self.show_system)
@@ -1135,7 +1161,10 @@ class BGW():
         return "NA"
 
     @property
-    def hw(self):
+    def hw(self) -> str:
+        """
+        Returns the hardware version as a string.
+        """
         if self.show_system:
             if self._hw is None:
                 m = re.search(r'HW Vintage\s+:\s+(\S+)', self.show_system)
@@ -1147,18 +1176,33 @@ class BGW():
         return "NA"
 
     @property
-    def lldp(self):
+    def last_seen_time(self) -> str:
+        """
+        Returns the last seen time as a string in 24h format.
+        """
+        if self.last_seen:
+            return f"{self.last_seen:{'%H:%M:%S'}}"
+        return "NA"
+
+    @property
+    def lldp(self) -> str:
+        """
+        Returns the LLDP configuration state.
+        """
         if self.show_lldp_config:
             if self._lldp is None:
                 if "Application status: disable" in self.show_lldp_config:
-                   self._lldp = "disabled"
+                    self._lldp = "disabled"
                 else:
-                   self._lldp = "enabled"
+                    self._lldp = "enabled"
             return self._lldp
         return "NA"
 
     @property
-    def location(self):
+    def location(self) -> str:
+        """
+        Returns the system location as a string.
+        """
         if self.show_system:
             if self._location is None:
                 m = re.search(r'System Location\s+:\s+(\S+)', self.show_system)
@@ -1167,16 +1211,10 @@ class BGW():
         return "NA"
 
     @property
-    def lsp(self):
-        if self.show_mg_list:
-            if self._lsp is None:
-                m = re.search(r'ICC\s+(\S)', self.show_mg_list)
-                self._lsp = f"S8300{m.group(1)}" if m else ""
-            return self._lsp
-        return "NA"
-
-    @property
-    def mac(self):
+    def mac(self) -> str:
+        """
+        Returns the LAN MAC address as a string, without colons.
+        """
         if self.show_system:
             if self._mac is None:
                 m = re.search(r"LAN MAC Address\s+:\s+(\S+)", self.show_system)
@@ -1185,7 +1223,10 @@ class BGW():
         return "NA"
 
     @property
-    def mainboard_hw(self):
+    def mainboard_hw(self) -> str:
+        """
+        Returns the mainboard hardware version as a string.
+        """
         if self.show_system:
             if self._mainboard_hw is None:
                 
@@ -1204,7 +1245,10 @@ class BGW():
         return "NA"
 
     @property
-    def memory(self):
+    def memory(self) -> str:
+        """
+        Returns the total memory as a string in the format "<number>MB".
+        """
         if self.show_system:
             if self._memory is None:
                 m = re.findall(r"Memory #\d+\s+:\s+(\S+)", self.show_system)
@@ -1213,122 +1257,156 @@ class BGW():
         return "NA"
 
     @property
-    def mm_v1(self):
+    def mm_groupdict(self) -> Dict[str, Dict[str, str]]:
+        """
+        Returns a dictionary of module group information.
+
+        Returns:
+            Dict[str, Dict[str, str]]: A dictionary where each key is a slot
+            and the corresponding values are a dictionary containing module
+            details.
+        """
+        if self.show_mg_list:
+            if self._mm_groupdict is None:
+                groupdict: Dict[str, Dict[str, str]] = {}
+                for l in (l.strip() for l in self.show_mg_list.splitlines()):
+                    if l.startswith("v") and "Not Installed" not in l:
+                        m = re.search(r"".join((
+                            r'.*?(?P<slot>\S+)',
+                            r'.*?(?P<type>\S+)',
+                            r'.*?(?P<code>\S+)',
+                            r'.*?(?P<suffix>\S+)',
+                            r'.*?(?P<hw_vint>\S+)',
+                            r'.*?(?P<fw_vint>\S+)',
+                        )), l)
+                        if m:
+                            groupdict.update({m.group("slot"): m.groupdict()})
+                self._mm_groupdict = groupdict
+            return self._mm_groupdict
+        return {}
+
+    def _mm_v(self, slot: int) -> str:
+        """
+        Retrieves the module code and suffix for the given slot.
+
+        Args:
+            slot: The slot number to retrieve the module details for.
+
+        Returns:
+            str: The module details for the given slot.
+        """
+        code = self.mm_groupdict.get(f"v{slot}", {}).get("code", "")
+        if code == "ICC":
+            code = self.mm_groupdict.get(f"v{slot}", {}).get("type", "")
+        suffix = self.mm_groupdict.get(f"v{slot}", {}).get("suffix", "")
+        return f"{code}{suffix}"
+
+    @property
+    def mm_v1(self) -> str:
+        """
+        Returns the media module code and suffix for slot 1.
+        """
         if self.show_mg_list:
             if self._mm_v1 is None:
-                d = self._mm_groupdict().get("v1", {})
-                code = d.get("code", "")
-                if code == "ICC":
-                    code = d.get("type", "")
-                suffix = d.get("suffix", "")
-                self._mm_v1 = f"{code}{suffix}"
+                self._mm_v1 = self._mm_v(1)
             return self._mm_v1
         return "NA"
 
     @property
-    def mm_v2(self):
+    def mm_v2(self) -> str:
+        """
+        Returns the media module code and suffix for slot 2.
+        """
         if self.show_mg_list:
             if self._mm_v2 is None:
-                d = self._mm_groupdict().get("v2", {})
-                code = d.get("code", "")
-                if code == "ICC":
-                    code = d.get("type", "")
-                suffix = d.get("suffix", "")
-                self._mm_v2 = f"{code}{suffix}"
+                self._mm_v2 = self._mm_v(2)
             return self._mm_v2
         return "NA"
 
     @property
-    def mm_v3(self):
+    def mm_v3(self) -> str:
+        """
+        Returns the media module code and suffix for slot 3.
+        """
         if self.show_mg_list:
             if self._mm_v3 is None:
-                d = self._mm_groupdict().get("v3", {})
-                code = d.get("code", "")
-                if code == "ICC":
-                    code = d.get("type", "")
-                suffix = d.get("suffix", "")
-                self._mm_v3 = f"{code}{suffix}"
+                self._mm_v3 = self._mm_v(3)
             return self._mm_v3
         return "NA"
 
     @property
-    def mm_v4(self):
+    def mm_v4(self) -> str:
+        """
+        Returns the media module code and suffix for slot 4.
+        """
         if self.show_mg_list:
             if self._mm_v4 is None:
-                d = self._mm_groupdict().get("v4", {})
-                code = d.get("code", "")
-                if code == "ICC":
-                    code = d.get("type", "")
-                suffix = d.get("suffix", "")
-                self._mm_v4 = f"{code}{suffix}"
+                self._mm_v4 = self._mm_v(4)
             return self._mm_v4
         return "NA"
 
     @property
-    def mm_v5(self):
+    def mm_v5(self) -> str:
+        """
+        Returns the media module code and suffix for slot 5.
+        """
         if self.show_mg_list:
             if self._mm_v5 is None:
-                d = self._mm_groupdict().get("v5", {})
-                code = d.get("code", "")
-                if code == "ICC":
-                    code = d.get("type", "")
-                suffix = d.get("suffix", "")
-                self._mm_v5 = f"{code}{suffix}"
+                self._mm_v5 = self._mm_v(5)
             return self._mm_v5
         return "NA"
 
     @property
-    def mm_v6(self):
+    def mm_v6(self) -> str:
+        """
+        Returns the media module code and suffix for slot 6.
+        """
         if self.show_mg_list:
             if self._mm_v6 is None:
-                d = self._mm_groupdict().get("v6", {})
-                code = d.get("code", "")
-                if code == "ICC":
-                    code = d.get("type", "")
-                suffix = d.get("suffix", "")
-                self._mm_v6 = f"{code}{suffix}"
+                self._mm_v6 = self._mm_v(6)
             return self._mm_v6
         return "NA"
 
     @property
-    def mm_v7(self):
+    def mm_v7(self) -> str:
+        """
+        Returns the media module code and suffix for slot 7.
+        """        
         if self.show_mg_list:
             if self._mm_v7 is None:
-                d = self._mm_groupdict().get("v7", {})
-                code = d.get("code", "")
-                if code == "ICC":
-                    code = d.get("type", "")
-                suffix = d.get("suffix", "")
-                self._mm_v7 = f"{code}{suffix}"
+                self._mm_v7 = self._mm_v(7)
             return self._mm_v7
         return "NA"
 
     @property
-    def mm_v8(self):
+    def mm_v8(self) -> str:
+        """
+        Returns the media module code and suffix for slot 8.
+        """
         if self.show_mg_list:
             if self._mm_v8 is None:
-                d = self._mm_groupdict().get("v8", {})
-                code = d.get("code", "")
-                if code == "ICC":
-                    code = d.get("type", "")
-                suffix = d.get("suffix", "")
-                self._mm_v8 = f"{code}{suffix}"
+                self._mm_v8 = self._mm_v(8)
             return self._mm_v8
         return "NA"
 
     @property
-    def mm_v10(self):
+    def mm_v10(self) -> str:
+        """
+        Returns the media module hw vintage and suffix for slot 10.
+        """
         if self.show_mg_list:
             if self._mm_v10 is None:
-                d = self._mm_groupdict().get("v10", {})
-                suffix = d.get("suffix", "")
-                hw_vintage = d.get("hw_vintage", "")
-                self._mm_v10 = f"{hw_vintage}{suffix}"
+                suffix = self.mm_groupdict.get("v10", {}).get("suffix", "")
+                hw_vint = self.mm_groupdict.get("v10", {}).get("hw_vint", "")
+                self._mm_v10 = f"{hw_vint}{suffix}"
             return self._mm_v10
         return "NA"
 
     @property
-    def model(self):
+    def model(self) -> str:
+        """
+        Returns the gateway model as a string.
+        """
         if self.show_system:
             if self._model is None:
                 m = re.search(r'Model\s+:\s+(\S+)', self.show_system)
@@ -1337,77 +1415,110 @@ class BGW():
         return "NA"
 
     @property
-    def port1(self):
+    def port1(self) -> str:
+        """
+        Returns the LAN port 1 identifier as a string.
+        """
         if self._port1 is None:
             pdict = self._port_groupdict(0)
             self._port1 = pdict.get("port", "?") if pdict else "NA"
         return self._port1
 
     @property
-    def port1_status(self):
+    def port1_status(self) -> str:
+        """
+        Returns the LAN port 1 link status as a string.
+        """
         if self._port1_status is None:
             pdict = self._port_groupdict(0)
             self._port1_status = pdict.get("status", "?") if pdict else "NA"
         return self._port1_status
 
     @property
-    def port1_neg(self):
+    def port1_neg(self) -> str:
+        """
+        Returns the LAN port 1 auto-negotiation status as a string.
+        """
         if self._port1_neg is None:
             pdict = self._port_groupdict(0)
             self._port1_neg = pdict.get("neg", "?") if pdict else "NA"
         return self._port1_neg
 
     @property
-    def port1_duplex(self):
+    def port1_duplex(self) -> str:
+        """
+        Returns the LAN port 1 duplexity status as a string.
+        """
         if self._port1_duplex is None:
             pdict = self._port_groupdict(0)
             self._port1_duplex = pdict.get("duplex", "?") if pdict else "NA"
         return self._port1_duplex
 
     @property
-    def port1_speed(self):
+    def port1_speed(self) -> str:
+        """
+        Returns the LAN port 1 speed as a string.
+        """
         if self._port1_speed is None:
             pdict = self._port_groupdict(0)
             self._port1_speed = pdict.get("speed", "?") if pdict else "NA"
         return self._port1_speed
 
     @property
-    def port2(self):
+    def port2(self) -> str:
+        """
+        Returns the LAN port 2 identifier as a string.
+        """
         if self._port2 is None:
             pdict = self._port_groupdict(1)
             self._port2 = pdict.get("port", "?") if pdict else "NA"
         return self._port2
 
     @property
-    def port2_status(self):
+    def port2_status(self) -> str:
+        """
+        Returns the LAN port 2 link status as a string.
+        """
         if self._port2_status is None:
             pdict = self._port_groupdict(1)
             self._port2_status = pdict.get("status", "?") if pdict else "NA"
         return self._port2_status
 
     @property
-    def port2_neg(self):
+    def port2_neg(self) -> str:
+        """
+        Returns the LAN port 2 auto-negotiation status as a string.
+        """
         if self._port2_neg is None:
             pdict = self._port_groupdict(1)
             self._port2_neg = pdict.get("neg", "?") if pdict else "NA"
         return self._port2_neg
 
     @property
-    def port2_duplex(self):
+    def port2_duplex(self) -> str:
+        """
+        Returns the LAN port 2 duplexity status as a string.
+        """
         if self._port2_duplex is None:
             pdict = self._port_groupdict(1)
             self._port2_duplex = pdict.get("duplex", "?") if pdict else "NA"
         return self._port2_duplex
 
     @property
-    def port2_speed(self):
+    def port2_speed(self) -> str:
+        """
+        Returns the LAN port 2 speed as a string.
+        """
         if self._port2_speed is None:
             pdict = self._port_groupdict(1)
             self._port2_speed = pdict.get("speed", "?") if pdict else "NA"
         return self._port2_speed
 
     @property
-    def port_redu(self):
+    def port_redu(self) -> str:
+        """
+        Returns the port numbers used for port redundancy.
+        """
         if self.show_running_config:
             if self._port_redu is None:
                 m = re.search(r'port redundancy \d+/(\d+) \d+/(\d+)',
@@ -1417,16 +1528,10 @@ class BGW():
         return "NA"
 
     @property
-    def psus(self):
-        if self.show_system:
-            if self._psus is None:
-                m = re.findall(r"PSU #\d+", self.show_system)
-                self._psus = len(m)
-            return self._psus
-        return "NA"
-
-    @property
-    def psu1(self):
+    def psu1(self) -> str:
+        """
+        Returns the Power Supply Unit 1 as a string.
+        """
         if self.show_system:
             if self._psu1 is None:
                 m = re.search(r"PSU #1\s+:\s+\S+ (\S+)", self.show_system)
@@ -1435,7 +1540,10 @@ class BGW():
         return "NA"
 
     @property
-    def psu2(self):
+    def psu2(self) -> str:
+        """
+        Returns the Power Supply Unit 2 as a string.
+        """
         if self.show_system:
             if self._psu2 is None:
                 m = re.search(r"PSU #2\s+:\s+\S+ (\S+)", self.show_system)
@@ -1444,7 +1552,10 @@ class BGW():
         return "NA"
 
     @property
-    def ram_util(self):
+    def ram_util(self) -> str:
+        """
+        Returns the current RAM utilization as percentage.
+        """
         if self.show_utilization:
             m = re.search(r'10\s+S+\s+\S+\s+(\d+)%', self.show_utilization)
             self._ram_util = f"{m.group(1)}%" if m else ""
@@ -1452,14 +1563,20 @@ class BGW():
         return "NA"
 
     @property
-    def rtp_stat_service(self):
+    def rtp_stat_service(self) -> str:
+        """
+        Returns the RTP-Stat service status as a string.
+        """
         if self._rtp_stat_service is None:
             m = re.search(r'rtp-stat-service', self.show_running_config)
             self._rtp_stat_service = "enabled" if m else "disabled"
         return self._rtp_stat_service
 
     @property
-    def serial(self):
+    def serial(self) -> str:
+        """
+        Returns the serial number of the gateway as a string.
+        """
         if self.show_system:
             if self._serial is None:
                 m = re.search(r'Serial No\s+:\s+(\S+)', self.show_system)
@@ -1468,7 +1585,10 @@ class BGW():
         return "NA"
 
     @property
-    def slamon_service(self):
+    def slamon_service(self) -> str:
+        """
+        Returns the SLAMon service admin status as a string.
+        """
         if self.show_sla_monitor:
             if self._slamon_service is None:
                 m = re.search(r'SLA Monitor:\s+(\S+)', self.show_sla_monitor)
@@ -1477,7 +1597,10 @@ class BGW():
         return "NA"
 
     @property
-    def sla_server(self):
+    def sla_server(self) -> str:
+        """
+        Returns the SLAMon server IP address the gateway is registered to.
+        """
         if self.show_sla_monitor:
             if self._sla_server is None:
                 m = re.search(r'Registered Server IP Address:\s+(\S+)',
@@ -1487,24 +1610,37 @@ class BGW():
         return "NA"
 
     @property
-    def snmp(self):
+    def snmp(self) -> str:
+        """
+        Returns the configured SNMP version(s) as a string.
+
+        Returns "v2&3" if both SNMPv2 and SNMPv3 are configured,
+        "v2" if only SNMPv2 is configured, "v3" if only SNMPv3
+        is configured, and "NA" if neither is configured.
+        """
         if self.show_running_config:
             if self._snmp is None:
                 snmp = []
                 lines = [line.strip() for line in
                     self.show_running_config.splitlines()]
+                
                 if any(line.startswith("snmp-server community")
                        for line in lines):
                     snmp.append("2")
+                
                 if any(line.startswith("encrypted-snmp-server community")
                        for line in lines):
                     snmp.append("3")
+                
                 self._snmp = "v" + "&".join(snmp) if snmp else ""
             return self._snmp
         return "NA"
 
     @property
-    def snmp_trap(self):
+    def snmp_trap(self) -> str:
+        """
+        Returns "enabled" if SNMP traps are configured and "disabled" if not.
+        """
         if self.show_running_config:
             if self._snmp_trap is None:
                 m = re.search(
@@ -1515,16 +1651,24 @@ class BGW():
         return "NA"
 
     @property
-    def temp(self):
+    def temp(self) -> str:
+        """
+        Returns the ambient temperature as a string.
+        """
         if self.show_temp:
             if self._temp is None:
-                m = re.search(r'Temperature\s+:\s+(\S+) \((\S+)\)', self.show_temp)
+                m = re.search(
+                    r'Temperature\s+:\s+(\S+) \((\S+)\)', self.show_temp
+                )
                 self._temp = f"{m.group(1)}/{m.group(2)}" if m else "?/?"
             return self._temp
         return "NA"
 
     @property
-    def total_session(self):
+    def total_session(self) -> str:
+        """
+        Returns the Total Session column from the RTP-Stat summary.
+        """
         if self.show_rtp_stat_summary:
             m = re.search(r'nal\s+\S+\s+\S+\s+(\S+)',
                           self.show_rtp_stat_summary)
@@ -1532,12 +1676,16 @@ class BGW():
         return "NA"
 
     @property
-    def uptime(self):
+    def uptime(self) -> str:
+        """
+        Returns the gateway's uptime as a string.
+        """
         if self.show_system:
             if self._uptime is None:
                 m = re.search(r'Uptime \(\S+\)\s+:\s+(\S+)', self.show_system)
                 if m:
-                    self._uptime = m.group(1).replace(",", "d")\
+                    self._uptime = m.group(1)\
+                                    .replace(",", "d")\
                                     .replace(":", "h", 1)\
                                     .replace(":", "m") + "s"
                 else:
@@ -1546,7 +1694,10 @@ class BGW():
         return "NA"
 
     @property
-    def inuse_dsp(self):
+    def inuse_dsp(self) -> str:
+        """
+        Returns the total number of in-use DSPs as a string.
+        """
         inuse = 0
         dsps = re.findall(r"In Use\s+:\s+(\d+)", self.show_voip_dsp)
         for dsp in dsps:
@@ -1627,41 +1778,6 @@ class BGW():
                         r'.*?(?P<speed>\S+)')), line).groupdict()
         return {}
 
-    def _mm_groupdict(self):
-        if self.show_mg_list:
-            groupdict = {}
-            for line in (l.strip() for l in self.show_mg_list.splitlines()):
-                if line.startswith("v") and "Not Installed" not in line:
-                    m = re.search(r"".join((
-                        r'.*?(?P<slot>\S+)',
-                        r'.*?(?P<type>\S+)',
-                        r'.*?(?P<code>\S+)',
-                        r'.*?(?P<suffix>\S+)',
-                        r'.*?(?P<hw_vintage>\S+)',
-                        r'.*?(?P<fw_vintage>\S+)',
-                    )), line)
-                    if m:
-                        groupdict.update({m.group("slot"): m.groupdict()})
-            return groupdict
-        return {}
-
-    @staticmethod
-    def _to_mbyte(str):
-        m = re.search(r'(\d+)([MG]B)', str)
-        if m:
-            num, unit = int(m.group(1)), m.group(2)
-            if unit == "MB":
-                return num
-            elif unit == "GB":
-                return 1024 * num
-        return 0
-
-    def __str__(self):
-        return f"BGW({self.host})"
-
-    def __repr__(self):
-        return f"BGW(host={self.host})"
-
     def properties_asdict(self) -> Dict[str, Any]:
         """
         Return a dictionary of this instance's properties.
@@ -1693,33 +1809,162 @@ class BGW():
         attrs = self.__dict__
         return {**self.properties_asdict(), **attrs}
 
+    @staticmethod
+    def _to_mbyte(str: str) -> int:
+        """
+        Converts the string representation of Memory to MB as an integer.
+
+        Args:
+            str: A Memory string from the output of 'show_system'
+
+        Returns:
+            An integer representing the number of megabytes.
+        """
+        m = re.search(r'(\d+)([MG]B)', str)
+        if m:
+            num, unit = int(m.group(1)), m.group(2)
+            if unit == "MB":
+                return num
+            elif unit == "GB":
+                return 1024 * num
+        return 0
+
+    def _chars__(self):
+        return f"BGW({self.host})"
+
+    def __repr__(self):
+        return f"BGW(host={self.host})"
+
 
 def iter_attrs(
     obj: object,
-    attrs: List[Dict[str, Any]],
+    column_attrs: List[str],
+    column_names: List[str] = None,
+    column_fmt_specs: List[str] = None,
+    column_colors: List[str] = None,
+    column_xposes: List[int] = None,
     xoffset: int = 0
 ) -> Iterator[Tuple[int, str, str]]:
+    """
+    Iterate over the attributes of the given object and yield a tuple of 3 values:
 
-    for attr in attrs:
-        if hasattr(obj, attr['column_attr']):
-            _str = getattr(obj, attr['column_attr'])
+    - `xpos`: The x position of the attribute
+    - `attr_value`: The value of the attribute, formatted according to the `fmt_spec`
+    - `color`: The color of the attribute
+
+    :param obj: The object whose attributes are to be iterated over
+    :param column_attrs: A list of strings, each of which is the name of an attribute
+        of the object
+    :param column_names: A list of strings, each of which is the name of the attribute
+        as it should be displayed in the output
+    :param column_fmt_specs: A list of strings, each of which is a format specification
+        for the attribute value
+    :param column_colors: A list of strings, each of which is the name of a color to be
+        used for the attribute
+    :param column_xposes: A list of integers, each of which is the x position of the
+        attribute in the output
+    :param xoffset: An integer that is added to the x position of each attribute
+    :return: An iterator of tuples of 3 values
+    """
+    column_names = column_names or column_attrs
+    column_fmt_specs = column_fmt_specs or [f">{len(x)}" for x in column_names]
+    column_colors = column_colors or ["base" for x in column_names]
+    column_xposes = column_xposes or [None for x in column_names]
+    offset = 1
+    
+    column_params = zip(column_attrs, column_names, column_fmt_specs,
+        column_colors, column_xposes)
+    
+    for attr, name, fmt_spec, color, xpos in column_params:
+        _len = len(name)
+
+        if hasattr(obj, attr):
+            attr_value = getattr(obj, attr)
         else:
-            _str = obj.get(attr['column_attr'], attr['column_attr'])
+            attr_value = obj.get(attr, attr)
+
+        if isinstance(attr_value, int):
+            attr_value = str(attr_value)
+
+        if fmt_spec:
+            m = re.search(r"[<>^](\d+)", fmt_spec)
+            _len = int(m.group(1)) if m else _len
+            attr_value = f"{attr_value:{fmt_spec}}"
         
-        if attr['fmt']:
-            _str = f"{_str:{attr['fmt']}}"
+        if isinstance(attr_value, str):
+            attr_value = f"{attr_value[:_len]}"
+
+        if not xpos:
+            xpos = offset
         
-        color = attr['color']
-        xpos = attr['xpos'] if attr['xpos'] else 0
-        yield xpos + xoffset, _str, color
+        yield xpos + xoffset, attr_value, color
+        offset += len(attr_value) + 1
+
+
+def iter_column_names(
+    column_names: List[str],
+    column_fmt_specs: Optional[List[str]] = None,
+    column_colors: Optional[List[str]] = None,
+    column_xposes: Optional[List[int]] = None,
+    xoffset: int = 0
+) -> Iterator[Tuple[int, str, str]]:
+    """
+    Iterate over the column names with formatting, color, and x position.
+
+    :param column_names: A list of column names as strings
+    :param column_fmt_specs: A list of format specifications
+    :param column_colors: A list of colors, one per column name
+    :param column_xposes: A list of x positions as integers
+    :param xoffset: An integer that is added to the x position
+    :return: An iterator of tuples with x position, name and color
+    """
+    column_fmt_specs = column_fmt_specs or [f"^{len(x)}" for x in column_names]
+    column_colors = column_colors or ["base" for x in column_names]
+    column_xposes = column_xposes or [None for x in column_names]
+    offset = 1
+
+    column_name_params = zip(column_names, column_fmt_specs, column_colors, column_xposes)
+
+    for name, fmt_spec, color, xpos in column_name_params:
+        _len = len(name)
+
+        if fmt_spec:
+            m = re.search(r"[<>^](\d+)", fmt_spec)
+            _len = int(m.group(1)) if m else _len
+        
+        name = f"{name:^{_len}}"
+
+        if not xpos:
+            xpos = offset
+
+        yield xpos + xoffset, name, color
+        offset += len(name) + 1
 
 def main():
     bgw = BGW("192.168.111.111")
     bgw.update(**data)
-    #for xpos, str, color in iter_attrs(bgw, SYSTEM_ATTRS):
-    #    print(f"{xpos:3} {str:20} {color}")
-    for xpos, str, color in iter_attrs(rtp_stat, RTPSTAT_ATTRS):
-        print(f"{xpos:3} {str:20} {color}")
-
+    column_attrs = [x["column_attr"] for x in SYSTEM_ATTRS]
+    column_names = ["BGW", "    Name     ", "    LAN IP     ", "   LAN MAC  ", "   Uptime    ", "Model", "HW", "Firmware"]
+    column_fmt_specs = [x["column_fmt_spec"] for x in SYSTEM_ATTRS]
+    column_colors = [x["column_color"] for x in SYSTEM_ATTRS]
+    column_xposes = [x["column_xpos"] for x in SYSTEM_ATTRS]
+    # for column_xpos, chars, column_color in iter_attrs(bgw, column_attrs, column_names=column_names,
+    #     column_fmt_specs=column_fmt_specs, column_colors=column_colors, column_xposes=column_xposes):
+    #     print(f"{column_xpos:3} {chars:20} {column_color}")
+    # for column_xpos, chars, column_color in iter_attrs(bgw, HW_ATTRS):
+    #     print(f"{column_xpos:3} {chars:20} {column_color}")
+    # for column_xpos, chars, column_color in iter_attrs(bgw, MODULE_ATTRS):
+    #     print(f"{column_xpos:3} {chars:20} {column_color}")
+    # for column_xpos, chars, column_color in iter_attrs(bgw, PORT_ATTRS):
+    #     print(f"{column_xpos:3} {chars:20} {column_color}")
+    # for column_xpos, chars, column_color in iter_attrs(bgw, SERVICE_ATTRS):
+    #     print(f"{column_xpos:3} {chars:20} {column_color}")
+    # for column_xpos, chars, column_color in iter_attrs(bgw, STATUS_ATTRS):
+    #     print(f"{column_xpos:3} {chars:20} {column_color}")
+    # for column_xpos, chars, column_color in iter_attrs(rtp_stat, RTPSTAT_ATTRS):
+    #     print(f"{column_xpos:3} {chars:20} {column_color}")
+    print()
+    for xpos, name, _ in iter_column_names(column_names):
+        print(' '*xpos + f"{name}")
 if __name__ == '__main__':
     main()

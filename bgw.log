@@ -2006,3 +2006,97 @@ concurrent.futures._base.CancelledError
 2025-03-25 20:20:13,017 -    ERROR - ExpectTimeout for PID 19470 in coro exec_script() for 10.44.244.51 [monitorBGW.py:2369]
 2025-03-25 20:20:13,055 -     INFO - Received: 100 [monitorBGW.py:2030]
 2025-03-25 20:20:13,055 -     INFO - Received: 100 [monitorBGW.py:1586]
+2025-03-30 12:41:40,282 -    ERROR - unhandled exception during asyncio.run() shutdown
+task: <Task finished coro=<MyDisplay.run() done, defined at /root/Projects/python36_async_playground/monitorBGW.py:2692> exception=ValueError('Invalid format specifier',)> [base_events.py:1285]
+Traceback (most recent call last):
+  File "/root/Projects/python36_async_playground/monitorBGW.py", line 2774, in asyncio_run
+    return loop.run_until_complete(main)
+  File "/usr/lib64/python3.6/asyncio/base_events.py", line 484, in run_until_complete
+    return future.result()
+  File "/root/Projects/python36_async_playground/monitorBGW.py", line 2708, in run
+    await self.handle_char(char)
+  File "/root/Projects/python36_async_playground/monitorBGW.py", line 2723, in handle_char
+    self.workspaces[self.active_ws_idx].draw()
+  File "/root/Projects/python36_async_playground/monitorBGW.py", line 2288, in draw
+    self.draw_titlewin()
+  File "/root/Projects/python36_async_playground/monitorBGW.py", line 2303, in draw_titlewin
+    cname = f"│{cname:^{cwidth}}"
+ValueError: Invalid format specifier
+2025-03-30 12:42:11,835 -    ERROR - unhandled exception during asyncio.run() shutdown
+task: <Task finished coro=<MyDisplay.run() done, defined at /root/Projects/python36_async_playground/monitorBGW.py:2692> exception=ValueError('Invalid format specifier',)> [base_events.py:1285]
+Traceback (most recent call last):
+  File "/root/Projects/python36_async_playground/monitorBGW.py", line 2774, in asyncio_run
+    return loop.run_until_complete(main)
+  File "/usr/lib64/python3.6/asyncio/base_events.py", line 484, in run_until_complete
+    return future.result()
+  File "/root/Projects/python36_async_playground/monitorBGW.py", line 2708, in run
+    await self.handle_char(char)
+  File "/root/Projects/python36_async_playground/monitorBGW.py", line 2723, in handle_char
+    self.workspaces[self.active_ws_idx].draw()
+  File "/root/Projects/python36_async_playground/monitorBGW.py", line 2288, in draw
+    self.draw_titlewin()
+  File "/root/Projects/python36_async_playground/monitorBGW.py", line 2303, in draw_titlewin
+    cname = f"│{cname:^{cwidth}}"
+ValueError: Invalid format specifier
+2025-03-30 14:07:22,507 -    ERROR - unhandled exception during asyncio.run() shutdown
+task: <Task finished coro=<MyDisplay.run() done, defined at /root/Projects/python36_async_playground/monitorBGW.py:2700> exception=KeyError('fmt',)> [base_events.py:1285]
+Traceback (most recent call last):
+  File "/root/Projects/python36_async_playground/monitorBGW.py", line 2782, in asyncio_run
+    return loop.run_until_complete(main)
+  File "/usr/lib64/python3.6/asyncio/base_events.py", line 484, in run_until_complete
+    return future.result()
+  File "/root/Projects/python36_async_playground/monitorBGW.py", line 2702, in run
+    self.make_display()
+  File "/root/Projects/python36_async_playground/monitorBGW.py", line 2723, in make_display
+    self.workspaces[self.active_ws_idx].draw()
+  File "/root/Projects/python36_async_playground/monitorBGW.py", line 2296, in draw
+    self.draw_titlewin()
+  File "/root/Projects/python36_async_playground/monitorBGW.py", line 2307, in draw_titlewin
+    column_widths = [x["fmt"][1:] for x in self.column_attrs]
+  File "/root/Projects/python36_async_playground/monitorBGW.py", line 2307, in <listcomp>
+    column_widths = [x["fmt"][1:] for x in self.column_attrs]
+KeyError: 'fmt'
+2025-03-30 18:38:10,743 -     INFO - Received: 99 [monitorBGW.py:2735]
+2025-03-30 18:38:10,743 -     INFO - Received: 99 [monitorBGW.py:2202]
+2025-03-30 18:38:10,743 -     INFO - Created clear_storage_callback() [monitorBGW.py:3522]
+2025-03-30 18:38:11,893 -     INFO - Received: 121 [monitorBGW.py:2607]
+2025-03-30 18:40:09,632 -    ERROR - unhandled exception during asyncio.run() shutdown
+task: <Task finished coro=<MyDisplay.run() done, defined at /root/Projects/python36_async_playground/monitorBGW.py:2792> exception=error('addwstr() returned ERR',)> [base_events.py:1285]
+Traceback (most recent call last):
+  File "/root/Projects/python36_async_playground/monitorBGW.py", line 2874, in asyncio_run
+    return loop.run_until_complete(main)
+  File "/usr/lib64/python3.6/asyncio/base_events.py", line 484, in run_until_complete
+    return future.result()
+  File "/root/Projects/python36_async_playground/monitorBGW.py", line 2794, in run
+    self.make_display()
+  File "/root/Projects/python36_async_playground/monitorBGW.py", line 2814, in make_display
+    self.tab.draw()
+  File "/root/Projects/python36_async_playground/monitorBGW.py", line 2241, in draw
+    self._draw_tab(tab_names, self._yoffset, xpos, active)
+  File "/root/Projects/python36_async_playground/monitorBGW.py", line 2250, in _draw_tab
+    self.win.addstr(ypos + linen, xpos, border2, self._color_pair)
+_curses.error: addwstr() returned ERR
+2025-03-30 18:45:53,251 -     INFO - Received: 115 [monitorBGW.py:2735]
+2025-03-30 18:45:53,251 -     INFO - Received: 115 [monitorBGW.py:2202]
+2025-03-30 18:45:53,706 -     INFO - Received: 115 [monitorBGW.py:2735]
+2025-03-30 18:45:53,706 -     INFO - Received: 115 [monitorBGW.py:2202]
+2025-03-30 18:45:53,958 -     INFO - Received: 115 [monitorBGW.py:2735]
+2025-03-30 18:45:53,958 -     INFO - Received: 115 [monitorBGW.py:2202]
+2025-03-30 18:45:54,110 -     INFO - Received: 115 [monitorBGW.py:2735]
+2025-03-30 18:45:54,110 -     INFO - Received: 115 [monitorBGW.py:2202]
+2025-03-30 18:45:54,261 -     INFO - Received: 115 [monitorBGW.py:2735]
+2025-03-30 18:45:54,261 -     INFO - Received: 115 [monitorBGW.py:2202]
+2025-03-30 18:45:54,362 -     INFO - Received: 115 [monitorBGW.py:2735]
+2025-03-30 18:45:54,362 -     INFO - Received: 115 [monitorBGW.py:2202]
+2025-03-30 18:45:54,513 -     INFO - Received: 115 [monitorBGW.py:2735]
+2025-03-30 18:45:54,513 -     INFO - Received: 115 [monitorBGW.py:2202]
+2025-03-30 18:45:55,167 -     INFO - Received: 115 [monitorBGW.py:2735]
+2025-03-30 18:45:55,168 -     INFO - Received: 115 [monitorBGW.py:2202]
+2025-03-30 18:45:55,369 -     INFO - Received: 115 [monitorBGW.py:2735]
+2025-03-30 18:45:55,369 -     INFO - Received: 115 [monitorBGW.py:2202]
+2025-03-30 18:45:55,520 -     INFO - Received: 115 [monitorBGW.py:2735]
+2025-03-30 18:45:55,520 -     INFO - Received: 115 [monitorBGW.py:2202]
+2025-03-30 18:45:55,671 -     INFO - Received: 115 [monitorBGW.py:2735]
+2025-03-30 18:45:55,671 -     INFO - Received: 115 [monitorBGW.py:2202]
+2025-03-30 18:45:55,772 -     INFO - Received: 115 [monitorBGW.py:2735]
+2025-03-30 18:45:55,772 -     INFO - Received: 115 [monitorBGW.py:2202]
