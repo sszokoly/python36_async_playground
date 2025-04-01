@@ -2174,3 +2174,21 @@ Traceback (most recent call last):
   File "/home/ss/Projects/python36_async_playground/monitorBGW.py", line 2424, in draw_bodywin
     ridx, xpos - 1, "│" + attr_value + "│", color
 TypeError: an integer is required (got type str)
+2025-03-31 17:24:33,378 -    ERROR - Failed to initialize color pairs: init_pair() returned ERR [monitorBGW.py:793]
+2025-03-31 17:24:54,697 -    ERROR - Failed to initialize color pairs: init_pair() returned ERR [monitorBGW.py:793]
+2025-03-31 19:18:42,483 -    ERROR - unhandled exception during asyncio.run() shutdown
+task: <Task finished coro=<MyDisplay.run() done, defined at /root/Projects/python36_async_playground/monitorBGW.py:2816> exception=AttributeError("'Workspace' object has no attribute 'colors_scheme'",)> [base_events.py:1285]
+Traceback (most recent call last):
+  File "/root/Projects/python36_async_playground/monitorBGW.py", line 2898, in asyncio_run
+    return loop.run_until_complete(main)
+  File "/usr/lib64/python3.6/asyncio/base_events.py", line 484, in run_until_complete
+    return future.result()
+  File "/root/Projects/python36_async_playground/monitorBGW.py", line 2818, in run
+    self.make_display()
+  File "/root/Projects/python36_async_playground/monitorBGW.py", line 2839, in make_display
+    self.workspaces[self.active_ws_idx].draw()
+  File "/root/Projects/python36_async_playground/monitorBGW.py", line 2409, in draw
+    self.draw_titlewin()
+  File "/root/Projects/python36_async_playground/monitorBGW.py", line 2420, in draw_titlewin
+    attr = self.colors_scheme.get(color, 0)
+AttributeError: 'Workspace' object has no attribute 'colors_scheme'

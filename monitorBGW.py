@@ -94,6 +94,7 @@ CONFIG = {
     "expect_log": "expect_log",
     "ip_filter": None,
     "storage": None,
+    "color_scheme": "default",
     "storage_maxlen": None,
     "script_template": script_template,
     "discovery_commands": [
@@ -126,56 +127,56 @@ SYSTEM_ATTRS = [
     {
         'column_attr': 'gw_number',
         'column_name': 'BGW',
-        'column_color': 'base',
+        'column_color': 'normal',
         'column_fmt_spec': '>3',
         'column_xpos': 1,
     },
     {
         'column_attr': 'gw_name',
         'column_name': 'Name',
-        'column_color': 'base',
+        'column_color': 'normal',
         'column_fmt_spec': '>13',
         'column_xpos': 5,
     },
     {
         'column_attr': 'host',
         'column_name': 'LAN IP',
-        'column_color': 'base',
+        'column_color': 'normal',
         'column_fmt_spec': '>15',
         'column_xpos': 19,
     },
     {
         'column_attr': 'mac',
         'column_name': 'LAN MAC',
-        'column_color': 'base',
+        'column_color': 'normal',
         'column_fmt_spec': '>12',
         'column_xpos': 35,
     },
     {
         'column_attr': 'uptime',
         'column_name': 'Uptime',
-        'column_color': 'base',
+        'column_color': 'normal',
         'column_fmt_spec': '>13',
         'column_xpos': 48,
     },
     {
         'column_attr': 'model',
         'column_name': 'Model',
-        'column_color': 'base',
+        'column_color': 'normal',
         'column_fmt_spec': '>5',
         'column_xpos': 62,
     },
     {
         'column_attr': 'hw',
         'column_name': 'HW',
-        'column_color': 'base',
+        'column_color': 'normal',
         'column_fmt_spec': '>2',
         'column_xpos': 68,
     },
     {
         'column_attr': 'fw',
         'column_name': 'Firmware',
-        'column_color': 'base',
+        'column_color': 'normal',
         'column_fmt_spec': '>8',
         'column_xpos': 71,
     },
@@ -192,77 +193,77 @@ HW_ATTRS = [
     {
         'column_attr': 'gw_number',
         'column_name': 'BGW',
-        'column_color': 'base',
+        'column_color': 'normal',
         'column_fmt_spec': '>3',
         'column_xpos': 1,
     },
     {
         'column_attr': 'location',
         'column_name': 'Location',
-        'column_color': 'base',
+        'column_color': 'normal',
         'column_fmt_spec': '>10',
         'column_xpos': 5,
     },
     {
         'column_attr': 'temp',
         'column_name': 'Temp',
-        'column_color': 'base',
+        'column_color': 'normal',
         'column_fmt_spec': '>8',
         'column_xpos': 16,
     },
     {
         'column_attr': 'serial',
         'column_name': 'Serial',
-        'column_color': 'base',
+        'column_color': 'normal',
         'column_fmt_spec': '>12',
         'column_xpos': 25,
     },
     {
         'column_attr': 'chassis_hw',
         'column_name': 'Chass',
-        'column_color': 'base',
+        'column_color': 'normal',
         'column_fmt_spec': '>5',
         'column_xpos': 38,
     },
     {
         'column_attr': 'mainboard_hw',
         'column_name': 'Main',
-        'column_color': 'base',
+        'column_color': 'normal',
         'column_fmt_spec': '>4',
         'column_xpos': 44,
     },
     {
         'column_attr': 'memory',
         'column_name': 'Memory',
-        'column_color': 'base',
+        'column_color': 'normal',
         'column_fmt_spec': '>6',
         'column_xpos': 49,
     },
     {
         'column_attr': 'dsp',
         'column_name': 'DSP',
-        'column_color': 'base',
+        'column_color': 'normal',
         'column_fmt_spec': '>3',
         'column_xpos': 56,
     },
     {
         'column_attr': 'announcements',
         'column_name': 'Anno',
-        'column_color': 'base',
+        'column_color': 'normal',
         'column_fmt_spec': '>4',
         'column_xpos': 60,
     },
     {
         'column_attr': 'comp_flash',
         'column_name': 'C.Flash',
-        'column_color': 'base',
+        'column_color': 'normal',
         'column_fmt_spec': '>7',
         'column_xpos': 65,
     },
     {
         'column_attr': 'faults',
         'column_name': 'Faults',
-        'column_color': 'base',
+        'column_color': 'normal',
         'column_fmt_spec': '>6',
         'column_xpos': 73,
     },
@@ -279,84 +280,84 @@ MODULE_ATTRS = [
     {
         'column_attr': 'gw_number',
         'column_name': 'BGW',
-        'column_color': 'base',
+        'column_color': 'normal',
         'column_fmt_spec': '>3',
         'column_xpos': 1,
     },
     {
         'column_attr': 'mm_v1',
         'column_name': 'v1',
-        'column_color': 'base',
+        'column_color': 'normal',
         'column_fmt_spec': '>6',
         'column_xpos': 5,
     },
     {
         'column_attr': 'mm_v2',
         'column_name': 'v2',
-        'column_color': 'base',
+        'column_color': 'normal',
         'column_fmt_spec': '>6',
         'column_xpos': 12,
     },
     {
         'column_attr': 'mm_v3',
         'column_name': 'v3',
-        'column_color': 'base',
+        'column_color': 'normal',
         'column_fmt_spec': '>6',
         'column_xpos': 19,
     },
     {
         'column_attr': 'mm_v4',
         'column_name': 'v4',
-        'column_color': 'base',
+        'column_color': 'normal',
         'column_fmt_spec': '>6',
         'column_xpos': 27,
     },
     {
         'column_attr': 'mm_v5',
         'column_name': 'v5',
-        'column_color': 'base',
+        'column_color': 'normal',
         'column_fmt_spec': '>6',
         'column_xpos': 33,
     },
     {
         'column_attr': 'mm_v6',
         'column_name': 'v6',
-        'column_color': 'base',
+        'column_color': 'normal',
         'column_fmt_spec': '>6',
         'column_xpos': 40,
     },
     {
         'column_attr': 'mm_v7',
         'column_name': 'v7',
-        'column_color': 'base',
+        'column_color': 'normal',
         'column_fmt_spec': '>6',
         'column_xpos': 47,
     },
     {
         'column_attr': 'mm_v8',
         'column_name': 'v8',
-        'column_color': 'base',
+        'column_color': 'normal',
         'column_fmt_spec': '>6',
         'column_xpos': 54,
     },
     {
         'column_attr': 'mm_v10',
         'column_name': 'v10 hw',
-        'column_color': 'base',
+        'column_color': 'normal',
         'column_fmt_spec': '>8',
         'column_xpos': 61,
     },
     {
         'column_attr': 'psu1',
         'column_name': 'PSU1',
-        'column_color': 'base',
+        'column_color': 'normal',
         'column_fmt_spec': '>4',
         'column_xpos': 70,
     },
     {
         'column_attr': 'psu2',
         'column_name': 'PSU2',
-        'column_color': 'base',
+        'column_color': 'normal',
         'column_fmt_spec': '>4',
         'column_xpos': 75,
     },
@@ -373,84 +374,84 @@ PORT_ATTRS = [
     {
         'column_attr': 'gw_number',
         'column_name': 'BGW',
-        'column_color': 'base',
+        'column_color': 'normal',
         'column_fmt_spec': '>3',
         'column_xpos': 1,
     },
     {
         'column_attr': 'port1',
         'column_name': 'Port',
-        'column_color': 'base',
+        'column_color': 'normal',
         'column_fmt_spec': '>4',
         'column_xpos': 5,
     },
     {
         'column_attr': 'port1_status',
         'column_name': 'Status',
-        'column_color': 'base',
+        'column_color': 'normal',
         'column_fmt_spec': '>9',
         'column_xpos': 10,
     },
     {
         'column_attr': 'port1_neg',
         'column_name': 'Neg',
-        'column_color': 'base',
+        'column_color': 'normal',
         'column_fmt_spec': '>8',
         'column_xpos': 20,
     },
     {
         'column_attr': 'port1_speed',
         'column_name': 'Spd.',
-        'column_color': 'base',
+        'column_color': 'normal',
         'column_fmt_spec': '>4',
         'column_xpos': 29,
     },
     {
         'column_attr': 'port1_duplex',
         'column_name': 'Dup.',
-        'column_color': 'base',
+        'column_color': 'normal',
         'column_fmt_spec': '>4',
         'column_xpos': 34,
     },
     {
         'column_attr': 'port2',
         'column_name': 'Port',
-        'column_color': 'base',
+        'column_color': 'normal',
         'column_fmt_spec': '>4',
         'column_xpos': 39,
     },
     {
         'column_attr': 'port2_status',
         'column_name': 'Status',
-        'column_color': 'base',
+        'column_color': 'normal',
         'column_fmt_spec': '>9',
         'column_xpos': 44,
     },
     {
         'column_attr': 'port2_neg',
         'column_name': 'Neg',
-        'column_color': 'base',
+        'column_color': 'normal',
         'column_fmt_spec': '>8',
         'column_xpos': 54,
     },
     {
         'column_attr': 'port2_speed',
         'column_name': 'Spd.',
-        'column_color': 'base',
+        'column_color': 'normal',
         'column_fmt_spec': '>4',
         'column_xpos': 63,
     },
     {
         'column_attr': 'port2_duplex',
         'column_name': 'Dup.',
-        'column_color': 'base',
+        'column_color': 'normal',
         'column_fmt_spec': '>4',
         'column_xpos': 68,
     },
     {
         'column_attr': 'port_redu',
         'column_name': 'Redund',
-        'column_color': 'base',
+        'column_color': 'normal',
         'column_fmt_spec': '>6',
         'column_xpos': 73,
     },
@@ -467,56 +468,56 @@ SERVICE_ATTRS = [
     {
         'column_attr': 'gw_number',
         'column_name': 'BGW',
-        'column_color': 'base',
+        'column_color': 'normal',
         'column_fmt_spec': '>3',
         'column_xpos': 1,
     },
     {
         'column_attr': 'rtp_stat_service',
         'column_name': 'RTP-Stats',
-        'column_color': 'base',
+        'column_color': 'normal',
         'column_fmt_spec': '>9',
         'column_xpos': 5,
     },
     {
         'column_attr': 'capture_service',
         'column_name': 'Capture-Service',
-        'column_color': 'base',
+        'column_color': 'normal',
         'column_fmt_spec': '>15',
         'column_xpos': 15,
     },
     {
         'column_attr': 'snmp',
         'column_name': 'SNMP',
-        'column_color': 'base',
+        'column_color': 'normal',
         'column_fmt_spec': '>4',
         'column_xpos': 31,
     },
     {
         'column_attr': 'snmp_trap',
         'column_name': 'SNMP-Trap',
-        'column_color': 'base',
+        'column_color': 'normal',
         'column_fmt_spec': '>9',
         'column_xpos': 36,
     },
     {
         'column_attr': 'slamon_service',
         'column_name': 'SLAMon',
-        'column_color': 'base',
+        'column_color': 'normal',
         'column_fmt_spec': '>8',
         'column_xpos': 46,
     },
     {
         'column_attr': 'sla_server',
         'column_name': 'SLAMon Server',
-        'column_color': 'base',
+        'column_color': 'normal',
         'column_fmt_spec': '>15',
         'column_xpos': 55,
     },
     {
         'column_attr': 'lldp',
         'column_name': 'LLDP',
-        'column_color': 'base',
+        'column_color': 'normal',
         'column_fmt_spec': '>8',
         'column_xpos': 71,
     },
@@ -533,63 +534,63 @@ STATUS_ATTRS = [
     {
         'column_attr': 'gw_number',
         'column_name': 'BGW',
-        'column_color': 'base',
+        'column_color': 'normal',
         'column_fmt_spec': '>3',
         'column_xpos': 1,
     },
     {
         'column_attr': 'active_session',
         'column_name': 'Act.Session',
-        'column_color': 'base',
+        'column_color': 'normal',
         'column_fmt_spec': '>11',
         'column_xpos': 5,
     },
     {
         'column_attr': 'total_session',
         'column_name': 'Tot.Session',
-        'column_color': 'base',
+        'column_color': 'normal',
         'column_fmt_spec': '>12',
         'column_xpos': 17,
     },
     {
         'column_attr': 'inuse_dsp',
         'column_name': 'InUseDSP',
-        'column_color': 'base',
+        'column_color': 'normal',
         'column_fmt_spec': '>8',
         'column_xpos': 29,
     },
     {
         'column_attr': 'cpu_util',
         'column_name': 'CPU 5s/60s',
-        'column_color': 'base',
+        'column_color': 'normal',
         'column_fmt_spec': '>10',
         'column_xpos': 38,
     },
     {
         'column_attr': 'ram_util',
         'column_name': 'RAM',
-        'column_color': 'base',
+        'column_color': 'normal',
         'column_fmt_spec': '>5',
         'column_xpos': 49,
     },
     {
         'column_attr': 'avg_poll_secs',
         'column_name': 'PollSec',
-        'column_color': 'base',
+        'column_color': 'normal',
         'column_fmt_spec': '>7',
         'column_xpos': 55,
     },
     {
         'column_attr': 'polls',
         'column_name': 'Polls',
-        'column_color': 'base',
+        'column_color': 'normal',
         'column_fmt_spec': '>7',
         'column_xpos': 63,
     },
     {
         'column_attr': 'last_seen_time',
         'column_name': 'LastSeen',
-        'column_color': 'base',
+        'column_color': 'normal',
         'column_fmt_spec': '>8',
         'column_xpos': 71,
     },
@@ -606,63 +607,63 @@ RTPSTAT_ATTRS = [
     {
         'column_attr': 'start_time',
         'column_name': 'Start',
-        'column_color': 'base',
+        'column_color': 'normal',
         'column_fmt_spec': '>8',
         'column_xpos': 1,
     },
     {
         'column_attr': 'end_time',
         'column_name': 'End',
-        'column_color': 'base',
+        'column_color': 'normal',
         'column_fmt_spec': '>8',
         'column_xpos': 10,
     },
     {
         'column_attr': 'gw_number',
         'column_name': 'BGW',
-        'column_color': 'base',
+        'column_color': 'normal',
         'column_fmt_spec': '>3',
         'column_xpos': 19,
     },
     {
         'column_attr': 'local_addr',
         'column_name': 'Local-Address',
-        'column_color': 'base',
+        'column_color': 'normal',
         'column_fmt_spec': '>15',
         'column_xpos': 23,
     },
     {
         'column_attr': 'local_port',
         'column_name': 'LPort',
-        'column_color': 'base',
+        'column_color': 'normal',
         'column_fmt_spec': '>5',
         'column_xpos': 39,
     },
     {
         'column_attr': 'remote_addr',
         'column_name': 'Remote-Address',
-        'column_color': 'base',
+        'column_color': 'normal',
         'column_fmt_spec': '>15',
         'column_xpos': 45,
     },
     {
         'column_attr': 'remote_port',
         'column_name': 'RPort',
-        'column_color': 'base',
+        'column_color': 'normal',
         'column_fmt_spec': '>5',
         'column_xpos': 61,
     },
     {
         'column_attr': 'codec',
         'column_name': 'Codec',
-        'column_color': 'base',
+        'column_color': 'normal',
         'column_fmt_spec': '>6',
         'column_xpos': 67,
     },
     {
         'column_attr': 'qos',
         'column_name': 'QoS',
-        'column_color': 'base',
+        'column_color': 'normal',
         'column_fmt_spec': '>5',
         'column_xpos': 74,
     },
@@ -743,6 +744,36 @@ RTP_DETAILED_PATTERNS = (
 )
 
 reDetailed = re.compile(r''.join(RTP_DETAILED_PATTERNS), re.M|re.S|re.I)
+
+COLOR_SCHEMES = {
+    'default': {
+        'normal': 0,        # white
+        'bold': 2097152,    # white bold
+        'dim': 1048576,     # white dim
+        'standout': 65536,  # white standout
+    },
+
+    'blue': {
+        'normal': 31744,    # blue
+        'bold': 2128896,    # blue bold
+        'dim': 1080320,     # blue dim
+        'standout': 97280,  # blue standout
+    },
+
+    'green': {
+        'normal': 12288,    # green
+        'bold': 2109440,    # green bold
+        'dim': 1060864,     # green dim
+        'standout': 77824,  # green standout
+    },
+
+    'orange': {
+        'normal': 53504,    # orange
+        'bold': 2150656,    # orange bold
+        'dim': 1102080,     # orange dim
+        'standout': 119040, # orange standout
+    }
+}
 
 ################################## CLASSES ##################################
 class SlicableOrderedDict(MutableMapping):
@@ -2221,46 +2252,47 @@ class Tab:
         nlines=2,
         yoffset=0,
         xoffset=0,
-        color_pair=None,
+        color_scheme=None,
     ):
         self.stdscr = stdscr
-        self._tab_names = tab_names
-        self._tab_width = max(len(x) for x in self._tab_names)
-        self._yoffset = yoffset
-        self._xoffset = xoffset
-        self._color_pair = color_pair if color_pair else curses.color_pair(0)
-        self._active_tab_idx = 0
+        self.tab_names = tab_names
+        self.tab_width = max(len(x) for x in self.tab_names)
+        self.yoffset = yoffset
+        self.xoffset = xoffset
+        self.color_scheme = color_scheme or {"normal": 0}
+        self.active_tab_idx = 0
         self.maxy = nlines
         self.maxx = self.stdscr.getmaxyx()[1]
         self.win = self.stdscr.subwin(nlines, self.maxx, yoffset, xoffset)
 
     def draw(self):
-        xpos = self._xoffset
-        for idx, tab_names in enumerate(self._tab_names):
-            active = bool(idx == self._active_tab_idx)
-            self._draw_tab(tab_names, self._yoffset, xpos, active)
-            xpos += self._tab_width + 2
+        xpos = self.xoffset
+        for idx, tab_names in enumerate(self.tab_names):
+            active = bool(idx == self.active_tab_idx)
+            self._draw_tab(tab_names, self.yoffset, xpos, active)
+            xpos += self.tab_width + 2
         self.win.refresh()
 
     def _draw_tab(self, tab_name, ypos, xpos, active):
-        border1 = "╭" + self._tab_width * "─" + "╮"
-        border2 = "│" + " " * self._tab_width + "│"
-        self.win.addstr(ypos, xpos, border1, self._color_pair)
+        attr = self.color_scheme["normal"]
+        border1 = "╭" + self.tab_width * "─" + "╮"
+        border2 = "│" + " " * self.tab_width + "│"
+        self.win.addstr(ypos, xpos, border1, attr)
         for linen in range(1, self.maxy):
-            self.win.addstr(ypos + linen, xpos, border2, self._color_pair)
-        text = tab_name.center(self._tab_width)
+            self.win.addstr(ypos + linen, xpos, border2, attr)
+        text = tab_name.center(self.tab_width)
         if not active:
-            text_color_pair = self._color_pair
+            attr = self.color_scheme["normal"]
         else:
-            text_color_pair = self._color_pair|curses.A_REVERSE
-        self.win.addstr(ypos + 1, xpos+1, text, text_color_pair)
+            attr = self.color_scheme.get("standout", 0)
+        self.win.addstr(ypos + 1, xpos+1, text, attr)
 
     async def handle_char(self, char):
         if chr(char) == "\t":
-            if self._active_tab_idx < len(self._tab_names) - 1: 
-                self._active_tab_idx += 1
+            if self.active_tab_idx < len(self.tab_names) - 1: 
+                self.active_tab_idx += 1
             else:
-                self._active_tab_idx = 0
+                self.active_tab_idx = 0
             self.draw()
 
 class Workspace:
@@ -2274,11 +2306,10 @@ class Workspace:
         menubar=None,
         name=None,
         storage=None,
-        attr=None,
         offset_y=2,
         offset_x=0,
         title_width=3,
-        colors_pairs=None,
+        color_scheme=None,
         **kwargs,
     ):
         self.stdscr = stdscr
@@ -2290,14 +2321,14 @@ class Workspace:
         self.menubar = menubar
         self.name = name
         self.storage = storage if storage is not None else []
-        self.attr = attr or curses.color_pair(0)
         self.offset_y = offset_y
         self.offset_x = offset_x
-        self.colors_pairs = colors_pairs
+        self.color_scheme= color_scheme or {"normal": 0}
         self.title_width = title_width
         self.posy = 0
         self.posx = 0
         self.row_pos = 0
+        self.attr = self.color_scheme["normal"]
         self.maxy = self.stdscr.getmaxyx()[0] - offset_y
         self.maxx = self.stdscr.getmaxyx()[1]
         self.titlewin = stdscr.subwin(title_width, self.maxx,
@@ -2387,24 +2418,17 @@ class Workspace:
         offset = 0
 
         for idx, (xpos, name, color) in enumerate(self.iter_column_names()):
-            color = curses.color_pair(0)
+            attr = self.color_scheme.get(color, 0)
             if idx > 0:
-                self.titlewin.addstr(1, xpos - 1, "│", color)
-                self.titlewin.addstr(0, xpos - 1, "┬", color)
-                self.titlewin.addstr(2, xpos - 1, "┼", color)
-        # for idx, (cname, cwidth) in enumerate(zip(column_names,
-        #                                         column_widths)):
-        #     cname = f"│{cname:^{cwidth}}"
-        #     xpos = self.offset_x if idx == 0 else offset
-        #     offset = xpos + len(cname)
-            self.titlewin.addstr(1, xpos, name, color)
+                self.titlewin.addstr(1, xpos - 1, "│", attr)
+                self.titlewin.addstr(0, xpos - 1, "┬", attr)
+                self.titlewin.addstr(2, xpos - 1, "┼", attr)
+            self.titlewin.addstr(1, xpos, name, attr)
             self.titlewin.refresh()
-        #     if idx > 0:
-        #         self.titlewin.addstr(0, xpos, "┬", self.attr)
-        #         self.titlewin.addstr(2, xpos, "┼", self.attr)
+
         try:
-            self.titlewin.addstr(2, self.offset_x, "├", self.attr)
-            self.titlewin.addstr(2, self.maxx - 1, "┤", self.attr)
+            self.titlewin.addstr(2, self.offset_x, "├", attr)
+            self.titlewin.addstr(2, self.maxx - 1, "┤", attr)
         except curses.error:
             pass
         self.titlewin.refresh()
@@ -2420,8 +2444,9 @@ class Workspace:
                         self.column_fmt_specs, self.column_colors,
                         self.column_xposes, self.offset_x):
                     
+                    attr = self.colors_scheme.get(color, 0)
                     self.bodywin.addstr(
-                        ridx, xpos - 1, "│" + attr_value + "│", color
+                        ridx, xpos - 1, "│" + attr_value + "│", attr
                     )
             except curses.error:
                 pass
@@ -3534,6 +3559,11 @@ def main(stdscr, miny: int = 24, minx: int = 80):
     curses.noecho()
     curses.start_color()
     curses.use_default_colors()
+    for i in range(0, curses.COLORS):
+        curses.init_pair(i + 1, i, -1)
+
+    color_scheme = COLOR_SCHEMES[CONFIG["color_scheme"]]
+    stdscr.attron(color_scheme['normal'])
 
     while must_resize(stdscr, miny, minx):
         char = stdscr.getch()
@@ -3560,6 +3590,7 @@ def main(stdscr, miny: int = 24, minx: int = 80):
             column_fmt_specs=[x['column_fmt_spec'] for x in SYSTEM_ATTRS],
             column_colors=[x['column_color'] for x in SYSTEM_ATTRS],
             column_xposes=[x['column_xpos'] for x in SYSTEM_ATTRS],
+            color_scheme=color_scheme,
             menubar=system_menubar,
             storage=BGWS,
             name="System",
@@ -3572,6 +3603,7 @@ def main(stdscr, miny: int = 24, minx: int = 80):
             column_fmt_specs=[x['column_fmt_spec'] for x in HW_ATTRS],
             column_colors=[x['column_color'] for x in HW_ATTRS],
             column_xposes=[x['column_xpos'] for x in HW_ATTRS],
+            color_scheme=color_scheme,
             menubar=system_menubar,
             storage=BGWS,
             name="HW",
@@ -3584,6 +3616,7 @@ def main(stdscr, miny: int = 24, minx: int = 80):
             column_fmt_specs=[x['column_fmt_spec'] for x in MODULE_ATTRS],
             column_colors=[x['column_color'] for x in MODULE_ATTRS],
             column_xposes=[x['column_xpos'] for x in MODULE_ATTRS],
+            color_scheme=color_scheme,
             menubar=system_menubar,
             storage=BGWS,
             name="Module",
@@ -3596,6 +3629,7 @@ def main(stdscr, miny: int = 24, minx: int = 80):
             column_fmt_specs=[x['column_fmt_spec'] for x in PORT_ATTRS],
             column_colors=[x['column_color'] for x in PORT_ATTRS],
             column_xposes=[x['column_xpos'] for x in PORT_ATTRS],
+            color_scheme=color_scheme,
             menubar=system_menubar,
             storage=BGWS,
             name="Port",
@@ -3608,6 +3642,7 @@ def main(stdscr, miny: int = 24, minx: int = 80):
             column_fmt_specs=[x['column_fmt_spec'] for x in SERVICE_ATTRS],
             column_colors=[x['column_color'] for x in SERVICE_ATTRS],
             column_xposes=[x['column_xpos'] for x in SERVICE_ATTRS],
+            color_scheme=color_scheme,
             menubar=system_menubar,
             storage=BGWS,
             name="Config",
@@ -3620,6 +3655,7 @@ def main(stdscr, miny: int = 24, minx: int = 80):
             column_fmt_specs=[x['column_fmt_spec'] for x in STATUS_ATTRS],
             column_colors=[x['column_color'] for x in STATUS_ATTRS],
             column_xposes=[x['column_xpos'] for x in STATUS_ATTRS],
+            color_scheme=color_scheme,
             menubar=status_menubar,
             storage=BGWS,
             name="Status",
@@ -3632,13 +3668,15 @@ def main(stdscr, miny: int = 24, minx: int = 80):
             column_fmt_specs=[x['column_fmt_spec'] for x in RTPSTAT_ATTRS],
             column_colors=[x['column_color'] for x in RTPSTAT_ATTRS],
             column_xposes=[x['column_xpos'] for x in RTPSTAT_ATTRS],
+            color_scheme=color_scheme,
             menubar=rtpstat_menubar,
             storage=CONFIG["storage"],
             name="RTP-Stat",
         )   
     ]
 
-    tab = Tab(stdscr, tab_names=[w.name for w in workspaces])
+    tab = Tab(stdscr, tab_names=[w.name for w in workspaces],
+        color_scheme=color_scheme)
     mydisplay = MyDisplay(stdscr, workspaces=workspaces, tab=tab)
 
     button_d = Button(ord("d"), ord("D"),
@@ -3720,6 +3758,7 @@ BGWS = []
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Monitors Avaya Branch Gateways (BGW)')
+    parser.add_argument('-c', dest='color_scheme', default='blue', help='Color scheme: default|green|blue|orange')
     parser.add_argument('-u', dest='username', default='', help='BGW username')
     parser.add_argument('-p', dest='passwd', default='', help='BGW password')
     parser.add_argument('-n', dest='lastn_secs', default=30, help='secs to look back in RTP statistics, default 30secs')
