@@ -2192,3 +2192,47 @@ Traceback (most recent call last):
   File "/root/Projects/python36_async_playground/monitorBGW.py", line 2420, in draw_titlewin
     attr = self.colors_scheme.get(color, 0)
 AttributeError: 'Workspace' object has no attribute 'colors_scheme'
+2025-04-02 21:30:25,589 -    ERROR - unhandled exception during asyncio.run() shutdown
+task: <Task finished coro=<MyDisplay.run() done, defined at /root/Projects/python36_async_playground/monitorBGW.py:2811> exception=error('addwstr() returned ERR',)> [base_events.py:1285]
+Traceback (most recent call last):
+  File "/root/Projects/python36_async_playground/monitorBGW.py", line 2893, in asyncio_run
+    return loop.run_until_complete(main)
+  File "/usr/lib64/python3.6/asyncio/base_events.py", line 484, in run_until_complete
+    return future.result()
+  File "/root/Projects/python36_async_playground/monitorBGW.py", line 2813, in run
+    self.make_display()
+  File "/root/Projects/python36_async_playground/monitorBGW.py", line 2833, in make_display
+    self.tab.draw()
+  File "/root/Projects/python36_async_playground/monitorBGW.py", line 2270, in draw
+    self.draw_tab(tab_name, self.yoffset, self.xoffset + idx * (self.tab_width + 2), idx == self.active_tab_idx)
+  File "/root/Projects/python36_async_playground/monitorBGW.py", line 2282, in draw_tab
+    self.win.addstr(ypos + 2, xpos, border, attr)
+_curses.error: addwstr() returned ERR
+2025-04-02 22:50:22,473 -    ERROR - ExpectTimeout for PID 17318 in coro exec_script() for 10.10.48.58 [monitorBGW.py:3170]
+2025-04-02 22:50:22,474 -    ERROR - ExpectTimeout for PID 17319 in coro exec_script() for 10.44.244.51 [monitorBGW.py:3170]
+2025-04-02 22:50:22,474 -    ERROR - Exception in callback discovery_done_callback(100, <__main__.MyD...x7efd18dc4208>)(<Task finishe...> result=None>) at /root/Projects/python36_async_playground/monitorBGW.py:3520
+handle: <Handle discovery_done_callback(100, <__main__.MyD...x7efd18dc4208>)(<Task finishe...> result=None>) at /root/Projects/python36_async_playground/monitorBGW.py:3520> [base_events.py:1285]
+Traceback (most recent call last):
+  File "/usr/lib64/python3.6/asyncio/events.py", line 145, in _run
+    self._callback(*self._args)
+  File "/root/Projects/python36_async_playground/monitorBGW.py", line 3528, in discovery_done_callback
+    mydisplay.active_workspace.draw_bodywin()
+  File "/root/Projects/python36_async_playground/monitorBGW.py", line 2447, in draw_bodywin
+    attr = self.colors_scheme.get(color, 0)
+AttributeError: 'Workspace' object has no attribute 'colors_scheme'
+2025-04-02 22:50:22,505 -    ERROR - unhandled exception during asyncio.run() shutdown
+task: <Task finished coro=<MyDisplay.run() done, defined at /root/Projects/python36_async_playground/monitorBGW.py:2817> exception=AttributeError("'Workspace' object has no attribute 'colors_scheme'",)> [base_events.py:1285]
+Traceback (most recent call last):
+  File "/root/Projects/python36_async_playground/monitorBGW.py", line 2899, in asyncio_run
+    return loop.run_until_complete(main)
+  File "/usr/lib64/python3.6/asyncio/base_events.py", line 484, in run_until_complete
+    return future.result()
+  File "/root/Projects/python36_async_playground/monitorBGW.py", line 2833, in run
+    await self.handle_char(char)
+  File "/root/Projects/python36_async_playground/monitorBGW.py", line 2851, in handle_char
+    await self.workspaces[self.active_ws_idx].handle_char(char)
+  File "/root/Projects/python36_async_playground/monitorBGW.py", line 2480, in handle_char
+    self.draw_bodywin()
+  File "/root/Projects/python36_async_playground/monitorBGW.py", line 2447, in draw_bodywin
+    attr = self.colors_scheme.get(color, 0)
+AttributeError: 'Workspace' object has no attribute 'colors_scheme'

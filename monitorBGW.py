@@ -2269,11 +2269,11 @@ class Tab:
         xpos = self.xoffset
         for idx, tab_names in enumerate(self.tab_names):
             active = bool(idx == self.active_tab_idx)
-            self._draw_tab(tab_names, self.yoffset, xpos, active)
+            self.draw_tab(tab_names, self.yoffset, xpos, active)
             xpos += self.tab_width + 2
         self.win.refresh()
 
-    def _draw_tab(self, tab_name, ypos, xpos, active):
+    def draw_tab(self, tab_name, ypos, xpos, active):
         attr = self.color_scheme["normal"]
         border1 = "╭" + self.tab_width * "─" + "╮"
         border2 = "│" + " " * self.tab_width + "│"
@@ -3758,7 +3758,7 @@ BGWS = []
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Monitors Avaya Branch Gateways (BGW)')
-    parser.add_argument('-c', dest='color_scheme', default='blue', help='Color scheme: default|green|blue|orange')
+    parser.add_argument('-c', dest='color_scheme', default='default', help='Color scheme: default|green|blue|orange')
     parser.add_argument('-u', dest='username', default='', help='BGW username')
     parser.add_argument('-p', dest='passwd', default='', help='BGW password')
     parser.add_argument('-n', dest='lastn_secs', default=30, help='secs to look back in RTP statistics, default 30secs')
