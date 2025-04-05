@@ -3758,16 +3758,28 @@ BGWS = []
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Monitors Avaya Branch Gateways (BGW)')
-    parser.add_argument('-c', dest='color_scheme', default='default', help='Color scheme: default|green|blue|orange')
-    parser.add_argument('-u', dest='username', default='', help='BGW username')
-    parser.add_argument('-p', dest='passwd', default='', help='BGW password')
-    parser.add_argument('-n', dest='lastn_secs', default=30, help='secs to look back in RTP statistics, default 30secs')
-    parser.add_argument('-m', dest='max_polling', default=19, help='max simultaneous polling sessons, default 20')
-    parser.add_argument('-l', dest='loglevel', default="ERROR", help='loglevel')
-    parser.add_argument('-t', dest='timeout', default=12, help='timeout in secs, default 10secs')
-    parser.add_argument('-f', dest='polling_secs', default=5, help='polling frequency in seconds, default 5secs')
-    parser.add_argument('-i', dest='ip_filter', default=None, nargs='+', help='BGW IP filter')
-    parser.add_argument('-s', dest='storage', default=AsyncMemoryStorage(maxlen=CONFIG.get("storage_maxlen")), help='RTP storage type')
+    parser.add_argument('-c', dest='color_scheme', default='default',
+                        help='Color scheme: default|green|blue|orange')
+    parser.add_argument('-u', dest='username', default='',
+                        help='BGW SSH username')
+    parser.add_argument('-p', dest='passwd', default='',
+                        help='BGW SSH password')
+    parser.add_argument('-n', dest='lastn_secs', default=30,
+                        help='secs to look back in RTP stats, default 30s')
+    parser.add_argument('-m', dest='max_polling', default=19,
+                        help='max simultaneous polling sessons, default 20')
+    parser.add_argument('-l', dest='loglevel', default="ERROR",
+                        help='loglevel')
+    parser.add_argument('-t', dest='timeout', default=12,
+                        help='timeout in secs, default 10secs')
+    parser.add_argument('-f', dest='polling_secs', default=5,
+                        help='polling frequency in seconds, default 5secs')
+    parser.add_argument('-i', dest='ip_filter', default=None, nargs='+',
+                        help='BGW IP filter')
+    parser.add_argument('-s', dest='storage', 
+                        default=AsyncMemoryStorage(
+                                maxlen=CONFIG.get("storage_maxlen")),
+                        help='RTP storage type')
     args = parser.parse_args()
     args.username = args.username or (CONFIG.get("username") or get_username())
     args.passwd = args.passwd or (CONFIG.get("passwd") or get_passwd())
