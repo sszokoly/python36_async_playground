@@ -2236,3 +2236,17 @@ Traceback (most recent call last):
   File "/root/Projects/python36_async_playground/monitorBGW.py", line 2447, in draw_bodywin
     attr = self.colors_scheme.get(color, 0)
 AttributeError: 'Workspace' object has no attribute 'colors_scheme'
+2025-04-06 19:54:39,179 -    ERROR - unhandled exception during asyncio.run() shutdown
+task: <Task finished coro=<MyDisplay.run() done, defined at /root/Projects/python36_async_playground/monitorBGW.py:2814> exception=NameError("name 'tab_width' is not defined",)> [base_events.py:1285]
+Traceback (most recent call last):
+  File "/root/Projects/python36_async_playground/monitorBGW.py", line 2896, in asyncio_run
+    return loop.run_until_complete(main)
+  File "/usr/lib64/python3.6/asyncio/base_events.py", line 484, in run_until_complete
+    return future.result()
+  File "/root/Projects/python36_async_playground/monitorBGW.py", line 2816, in run
+    self.make_display()
+  File "/root/Projects/python36_async_playground/monitorBGW.py", line 2836, in make_display
+    self.tab.draw()
+  File "/root/Projects/python36_async_playground/monitorBGW.py", line 2272, in draw
+    line1 = "╭" + "─" * tab_width + "╮"
+NameError: name 'tab_width' is not defined

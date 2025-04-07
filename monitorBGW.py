@@ -2249,50 +2249,47 @@ class Tab:
     def __init__(self,
         stdscr,
         tab_names,
-        nlines=2,
         yoffset=0,
         xoffset=0,
         color_scheme=None,
     ):
         self.stdscr = stdscr
         self.tab_names = tab_names
-        self.tab_width = max(len(x) for x in self.tab_names)
         self.yoffset = yoffset
         self.xoffset = xoffset
-        self.color_scheme = color_scheme or {"normal": 0}
+        self.color_scheme = color_scheme or {"normal": 0, "standout": 65536}
+        self.attr = self.color_scheme.get("normal", 0)
+        self.attr_standout = self.color_scheme.get("standout", 65536)
+        self.tab_width = max(len(x) for x in self.tab_names)
         self.active_tab_idx = 0
-        self.maxy = nlines
-        self.maxx = self.stdscr.getmaxyx()[1]
-        self.win = self.stdscr.subwin(nlines, self.maxx, yoffset, xoffset)
+        self.win = self.stdscr.subwin(2, self.stdscr.getmaxyx()[1] - xoffset,
+            yoffset, xoffset)
 
     def draw(self):
-        xpos = self.xoffset
+        xpos, ypos = self.xoffset, self.yoffset
         for idx, tab_names in enumerate(self.tab_names):
-            active = bool(idx == self.active_tab_idx)
-            self.draw_tab(tab_names, self.yoffset, xpos, active)
+            
+            try:
+                self.win.addstr(ypos, xpos,
+                    "╭" + "─" * self.tab_width + "╮", self.attr)
+                self.win.addstr(ypos + 1, xpos,
+                    "│" + " " * self.tab_width + "│", self.attr)
+                
+                if idx == self.active_tab_idx:
+                    self.win.addstr(ypos + 1, xpos + 1,
+                        tab_names.center(self.tab_width), self.attr_standout)
+                else:    
+                    self.win.addstr(ypos + 1, xpos + 1,
+                        tab_names.center(self.tab_width), self.attr)
+            except _curses.error:
+                pass
+
             xpos += self.tab_width + 2
         self.win.refresh()
 
-    def draw_tab(self, tab_name, ypos, xpos, active):
-        attr = self.color_scheme["normal"]
-        border1 = "╭" + self.tab_width * "─" + "╮"
-        border2 = "│" + " " * self.tab_width + "│"
-        self.win.addstr(ypos, xpos, border1, attr)
-        for linen in range(1, self.maxy):
-            self.win.addstr(ypos + linen, xpos, border2, attr)
-        text = tab_name.center(self.tab_width)
-        if not active:
-            attr = self.color_scheme["normal"]
-        else:
-            attr = self.color_scheme.get("standout", 0)
-        self.win.addstr(ypos + 1, xpos+1, text, attr)
-
     async def handle_char(self, char):
         if chr(char) == "\t":
-            if self.active_tab_idx < len(self.tab_names) - 1: 
-                self.active_tab_idx += 1
-            else:
-                self.active_tab_idx = 0
+            self.active_tab_idx = (self.active_tab_idx + 1) % len(self.tab_names)
             self.draw()
 
 class Workspace:
@@ -2306,8 +2303,8 @@ class Workspace:
         menubar=None,
         name=None,
         storage=None,
-        offset_y=2,
-        offset_x=0,
+        yoffset=2,
+        xoffset=0,
         title_width=3,
         color_scheme=None,
         **kwargs,
@@ -2315,27 +2312,28 @@ class Workspace:
         self.stdscr = stdscr
         self.column_attrs = column_attrs
         self.column_names = column_names or column_attrs
-        self.column_fmt_specs = column_fmt_specs or [f"^{len(x)}" for x in column_names]
+        self.column_fmt_specs = column_fmt_specs or [
+            f"^{len(x)}" for x in column_names]
         self.column_colors = column_colors or [None for x in column_names]
         self.column_xposes = column_xposes or [None for x in column_names]
         self.menubar = menubar
         self.name = name
         self.storage = storage if storage is not None else []
-        self.offset_y = offset_y
-        self.offset_x = offset_x
-        self.color_scheme= color_scheme or {"normal": 0}
+        self.yoffset = yoffset
+        self.xoffset = xoffset
+        self.color_scheme= color_scheme or {"normal": 0, "standout": 65536}
         self.title_width = title_width
         self.posy = 0
         self.posx = 0
         self.row_pos = 0
         self.attr = self.color_scheme["normal"]
-        self.maxy = self.stdscr.getmaxyx()[0] - offset_y
+        self.maxy = self.stdscr.getmaxyx()[0] - yoffset
         self.maxx = self.stdscr.getmaxyx()[1]
         self.titlewin = stdscr.subwin(title_width, self.maxx,
-            offset_y, offset_x)
+            yoffset, xoffset)
         self.bodywin = self.stdscr.subwin(
-            self.maxy - title_width, self.maxx, offset_y + title_width,
-            offset_x)
+            self.maxy - title_width, self.maxx, yoffset + title_width,
+            xoffset)
 
     def iter_attrs(self, obj: object, xoffset: int = 0) -> Iterator[Tuple[int, str, str]]:
         """
@@ -2427,7 +2425,7 @@ class Workspace:
             self.titlewin.refresh()
 
         try:
-            self.titlewin.addstr(2, self.offset_x, "├", attr)
+            self.titlewin.addstr(2, self.xoffset, "├", attr)
             self.titlewin.addstr(2, self.maxx - 1, "┤", attr)
         except curses.error:
             pass
@@ -2442,7 +2440,7 @@ class Workspace:
                 for xpos, attr_value, color in iter_attrs(obj,
                         self.column_attrs, self.column_names,
                         self.column_fmt_specs, self.column_colors,
-                        self.column_xposes, self.offset_x):
+                        self.column_xposes, self.xoffset):
                     
                     attr = self.colors_scheme.get(color, 0)
                     self.bodywin.addstr(
@@ -2485,15 +2483,15 @@ class MyPanel:
         stdscr,
         body,
         attr=None,
-        offset_y=1,
-        offset_x=1,
+        yoffset=1,
+        xoffset=1,
         margin=1,
     ) -> None:
         self.stdscr = stdscr
         self.body = body
         self.attr = attr
-        self.offset_y = offset_y
-        self.offset_x = offset_x
+        self.yoffset = yoffset
+        self.xoffset = xoffset
         self.margin = margin
         self._initialize()
 
@@ -2501,8 +2499,8 @@ class MyPanel:
         maxy, maxx = self.stdscr.getmaxyx()
         nlines = maxy - (2 * self.margin)
         ncols = maxx - (2 * self.margin)
-        begin_y = self.offset_y
-        begin_x = self.offset_x
+        begin_y = self.yoffset
+        begin_x = self.xoffset
         self.win = curses.newwin(nlines, ncols, begin_y, begin_x)
         self.panel = curses.panel.new_panel(self.win)
         self.attr = self.attr if self.attr else curses.color_pair(0)
@@ -2527,7 +2525,7 @@ class ProgressBar:
         width: int = 21,
         attr_fg: Optional[int] = None,
         attr_bg: Optional[int] = None,
-        offset_y: int = 0) -> None:
+        yoffset: int = 0) -> None:
         """
         Initialize the progress bar.
 
@@ -2545,7 +2543,7 @@ class ProgressBar:
         attr_bg : Optional[int], optional
             The curses attribute to use for the background. Defaults to
             curses.color_pair(239)|curses.A_REVERSE.
-        offset_y : int, optional
+        yoffset : int, optional
             The y offset of the progress bar. Defaults to 0.
         """
         self.stdscr = stdscr
@@ -2554,7 +2552,7 @@ class ProgressBar:
         self.attr_fg = attr_fg or curses.color_pair(221)|curses.A_REVERSE
         self.attr_bg = attr_bg or curses.color_pair(239)|curses.A_REVERSE
         maxy, maxx = stdscr.getmaxyx()
-        begin_y = maxy // 2 + offset_y
+        begin_y = maxy // 2 + yoffset
         begin_x = maxx // 2 - (width // 2)
         self.win = curses.newwin(1, width, begin_y, begin_x)
         curses.panel.new_panel(self.win)
@@ -2643,9 +2641,8 @@ class Confirmation:
 
 class Menubar:
     def __init__(self, stdscr: "_curses._CursesWindow",
-        nlines: Optional[int] = 1,
-        attr: Optional[int] = None,
-        offset_x: Optional[int] = 0,
+        xoffset: Optional[int] = 0,
+        color_scheme = None,
         status_bar_width: Optional[int] = 13,
         buttons: List[Button] = None) -> None:
         """
@@ -2660,7 +2657,7 @@ class Menubar:
         attr : int, optional
             The curses attribute to use when drawing the menubar. Defaults to
             curses.A_REVERSE.
-        offset_x : int, optional
+        xoffset : int, optional
             The x offset of the menubar. Defaults to 0.
         status_bar_width : int, optional
             The width of the status bar. Defaults to 20.
@@ -2669,14 +2666,14 @@ class Menubar:
             menubar. Defaults to an empty list.
         """
         self.stdscr = stdscr
-        self.nlines = nlines
-        self.attr = attr or curses.color_pair(0)|curses.A_REVERSE
-        self.buttons = buttons if buttons else []
-        self.offset_x = offset_x
+        self.xoffset = xoffset
+        self.color_scheme = color_scheme or {"normal": 0, "standout": 65536}
         self.status_bar_width = status_bar_width
-        maxy, ncols = stdscr.getmaxyx()
-        begin_y, begin_x = maxy - nlines, offset_x
-        self.win = stdscr.subwin(nlines, ncols, begin_y, begin_x)
+        self.buttons = buttons if buttons else []
+        self.attr = self.color_scheme.get("normal", 0)
+        self.attr_standout = self.color_scheme.get("standout", 65536)
+        maxy, maxx = stdscr.getmaxyx()
+        self.win = stdscr.subwin(1, maxx, maxy - 1, xoffset)
         self.maxy, self.maxx = self.win.getmaxyx()
 
     def draw(self) -> None:
@@ -2687,29 +2684,12 @@ class Menubar:
         -------
         None
         """
-        for y in range(0, self.maxy):
-            try:
-                self.win.addstr(y, 0, " " * (self.maxx), self.attr)
-            except _curses.error:
-                pass
+        try:    
+            self.win.addstr(0, 0, " " * (self.maxx), self.attr_standout)
+        except _curses.error:
+            pass
         
-        self.draw_status_bar()
-        self.draw_buttons()
-        self.win.refresh()
-
-    def draw_status_bar(self, offset: int = 0) -> None:
-        """
-        Draw the status bar for all buttons in the menubar.
-
-        Parameters
-        ----------
-        offset : int, optional
-            The x offset for the status bar. Defaults to 0.
-
-        Returns
-        -------
-        None
-        """
+        offset = 0
         labels, attrs = zip(*[b.status() for b in self.buttons])
         labels, attrs = list(labels), list(attrs)
         visible_labels = [l for l in labels if l]
@@ -2727,19 +2707,16 @@ class Menubar:
                     self.win.addstr(0, noffset, "│", self.attr)
                     noffset += 1
                 label = f"{label[:width]:^{width}}"
-                self.win.addstr(0, noffset, label, attr)
+                try:
+                    self.win.addstr(0, noffset, label, attr)
+                except _curses.error:
+                    pass
                 noffset += len(label)
 
-    def draw_buttons(self) -> None:
-        """
-        Draw all buttons in the list.
-
-        Returns
-        -------
-        None
-        """
         for button in self.buttons:
             button.draw()
+
+        self.win.refresh()
 
     async def handle_char(self, char: int) -> None:
         """
