@@ -107,12 +107,14 @@ CONFIG = {
         "show temp",
         "show sla-monitor",
         "show lldp config",
+        "show platform",
         "show port",
         "show mg list",
     ],
     "query_commands": [
-        "show voip-dsp",
         "show rtp-stat summary",
+        "show utilization",
+        "show voip-dsp",
     ]
 }
 
@@ -310,7 +312,7 @@ MODULE_ATTRS = [
         'column_name': 'v4',
         'column_color': 'normal',
         'column_fmt_spec': '>6',
-        'column_xpos': 27,
+        'column_xpos': 26,
     },
     {
         'column_attr': 'mm_v5',
@@ -549,7 +551,7 @@ STATUS_ATTRS = [
         'column_attr': 'total_session',
         'column_name': 'Tot.Session',
         'column_color': 'normal',
-        'column_fmt_spec': '>12',
+        'column_fmt_spec': '>11',
         'column_xpos': 17,
     },
     {
@@ -1108,6 +1110,7 @@ class BGW():
         show_faults: str = '',
         show_lldp_config: str = '',
         show_mg_list: str = '',
+        show_platform: str = '',
         show_port: str = '',
         show_rtp_stat_summary: str = '',
         show_running_config: str = '',
@@ -1131,6 +1134,7 @@ class BGW():
         self.show_faults = show_faults
         self.show_lldp_config = show_lldp_config
         self.show_mg_list = show_mg_list
+        self.show_platform = show_platform
         self.show_port = show_port
         self.show_rtp_stat_summary = show_rtp_stat_summary
         self.show_running_config = show_running_config
@@ -1246,12 +1250,12 @@ class BGW():
                 vintage_search = re.search(
                     r'Chassis HW Vintage\s+:\s+(\S+)', self.show_system
                 )
-                vintage = vintage_search.group(1) if vintage_search else "?"
+                vintage = vintage_search.group(1) if vintage_search else ""
                 
                 suffix_search = re.search(
                     r"Chassis HW Suffix\s+:\s+(\S+)", self.show_system
                 )
-                suffix = suffix_search.group(1) if suffix_search else "?"
+                suffix = suffix_search.group(1) if suffix_search else ""
                 
                 self._chassis_hw = f"{vintage}{suffix}"
             return self._chassis_hw
@@ -1372,7 +1376,9 @@ class BGW():
         """
         if self.show_system:
             if self._location is None:
-                m = re.search(r'System Location\s+:\s+(\S+)', self.show_system)
+                m = re.search(
+                    r'System Location\s+: ([^\r\n]*)', self.show_system
+                )
                 self._location = m.group(1) if m else ""
             return self._location
         return "NA"
@@ -1400,12 +1406,12 @@ class BGW():
                 vintage = re.search(
                     r'Mainboard HW Vintage\s+:\s+(\S+)', self.show_system
                 )
-                vintage = vintage.group(1) if vintage else "?"
+                vintage = vintage.group(1) if vintage else ""
 
                 suffix = re.search(
                     r"Mainboard HW Suffix\s+:\s+(\S+)", self.show_system
                 )
-                suffix = suffix.group(1) if suffix else "?"
+                suffix = suffix.group(1) if suffix else ""
 
                 self._mainboard_hw = f"{vintage}{suffix}"
             return self._mainboard_hw
@@ -1418,7 +1424,7 @@ class BGW():
         """
         if self.show_system:
             if self._memory is None:
-                m = re.findall(r"Memory #\d+\s+:\s+(\S+)", self.show_system)
+                m = re.findall(r"Memory .*?:\s+(\S+)", self.show_system)
                 self._memory = f"{sum(self._to_mbyte(x) for x in m)}MB"
             return self._memory
         return "NA"
@@ -1699,10 +1705,10 @@ class BGW():
         """
         Returns the Power Supply Unit 1 as a string.
         """
-        if self.show_system:
+        if self.show_platform:
             if self._psu1 is None:
-                m = re.search(r"PSU #1\s+:\s+\S+ (\S+)", self.show_system)
-                self._psu1 = m.group(1) if m else ""
+                m = re.findall(r"Power Supply (\d+W)", self.show_platform)
+                self._psu1 = m[0] if m else ""
             return self._psu1
         return "NA"
 
@@ -1711,10 +1717,10 @@ class BGW():
         """
         Returns the Power Supply Unit 2 as a string.
         """
-        if self.show_system:
+        if self.show_platform:
             if self._psu2 is None:
-                m = re.search(r"PSU #2\s+:\s+\S+ (\S+)", self.show_system)
-                self._psu2 = m.group(1) if m else ""
+                m = re.findall(r"Power Supply (\d+W)", self.show_platform)
+                self._psu2 = m[1] if m and len(m) > 1 else ""
             return self._psu2
         return "NA"
 
@@ -1865,14 +1871,16 @@ class BGW():
         """
         Returns the total number of in-use DSPs as a string.
         """
-        inuse = 0
-        dsps = re.findall(r"In Use\s+:\s+(\d+)", self.show_voip_dsp)
-        for dsp in dsps:
-            try:
-                inuse += int(dsp)
-            except:
-                pass
-        return f"{inuse}"
+        if self.show_voip_dsp:
+            inuse = 0
+            dsps = re.findall(r"In Use\s+:\s+(\d+)", self.show_voip_dsp)
+            for dsp in dsps:
+                try:
+                    inuse += int(dsp)
+                except:
+                    pass
+            return f"{inuse}"
+        return "NA"
 
     def update(
         self,
@@ -2054,8 +2062,7 @@ class Button:
         char_alt: Optional[str] = None,
         label_on: Optional[str] = None,
         label_off: Optional[str] = None,
-        attr_on: Optional[int] = None,
-        attr_off: Optional[int] = None,
+        color_scheme = None,
         callback_on: Optional[Callable[[], None]] = None,
         callback_off: Optional[Callable[[], None]] = None,
         done_callback_on: Optional[Callable[[], None]] = None,
@@ -2085,12 +2092,6 @@ class Button:
         label_off : str, optional
             The label to display when the button is off. Defaults to "Off" if
             not label_on else label_on.
-        attr_on : int, optional
-            The curses attribute to use when the button is on. Defaults to
-            curses.A_REVERSE.
-        attr_off : int, optional
-            The curses attribute to use when the button is off. Defaults to
-            curses.A_NORMAL.
         callback_on : Callable[[], None], optional
             The function to call when the button is turned on. Defaults to None.
         callback_off : Callable[[], None], optional
@@ -2125,18 +2126,18 @@ class Button:
         self.char_alt = char_alt
         self.label_on = label_on or "Off"
         self.label_off = label_off or ("On" if not label_on else label_on)
-        self.attr_on = attr_on or curses.A_REVERSE
-        self.attr_off = attr_off or curses.A_REVERSE
+        self.color_scheme = color_scheme or {"normal": 0, "standout": 65536}
+        self.attr = self.color_scheme.get("standout", 65536)
         self.callback_on = callback_on
         self.callback_off = callback_off
         self.done_callback_on = done_callback_on
         self.done_callback_off = done_callback_off
         self.status_label = status_label if status_label else ""
-        self.status_attr_on = status_attr_on or self.attr_on
-        self.status_attr_off = status_attr_off or self.attr_off
+        self.status_attr_on = status_attr_on or self.attr
+        self.status_attr_off = status_attr_off or self.attr
         self.callback_kwargs = callback_kwargs or {}
         self.callback_kwargs = {**self.callback_kwargs, **{"button": self}}
-        self.state = False if callback_on and callback_off else True
+        self.state = False
         self.callback_on_task = None
         self.callback_off_task = None
 
@@ -2156,10 +2157,9 @@ class Button:
             char = repr(chr(self.chars_int[0]))
 
         label = self.label_on if self.state else self.label_off
-        attr = self.attr_on if self.state else self.attr_off
 
         try:
-            self.win.addstr(self.y, self.x, f"{char}={label}", attr)
+            self.win.addstr(self.y, self.x, f"{char}={label}", self.attr)
         except curses.error:
             pass
 
@@ -2321,7 +2321,7 @@ class Workspace:
         self.storage = storage if storage is not None else []
         self.yoffset = yoffset
         self.xoffset = xoffset
-        self.color_scheme= color_scheme or {"normal": 0, "standout": 65536}
+        self.color_scheme = color_scheme or {"normal": 0, "standout": 65536}
         self.title_width = title_width
         self.posy = 0
         self.posx = 0
@@ -2442,7 +2442,7 @@ class Workspace:
                         self.column_fmt_specs, self.column_colors,
                         self.column_xposes, self.xoffset):
                     
-                    attr = self.colors_scheme.get(color, 0)
+                    attr = self.color_scheme.get(color, 0)
                     self.bodywin.addstr(
                         ridx, xpos - 1, "│" + attr_value + "│", attr
                     )
@@ -3555,9 +3555,9 @@ def main(stdscr, miny: int = 24, minx: int = 80):
     stdscr.box()
     stdscr.refresh()
 
-    system_menubar = Menubar(stdscr)
-    status_menubar = Menubar(stdscr)
-    rtpstat_menubar = Menubar(stdscr)
+    system_menubar = Menubar(stdscr, color_scheme=color_scheme)
+    status_menubar = Menubar(stdscr, color_scheme=color_scheme)
+    rtpstat_menubar = Menubar(stdscr, color_scheme=color_scheme)
     
     workspaces = [
         Workspace(
@@ -3660,14 +3660,15 @@ def main(stdscr, miny: int = 24, minx: int = 80):
         win=system_menubar.win,
         y=0, x=18,
         char_alt="🄳 ",
-        label_off="Discovery Start",
-        label_on="Discovery Stop ",
+        label_on="Stop  Discovery",
+        label_off="Start Discovery",
         callback_on=discovery_on_callback,
         callback_off=discovery_off_callback,
         done_callback_on=functools.partial(discovery_done_callback, ord("d"), mydisplay),
         status_label="Discovery",
         status_attr_on=curses.color_pair(42)|curses.A_REVERSE,
         status_attr_off=curses.color_pair(2)|curses.A_REVERSE,
+        color_scheme=color_scheme,
         stdscr=stdscr,
         progressbar=ProgressBar(stdscr),
         storage=BGWS,
@@ -3680,6 +3681,7 @@ def main(stdscr, miny: int = 24, minx: int = 80):
         label_on="Clear",
         callback_on=clear_storage_callback,
         done_callback_on=functools.partial(clear_done_callback, mydisplay),
+        color_scheme=color_scheme,
         stdscr=stdscr,
         storage=BGWS,
     )
@@ -3688,38 +3690,41 @@ def main(stdscr, miny: int = 24, minx: int = 80):
         win=rtpstat_menubar.win,
         y=0, x=18,
         char_alt="🅂 ",
-        label_off="Start Polling",
         label_on="Stop  Polling",
+        label_off="Start Polling",
         callback_on=None,
         callback_off=None,
         done_callback_on=None,
         status_label="Polling",
         status_attr_on=curses.color_pair(42)|curses.A_REVERSE,
         status_attr_off=curses.color_pair(2)|curses.A_REVERSE,
+        color_scheme=color_scheme,
         stdscr=stdscr,
     )
 
-    button_r = Button(ord("s"), ord("S"),
+    button_r = Button(ord("r"), ord("r"),
         win=rtpstat_menubar.win,
         y=0, x=38,
         char_alt="🅁 ",
-        label_off="RTP Details",
         label_on="RTP Details",
+        label_off="RTP Details",
         callback_on=None,
         callback_off=None,
         done_callback_on=None,
         status_attr_on=curses.color_pair(42)|curses.A_REVERSE,
         status_attr_off=curses.color_pair(2)|curses.A_REVERSE,
+        color_scheme=color_scheme,
         stdscr=stdscr,
     )
 
     button_c2 = Button(ord("c"), ord("C"),
-        win=system_menubar.win,
+        win=rtpstat_menubar.win,
         y=0, x=56,
         char_alt="🄲 ",
         label_on="Clear",
         callback_on=clear_storage_callback,
         done_callback_on=functools.partial(clear_done_callback, mydisplay),
+        color_scheme=color_scheme,
         stdscr=stdscr,
         storage=BGWS,
     )
@@ -3735,7 +3740,7 @@ BGWS = []
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Monitors Avaya Branch Gateways (BGW)')
-    parser.add_argument('-c', dest='color_scheme', default='default',
+    parser.add_argument('-c', dest='color_scheme', default='blue',
                         help='Color scheme: default|green|blue|orange')
     parser.add_argument('-u', dest='username', default='',
                         help='BGW SSH username')

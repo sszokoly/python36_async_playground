@@ -2250,3 +2250,27 @@ Traceback (most recent call last):
   File "/root/Projects/python36_async_playground/monitorBGW.py", line 2272, in draw
     line1 = "╭" + "─" * tab_width + "╮"
 NameError: name 'tab_width' is not defined
+2025-04-10 09:30:30,013 -    ERROR - CancelledError() in coro discover_gateways() [monitorBGW.py:3276]
+Traceback (most recent call last):
+  File "/home/ss/Projects/python36_async_playground/monitorBGW.py", line 3269, in discover_gateways
+    result = await fut
+  File "/usr/lib64/python3.6/asyncio/tasks.py", line 454, in _wait_for_one
+    f = yield from done.get()
+  File "/usr/lib64/python3.6/asyncio/queues.py", line 167, in get
+    yield from getter
+concurrent.futures._base.CancelledError
+2025-04-10 09:30:41,474 -    ERROR - TimeoutError in coro exec_script() for 10.10.48.58 [monitorBGW.py:3225]
+2025-04-10 09:30:41,475 -    ERROR - TimeoutError in coro exec_script() for 10.44.244.51 [monitorBGW.py:3225]
+2025-04-10 09:30:41,475 -    ERROR - TimeoutError() in coro discover_gateways() [monitorBGW.py:3276]
+Traceback (most recent call last):
+  File "/home/ss/Projects/python36_async_playground/monitorBGW.py", line 3269, in discover_gateways
+    result = await fut
+  File "/usr/lib64/python3.6/asyncio/tasks.py", line 458, in _wait_for_one
+    return f.result()  # May raise f.exception().
+  File "/home/ss/Projects/python36_async_playground/monitorBGW.py", line 3209, in query_gateway
+    stdout = await exec_script(*script, timeout=timeout, name=name)
+  File "/home/ss/Projects/python36_async_playground/monitorBGW.py", line 3147, in exec_script
+    stdout, stderr = await asyncio.wait_for(proc.communicate(), timeout)
+  File "/usr/lib64/python3.6/asyncio/tasks.py", line 362, in wait_for
+    raise futures.TimeoutError()
+concurrent.futures._base.TimeoutError
