@@ -2173,7 +2173,7 @@ class Button:
         -------
         None
         """
-        if self.callback_on and self.callback_off: 
+        if self.callback_on: # and self.callback_off: 
             self.state = not self.state
 
     def press(self) -> None:
@@ -2216,7 +2216,7 @@ class Button:
                         self.done_callback_on)
                     self.callback_on_task = None
 
-    async def handle_char(self, key: int) -> None:
+    async def handle_char(self, char: int) -> None:
         """
         Process a keypress.
 
@@ -2229,8 +2229,8 @@ class Button:
         -------
         None
         """
-        if key in self.chars_int:
-            logging.info(f"Received: {key}")
+        if char in self.chars_int:
+            logging.info(f"Received: char '{chr(char)}' ({char})")
             self.press()
 
     def status(self) -> str:
@@ -2323,17 +2323,17 @@ class Workspace:
         self.xoffset = xoffset
         self.color_scheme = color_scheme or {"normal": 0, "standout": 65536}
         self.title_width = title_width
-        self.posy = 0
-        self.posx = 0
-        self.row_pos = 0
+        self.bodywin_posy = 0
+        self.bodywin_posx = 0
+        self.storage_idx = 0
         self.attr = self.color_scheme["normal"]
         self.maxy = self.stdscr.getmaxyx()[0] - yoffset
         self.maxx = self.stdscr.getmaxyx()[1]
         self.titlewin = stdscr.subwin(title_width, self.maxx,
             yoffset, xoffset)
         self.bodywin = self.stdscr.subwin(
-            self.maxy - title_width, self.maxx, yoffset + title_width,
-            xoffset)
+            self.maxy - title_width - menubar.maxy, self.maxx,
+            yoffset + title_width, xoffset)
 
     def iter_attrs(self, obj: object, xoffset: int = 0) -> Iterator[Tuple[int, str, str]]:
         """
@@ -2432,8 +2432,8 @@ class Workspace:
         self.titlewin.refresh()
 
     def draw_bodywin(self):
-        start_row = self.row_pos
-        end_row = min(self.row_pos + (self.maxy - 3), len(self.storage))
+        start_row = self.storage_idx
+        end_row = min(self.storage_idx + (self.maxy - 3), len(self.storage))
         
         for ridx, obj in enumerate(self.storage[start_row:end_row]):
             try:
@@ -2442,7 +2442,10 @@ class Workspace:
                         self.column_fmt_specs, self.column_colors,
                         self.column_xposes, self.xoffset):
                     
-                    attr = self.color_scheme.get(color, 0)
+                    if ridx == self.bodywin_posy:
+                        attr = self.color_scheme.get(color, 0)|curses.A_STANDOUT
+                    else:
+                        attr = self.color_scheme.get(color, 0)
                     self.bodywin.addstr(
                         ridx, xpos - 1, "│" + attr_value + "│", attr
                     )
@@ -2456,23 +2459,23 @@ class Workspace:
 
     async def handle_char(self, char):
         if char == curses.KEY_DOWN:
-            self.row_pos = self.row_pos + 1 if self.posy == (self.maxy - (self.title_width + 1)) and self.row_pos + 1 <= len(self.storage) - (self.maxy - self.title_width) else self.row_pos
-            self.posy = self.posy + 1 if self.posy < (self.maxy - (self.title_width + 1)) and len(self.storage) - 1 > self.posy else self.posy
+            self.storage_idx = self.storage_idx + 1 if self.bodywin_posy == (self.maxy - (self.title_width + 1)) and self.storage_idx + 1 <= len(self.storage) - (self.maxy - self.title_width) else self.storage_idx
+            self.bodywin_posy = self.bodywin_posy + 1 if self.bodywin_posy < (self.maxy - (self.title_width + 1)) and len(self.storage) - 1 > self.bodywin_posy else self.bodywin_posy
         elif char == curses.KEY_UP:
-            self.row_pos = self.row_pos - 1 if self.row_pos > 0 and self.posy == 0 else self.row_pos
-            self.posy =  self.posy - 1 if self.posy > 0 else self.posy
+            self.storage_idx = self.storage_idx - 1 if self.storage_idx > 0 and self.bodywin_posy == 0 else self.storage_idx
+            self.bodywin_posy =  self.bodywin_posy - 1 if self.bodywin_posy > 0 else self.bodywin_posy
         elif char == curses.KEY_HOME:
-            self.row_pos = 0
-            self.posy = 0
+            self.storage_idx = 0
+            self.bodywin_posy = 0
         elif char == curses.KEY_END:
-            self.posy = min(self.maxy - (self.title_width + 1), len(self.storage) - 1)
-            self.row_pos = max(0, len(self.storage) - (self.maxy - self.title_width))
+            self.bodywin_posy = min(self.maxy - (self.title_width + 1), len(self.storage) - 1)
+            self.storage_idx = max(0, len(self.storage) - (self.maxy - self.title_width))
         elif char == curses.KEY_NPAGE:
-            self.row_pos = min(self.row_pos + (self.maxy - self.title_width), max(0, len(self.storage) - (self.maxy - self.title_width)))
-            self.posy = 0 if self.row_pos + (self.maxy - self.title_width) <= len(self.storage) - 1 else min(len(self.storage) - 1, (self.maxy - self.title_width) - 1)
+            self.storage_idx = min(self.storage_idx + (self.maxy - self.title_width), max(0, len(self.storage) - (self.maxy - self.title_width)))
+            self.bodywin_posy = 0 if self.storage_idx + (self.maxy - self.title_width) <= len(self.storage) - 1 else min(len(self.storage) - 1, (self.maxy - self.title_width) - 1)
         elif char == curses.KEY_PPAGE:
-            self.posy = 0
-            self.row_pos = max(self.row_pos - (self.maxy - self.title_width), 0)
+            self.bodywin_posy = 0
+            self.storage_idx = max(self.storage_idx - (self.maxy - self.title_width), 0)
         else:
             await self.menubar.handle_char(char)
         self.draw_bodywin()
@@ -2601,11 +2604,12 @@ class ProgressBar:
         self.win.refresh()
 
 class Confirmation:
-    def __init__(self, stdscr, body=None, attr=None, yoffset=-1, margin=1,
+    def __init__(self, stdscr, body=None, color_scheme=None, yoffset=-1, margin=1,
     ) -> None:
         self.stdscr = stdscr
         self.body = body or "Do you confirm (Y/N)?"
-        self.attr = attr or curses.color_pair(0)
+        self.color_scheme = color_scheme or {"normal": 0, "standout": 65536}
+        self.attr = self.color_scheme.get("normal", 0)
         self.yoffset = yoffset
         self.margin = margin
         
@@ -2734,7 +2738,7 @@ class Menubar:
         chars_list = [b.chars_int for b in self.buttons]
         for idx, chars in enumerate(chars_list):
             if char in chars:
-                logging.info(f"Received: {char}")
+                logging.info(f"Received: char '{chr(char)}' ({char})")
                 await self.buttons[idx].handle_char(char)
                 self.draw()
                 break
@@ -2754,8 +2758,8 @@ class MyDisplay():
         self.tab = tab
         self.confirmation = None
         self.done: bool = False
-        self.posx = 1
-        self.posy = 1
+        self.bodywin_posx = 1
+        self.bodywin_posy = 1
         self.maxy, self.maxx = self.stdscr.getmaxyx()
         self.active_ws_idx = 0
         self.color_pairs = self.init_color_pairs()
@@ -3522,7 +3526,8 @@ def unwrap_and_decompress(wrapped_text):
 
 async def clear_storage_callback(stdscr, storage, *args, **kwargs):
     logging.info("Created clear_storage_callback()")
-    confirmation = Confirmation(stdscr)
+    color_scheme = COLOR_SCHEMES[CONFIG["color_scheme"]]
+    confirmation = Confirmation(stdscr, color_scheme=color_scheme)
     result = await confirmation.draw()
     if result:
         if asyncio.iscoroutinefunction(storage.clear):
