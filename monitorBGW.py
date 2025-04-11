@@ -3508,6 +3508,22 @@ def discovery_done_callback(char, mydisplay, fut):
     curses.ungetch(char)
     mydisplay.active_workspace.draw_bodywin()
 
+async def polling_on_callback(storage, *args, **kwargs):
+    try:
+        create_task(poll_gateways(storage=storage))
+    except asyncio.CancelledError:
+        return
+
+async def polling_off_callback(*args, **kwargs):
+    for task in asyncio.Task.all_tasks():
+        if hasattr(task, "name") and task.startswith("coro query_gateway"):
+            task.cancel()
+            try:
+                await task
+            except asyncio.CancelledError:
+                pass
+            break
+
 def clear_done_callback(mydisplay, fut):
     try:
         fut.result()
@@ -3697,14 +3713,15 @@ def main(stdscr, miny: int = 24, minx: int = 80):
         char_alt="🅂 ",
         label_on="Stop  Polling",
         label_off="Start Polling",
-        callback_on=None,
-        callback_off=None,
+        callback_on=polling_on_callback,
+        callback_off=polling_off_callback,
         done_callback_on=None,
         status_label="Polling",
         status_attr_on=curses.color_pair(42)|curses.A_REVERSE,
         status_attr_off=curses.color_pair(2)|curses.A_REVERSE,
         color_scheme=color_scheme,
         stdscr=stdscr,
+        storage=CONFIG["storage"]
     )
 
     button_r = Button(ord("r"), ord("r"),
