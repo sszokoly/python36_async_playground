@@ -3740,7 +3740,7 @@ BGWS = []
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Monitors Avaya Branch Gateways (BGW)')
-    parser.add_argument('-c', dest='color_scheme', default='blue',
+    parser.add_argument('-c', dest='color_scheme', default='default',
                         help='Color scheme: default|green|blue|orange')
     parser.add_argument('-u', dest='username', default='',
                         help='BGW SSH username')
