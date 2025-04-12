@@ -32,9 +32,9 @@ from typing import AsyncIterator, Iterable, Iterator, Optional, Tuple, Union, Ty
 logger = logging.getLogger(__name__)
 
 ############################ CONSTATS, VARIABLES ############################
-LOG_FORMAT = "%(asctime)s - %(levelname)8s - %(message)s [%(filename)s:%(lineno)s]"
+LOG_FORMAT = "%(asctime)s - %(levelname)8s - %(message)s [%(funcName)s:%(lineno)s]"
 
-script_template = '''
+script_template_test = '''
 eJzdGWtv28jxu37FHE0f/GJsC7gPdZs+kOaQa5C74JwWKCSFoMmVxAtF0rvL2Aar/34z+yCXD0nOtU
 2BEoLE3Z2d98zOjiZH31xWgl/epfkleyxZLCdH+x74wDZlFkkG/4h4Gt1lTMDeDZOJYBLWhZBQ0/dW
 jSvBeB5tGNT2Tc+XkRAPCdT6V89xWYZCRrjfvun5LBIyDwWLBdTtu16Li80myhNcqaG2gy1szc5iFS
@@ -73,7 +73,7 @@ o4xeOug/4/80nbTGPrX9jt9Ueask8gOWuuQmcs2LarWG5m8GT2VbXuVAzjmxTmqWm95J45lHAyNbkE
 4r96BruLt6DnDA8F9o8IaQt/twGpjxOeYb/n14YmkNDdYzx08as770Un0Jf7v96UdT7U6UhDPzL9qC
 /s+kYoN4pt7mr8uCdPY='''
 
-script_template_test = '''
+script_template = '''
 eJxtUcFugzAMvfMVVlSkdgMJWLsDU4+TtsNO22UaE2Lg0kiQIBJEJ5R/n0NoO03zAez3/PIcx1Oo4S
 iVhsl+jWfrQWEvihZhOmcO7wqlxgom93dYr7tc6YL058zhTaG0yBWWCqZr7rhStm0hKmImmM6FAbMo
 ZZ0feEPueOqw1DkBxnNm1CjbZ6Hhg7ie9FzotUXXG7iB7caYT+psEDtILmOQMwqrwBKqQiOwW/899N
@@ -1230,8 +1230,8 @@ class BGW():
                 m = re.search(
                     r' service is (\w+) and (\w+)', self.show_capture
                 )
-                admin_state = m.group(1) if m else "?"
-                running_state = m.group(2) if m else "?"
+                admin_state = m.group(1) if m else ""
+                running_state = m.group(2) if m else ""
                 if admin_state == "disabled":
                     self._capture_service = "disabled"
                 else:
@@ -1286,7 +1286,7 @@ class BGW():
         """
         if self.show_utilization:
             m = re.search(r'10\s+(\d+)%\s+(\d+)%', self.show_utilization)
-            self._cpu_util = f"{m.group(1)}%/{m.group(2)}%" if m else "?/?"
+            self._cpu_util = f"{m.group(1)}%/{m.group(2)}%" if m else ""
             return self._cpu_util
         return "NA"
 
@@ -1300,7 +1300,7 @@ class BGW():
                 m = re.findall(
                     r"Media Socket .*?: M?P?(\d+) ", self.show_system
                 )
-                self._dsp = str(sum(int(x) for x in m)) if m else "?"
+                self._dsp = str(sum(int(x) for x in m)) if m else ""
             return self._dsp
         return "NA"
 
@@ -1327,7 +1327,7 @@ class BGW():
         if self.show_system:
             if self._fw is None:
                 m = re.search(r'FW Vintage\s+:\s+(\S+)', self.show_system)
-                self._fw = m.group(1) if m else "?"
+                self._fw = m.group(1) if m else ""
             return self._fw
         return "NA"
 
@@ -1339,9 +1339,9 @@ class BGW():
         if self.show_system:
             if self._hw is None:
                 m = re.search(r'HW Vintage\s+:\s+(\S+)', self.show_system)
-                hw_vintage = m.group(1) if m else "?"
+                hw_vintage = m.group(1) if m else ""
                 m = re.search(r'HW Suffix\s+:\s+(\S+)', self.show_system)
-                hw_suffix = m.group(1) if m else "?"
+                hw_suffix = m.group(1) if m else ""
                 self._hw = f"{hw_vintage}{hw_suffix}"
             return self._hw
         return "NA"
@@ -1391,7 +1391,7 @@ class BGW():
         if self.show_system:
             if self._mac is None:
                 m = re.search(r"LAN MAC Address\s+:\s+(\S+)", self.show_system)
-                self._mac = m.group(1).replace(":", "") if m else "?"
+                self._mac = m.group(1).replace(":", "") if m else ""
             return self._mac
         return "NA"
 
@@ -1583,7 +1583,7 @@ class BGW():
         if self.show_system:
             if self._model is None:
                 m = re.search(r'Model\s+:\s+(\S+)', self.show_system)
-                self._model = m.group(1) if m else "?"
+                self._model = m.group(1) if m else ""
             return self._model
         return "NA"
 
@@ -1604,7 +1604,7 @@ class BGW():
         """
         if self._port1_status is None:
             pdict = self._port_groupdict(0)
-            self._port1_status = pdict.get("status", "?") if pdict else "NA"
+            self._port1_status = pdict.get("status", "") if pdict else "NA"
         return self._port1_status
 
     @property
@@ -1614,7 +1614,7 @@ class BGW():
         """
         if self._port1_neg is None:
             pdict = self._port_groupdict(0)
-            self._port1_neg = pdict.get("neg", "?") if pdict else "NA"
+            self._port1_neg = pdict.get("neg", "") if pdict else "NA"
         return self._port1_neg
 
     @property
@@ -1624,7 +1624,7 @@ class BGW():
         """
         if self._port1_duplex is None:
             pdict = self._port_groupdict(0)
-            self._port1_duplex = pdict.get("duplex", "?") if pdict else "NA"
+            self._port1_duplex = pdict.get("duplex", "") if pdict else "NA"
         return self._port1_duplex
 
     @property
@@ -1634,7 +1634,7 @@ class BGW():
         """
         if self._port1_speed is None:
             pdict = self._port_groupdict(0)
-            self._port1_speed = pdict.get("speed", "?") if pdict else "NA"
+            self._port1_speed = pdict.get("speed", "") if pdict else "NA"
         return self._port1_speed
 
     @property
@@ -1644,7 +1644,7 @@ class BGW():
         """
         if self._port2 is None:
             pdict = self._port_groupdict(1)
-            self._port2 = pdict.get("port", "?") if pdict else "NA"
+            self._port2 = pdict.get("port", "") if pdict else "NA"
         return self._port2
 
     @property
@@ -1654,7 +1654,7 @@ class BGW():
         """
         if self._port2_status is None:
             pdict = self._port_groupdict(1)
-            self._port2_status = pdict.get("status", "?") if pdict else "NA"
+            self._port2_status = pdict.get("status", "") if pdict else "NA"
         return self._port2_status
 
     @property
@@ -1664,7 +1664,7 @@ class BGW():
         """
         if self._port2_neg is None:
             pdict = self._port_groupdict(1)
-            self._port2_neg = pdict.get("neg", "?") if pdict else "NA"
+            self._port2_neg = pdict.get("neg", "") if pdict else "NA"
         return self._port2_neg
 
     @property
@@ -1674,7 +1674,7 @@ class BGW():
         """
         if self._port2_duplex is None:
             pdict = self._port_groupdict(1)
-            self._port2_duplex = pdict.get("duplex", "?") if pdict else "NA"
+            self._port2_duplex = pdict.get("duplex", "") if pdict else "NA"
         return self._port2_duplex
 
     @property
@@ -1684,7 +1684,7 @@ class BGW():
         """
         if self._port2_speed is None:
             pdict = self._port_groupdict(1)
-            self._port2_speed = pdict.get("speed", "?") if pdict else "NA"
+            self._port2_speed = pdict.get("speed", "") if pdict else "NA"
         return self._port2_speed
 
     @property
@@ -1753,7 +1753,7 @@ class BGW():
         if self.show_system:
             if self._serial is None:
                 m = re.search(r'Serial No\s+:\s+(\S+)', self.show_system)
-                self._serial = m.group(1) if m else "?"
+                self._serial = m.group(1) if m else ""
             return self._serial
         return "NA"
 
@@ -1765,7 +1765,7 @@ class BGW():
         if self.show_sla_monitor:
             if self._slamon_service is None:
                 m = re.search(r'SLA Monitor:\s+(\S+)', self.show_sla_monitor)
-                self._slamon_service = m.group(1).lower() if m else "?"
+                self._slamon_service = m.group(1).lower() if m else ""
             return self._slamon_service
         return "NA"
 
@@ -1833,7 +1833,7 @@ class BGW():
                 m = re.search(
                     r'Temperature\s+:\s+(\S+) \((\S+)\)', self.show_temp
                 )
-                self._temp = f"{m.group(1)}/{m.group(2)}" if m else "?/?"
+                self._temp = f"{m.group(1)}/{m.group(2)}" if m else ""
             return self._temp
         return "NA"
 
@@ -1845,7 +1845,7 @@ class BGW():
         if self.show_rtp_stat_summary:
             m = re.search(r'nal\s+\S+\s+\S+\s+(\S+)',
                           self.show_rtp_stat_summary)
-            return m.group(1) if m else "?/?"
+            return m.group(1) if m else ""
         return "NA"
 
     @property
@@ -1862,7 +1862,7 @@ class BGW():
                                     .replace(":", "h", 1)\
                                     .replace(":", "m") + "s"
                 else:
-                    self._uptime = "?"
+                    self._uptime = ""
             return self._uptime
         return "NA"
 
@@ -1909,7 +1909,7 @@ class BGW():
             if not self.last_seen:
                 self.last_seen = last_seen
 
-            delta = last_seen - self.last_seen
+            delta = (last_seen - self.last_seen).seconds
             if delta:
                 self.avg_poll_secs = round((self.avg_poll_secs + delta) / 2, 1)
             else:
@@ -2060,17 +2060,17 @@ class Button:
         y: Optional[int] = 0,
         x: Optional[int] = 0,
         char_alt: Optional[str] = None,
-        label_on: Optional[str] = None,
         label_off: Optional[str] = None,
+        label_on: Optional[str] = None,
         color_scheme = None,
-        callback_on: Optional[Callable[[], None]] = None,
-        callback_off: Optional[Callable[[], None]] = None,
+        exec_func_on: Optional[Callable[[], None]] = None,
+        exec_func_off: Optional[Callable[[], None]] = None,
         done_callback_on: Optional[Callable[[], None]] = None,
         done_callback_off: Optional[Callable[[], None]] = None,
         status_label: Optional[str] = None,
         status_attr_on: Optional[int] = None,
         status_attr_off: Optional[int] = None,
-        **callback_kwargs: Any) -> None:
+        **kwargs: Any) -> None:
         """
         Initialize a Button.
 
@@ -2092,9 +2092,9 @@ class Button:
         label_off : str, optional
             The label to display when the button is off. Defaults to "Off" if
             not label_on else label_on.
-        callback_on : Callable[[], None], optional
+        exec_func_on : Callable[[], None], optional
             The function to call when the button is turned on. Defaults to None.
-        callback_off : Callable[[], None], optional
+        exec_func_off : Callable[[], None], optional
             The function to call when the button is turned off. Defaults to None.
         done_callback_on : Callable[[], None], optional
             The function to call when the on action is completed. Defaults to
@@ -2124,22 +2124,21 @@ class Button:
         self.y = y
         self.x = x
         self.char_alt = char_alt
-        self.label_on = label_on or "Off"
         self.label_off = label_off or ("On" if not label_on else label_on)
+        self.label_on = label_on or "Off"
         self.color_scheme = color_scheme or {"normal": 0, "standout": 65536}
         self.attr = self.color_scheme.get("standout", 65536)
-        self.callback_on = callback_on
-        self.callback_off = callback_off
+        self.exec_func_on = exec_func_on
+        self.exec_func_off = exec_func_off
         self.done_callback_on = done_callback_on
         self.done_callback_off = done_callback_off
         self.status_label = status_label if status_label else ""
         self.status_attr_on = status_attr_on or self.attr
         self.status_attr_off = status_attr_off or self.attr
-        self.callback_kwargs = callback_kwargs or {}
-        self.callback_kwargs = {**self.callback_kwargs, **{"button": self}}
+        self.kwargs = {**{"button": self}, **(kwargs if kwargs else {})}
         self.state = False
-        self.callback_on_task = None
-        self.callback_off_task = None
+        self.exec_func_on_task = None
+        self.exec_func_off_task = None
 
     def draw(self) -> None:
         """
@@ -2173,7 +2172,7 @@ class Button:
         -------
         None
         """
-        if self.callback_on: # and self.callback_off: 
+        if self.exec_func_on: # and self.exec_func_off: 
             self.state = not self.state
 
     def press(self) -> None:
@@ -2189,32 +2188,32 @@ class Button:
         self.toggle()
 
         if self.state:
-            if self.callback_on:
-                if asyncio.iscoroutinefunction(self.callback_on):
-                    self.callback_on_task: asyncio.Task = create_task(
-                        self.callback_on(**self.callback_kwargs),
-                        name="callback_on")
+            if self.exec_func_on:
+                if asyncio.iscoroutinefunction(self.exec_func_on):
+                    self.exec_func_on_task: asyncio.Task = create_task(
+                        self.exec_func_on(**self.kwargs),
+                        name=f"{self.exec_func_on.__name__}")
                     if self.done_callback_on:
-                        self.callback_on_task.add_done_callback(
+                        self.exec_func_on_task.add_done_callback(
                             self.done_callback_on)
                 else:
-                    self.callback_on(**self.callback_kwargs)
+                    self.exec_func_on(**self.kwargs)
         else:
-            if self.callback_off:
-                if asyncio.iscoroutinefunction(self.callback_off):
-                    self.callback_off_task: asyncio.Task = create_task(
-                        self.callback_off(**self.callback_kwargs),
-                        name="callback_off")
+            if self.exec_func_off:
+                if asyncio.iscoroutinefunction(self.exec_func_off):
+                    self.exec_func_off_task: asyncio.Task = create_task(
+                        self.exec_func_off(**self.kwargs),
+                        name=f"{self.exec_func_off.__name__}")
                     if self.done_callback_off:
-                        self.callback_off_task.add_done_callback(
+                        self.exec_func_off_task.add_done_callback(
                             self.done_callback_off)
                 else:
-                    self.callback_off(**self.callback_kwargs)
+                    self.exec_func_off(**self.kwargs)
                 
-                if self.callback_on_task and not self.callback_on_task.done():
-                    self.callback_on_task.remove_done_callback(
+                if self.exec_func_on_task and not self.exec_func_on_task.done():
+                    self.exec_func_on_task.remove_done_callback(
                         self.done_callback_on)
-                    self.callback_on_task = None
+                    self.exec_func_on_task = None
 
     async def handle_char(self, char: int) -> None:
         """
@@ -2230,7 +2229,7 @@ class Button:
         None
         """
         if char in self.chars_int:
-            logger.info(f"Received: char '{chr(char)}' ({char})")
+            logger.info(f"Button.handle_char('{chr(char)}')")
             self.press()
 
     def status(self) -> str:
@@ -2627,18 +2626,63 @@ class Confirmation:
     
     async def draw(self):
         self.win.box()
-        self.win.addstr(self.margin + 1, self.margin + 1, self.body, self.attr)
+        try:
+            self.win.addstr(self.margin + 1, self.margin + 1,
+                self.body, self.attr)
+        except _curses.error:
+            pass
         self.win.refresh()
         while True:
             char = self.win.getch()
             if char in (ord('y'), ord('Y')):
-                logger.info(f"Received: {char}")
                 return True
             elif char in (ord('n'), ord('N')):
-                logger.info(f"Received: {char}")
                 return False
             else:
                 await asyncio.sleep(0.01)
+
+    def erase(self):
+        self.win.erase()
+        self.win.refresh()
+
+class Popup:
+    def __init__(
+        self,
+        stdscr,
+        body=None,
+        color_scheme=None,
+        yoffset=-1,
+        margin=1,
+    ) -> None:
+        self.stdscr = stdscr
+        self.body = body or "Please wait..."
+        self.color_scheme = color_scheme or {"normal": 0, "standout": 65536}
+        self.attr = self.color_scheme.get("normal", 0)
+        self.yoffset = yoffset
+        self.margin = margin
+
+        maxy, maxx = self.stdscr.getmaxyx()
+        nlines = 3 + (2 * self.margin)
+        ncols = len(self.body) + (2 * self.margin) + 2
+        begin_y = maxy // 2 + self.yoffset - (self.margin + 1)
+        begin_x = maxx // 2 - (len(self.body) // 2) - (self.margin + 1)
+        self.win = curses.newwin(nlines, ncols, begin_y, begin_x)
+        self.panel = curses.panel.new_panel(self.win)
+        self.win.attron(self.attr)
+        self.win.nodelay(True)
+        self.panel.top()
+
+    def draw(self, body=None):
+        if body:
+            self.win.erase()
+            self.body = body
+        self.win.box()
+        try:
+            self.win.addstr(self.margin + 1, self.margin + 1,
+                self.body, self.attr)
+        except _curses.error:
+            pass
+        self.win.refresh()
 
     def erase(self):
         self.win.erase()
@@ -2739,7 +2783,7 @@ class Menubar:
         chars_list = [b.chars_int for b in self.buttons]
         for idx, chars in enumerate(chars_list):
             if char in chars:
-                logger.info(f"Received: char '{chr(char)}' ({char})")
+                logger.info(f"Menubar.handle_char('{chr(char)}')")
                 await self.buttons[idx].handle_char(char)
                 self.draw()
                 break
@@ -3095,7 +3139,7 @@ def connected_gateways(ip_filter: Optional[Set[str]] = None) -> Dict[str, str]:
     
     return {ip: result[ip] for ip in sorted(result)}
 
-def create_query_tasks(queue=None) -> List[asyncio.Task]:
+def create_query_tasks(queue=None, discovered_only: bool = False) -> List[asyncio.Task]:
     """
     Create tasks that query all gateways in GATEWAYS.
 
@@ -3104,17 +3148,23 @@ def create_query_tasks(queue=None) -> List[asyncio.Task]:
     """
     tasks = []
     
-    for bgw in GATEWAYS.values():
+    if discovered_only:
+        bgws = [bgw for bgw in GATEWAYS.values() if bgw.last_seen]
+    else:
+        bgws = GATEWAYS.values()
+
+    for bgw in bgws:
+        name=f"query_gateway_{bgw.host}"
         task = create_task(query_gateway(
             bgw,
             queue=queue,
-        ), name=f"query_gateway_{bgw.host}")
+        ), name=name)
+        logger.info(f"Created task {name}")
         tasks.append(task)
     
     return tasks
 
-async def exec_script(
-    *args,
+async def exec_script(*args,
     timeout: Optional[int] = None,
     name: Optional[str] = None
 ) -> Tuple[str, str]:
@@ -3130,7 +3180,7 @@ async def exec_script(
         Tuple[str, str]: A tuple containing stdout and stderr. If timeout occurs 
         or process is cancelled, appropriate messages are returned.
     """
-    name = name if name else "coro exec_script()"
+    name = name if name else "gateway"
     proc: Optional[asyncio.subprocess.Process] = None
 
     try:
@@ -3139,32 +3189,30 @@ async def exec_script(
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
         )
-        logger.info(f"Created process PID {proc.pid} in {name}")
+        logger.info(f"Created process PID {proc.pid} for {name}")
         
         stdout, stderr = await asyncio.wait_for(proc.communicate(), timeout)
         stdout_str = stdout.decode().strip()
         stderr_str = stderr.decode().strip()
 
         if proc.returncode == 0 and not stderr_str:
-            logger.debug(f"Got '{stdout_str}' from PID {proc.pid} in {name}")
+            logger.debug(f"Got '{stdout_str}' from PID {proc.pid} for {name}")
             return stdout_str
 
-        logger.error(f"{stderr_str} for PID {proc.pid} in {name}")
+        logger.error(f"{stderr_str} for PID {proc.pid} for {name}")
         return ""
 
     finally:
         if proc and proc.returncode is None:
-            logger.info(f"Terminating PID {proc.pid} in {name}")
+            logger.info(f"Terminating PID {proc.pid} for {name}")
             try:
                 proc._transport.close()
                 proc.kill()
                 await proc.wait()
             except Exception as e:
-                logger.error(f"{repr(e)} for PID {proc.pid} in {name}")
+                logger.error(f"{repr(e)} for PID {proc.pid} for {name}")
 
-async def query_gateway(
-    bgw: BGW,
-    queue: Optional[asyncio.Queue] = None,
+async def query_gateway(bgw: BGW, queue: Optional[asyncio.Queue] = None,
 ) -> Optional[str]:
     """
     Asynchronously queries a BGW and returns the command output.
@@ -3189,7 +3237,6 @@ async def query_gateway(
     polling_secs = CONFIG.get("polling_secs", 10)
     max_polling = CONFIG.get("max_polling", 20)
     semaphore = asyncio.Semaphore(max_polling)
-    name = f"query_gateway_{bgw.host}"
     avg_sleep = polling_secs
 
     while True:
@@ -3197,13 +3244,12 @@ async def query_gateway(
             start = time.perf_counter()
             async with semaphore:
                 logger.info(
-                    f"Acquired semaphore in {name}, free {semaphore._value}"
+                    f"Acquired semaphore for {bgw.host}, free {semaphore._value}"
                 )
                 
                 diff = time.perf_counter() - start
                 script = create_bgw_script(bgw)
-                name = f"exec_script_{bgw.host}"
-                stdout = await exec_script(*script, timeout=timeout, name=name)
+                stdout = await exec_script(*script, timeout=timeout, name=bgw.host)
 
                 if not queue:
                     return stdout
@@ -3211,20 +3257,20 @@ async def query_gateway(
 
                 sleep = round(max(polling_secs - diff, 0), 2)
                 avg_sleep = round((avg_sleep + sleep) / 2, 2)
-                logger.info(f"Sleeping {sleep}s (avg {avg_sleep}s) in {name}")
+                logger.info(f"Sleeping {sleep}s (avg {avg_sleep}s) for {bgw.host}")
                 await asyncio.sleep(sleep)
 
         except asyncio.CancelledError:
-            logger.error(f"CancelledError in {name}")
+            logger.error(f"CancelledError for {bgw.host}")
             raise
 
         except asyncio.TimeoutError:
-            logger.error(f"TimeoutError in {name}")
+            logger.error(f"TimeoutError for {bgw.host}")
             if not queue:
                 raise
 
         except Exception as e:
-            logger.exception(f"{repr(e)} in {name}")
+            logger.exception(f"{repr(e)} for {bgw.host}")
             if not queue:
                 raise
 
@@ -3246,20 +3292,18 @@ async def discover_gateways(storage=None, callback=None) -> Tuple[int, int]:
         total number of queries.
     """
 
-    GATEWAYS.clear()
-    BGWS.clear()
-
     ip_filter = CONFIG.get("ip_filter", None)
     maxlen = CONFIG.get("storage_maxlen", None)
     storage = storage or CONFIG.get("storage", AsyncMemoryStorage(maxlen))
-    name = "discover_gateways()"
+    bgws = []
 
+    GATEWAYS.clear()
     GATEWAYS.update({ip: BGW(ip, proto) for ip, proto in
         connected_gateways(ip_filter).items()})
 
     tasks = create_query_tasks()
     ok, total = 0, len(tasks)
-    logger.info(f"Scheduled {total} tasks in {name}")
+    logger.info(f"Scheduled {total} tasks")
     
     for idx, fut in enumerate(asyncio.as_completed(tasks), start=1):
         try:
@@ -3268,27 +3312,22 @@ async def discover_gateways(storage=None, callback=None) -> Tuple[int, int]:
                 bgw = await process_item(result, storage=storage)
                 if bgw:
                     ok += 1
-                    logger.info(f"Discovery {bgw.host} successful in {name}")
+                    bgws.append(bgw)
+                    logger.info(f"Discovered {bgw.host}")
         except Exception as e:
-            logger.exception(f"{repr(e)} in {name}")
+            logger.error(f"{repr(e)}")
 
-        if callback:
-            callback(idx/total)
+        else:
+            if callback:
+                callback(idx/total)
+    
+    return bgws
 
-    BGWS.extend(sorted(GATEWAYS.values(), key=lambda bgw: bgw.gw_number))
-    return (idx/total)
-
-async def poll_gateways(
-    storage = None,
-    callback = None,
-) -> None:
+async def poll_gateways(storage = None, callback=None) -> None:
     """
     Creates tasks that poll all connected gateways.
 
     Args:
-        timeout (float, optional): The timeout for each query.
-        polling_secs (float, optional): The interval between polling attempts.
-        max_polling (int, optional): The maximum number of concurrent queries.
         callback (Optional[Callable[[BGW], None]], optional): A callback.
 
     Returns:
@@ -3298,36 +3337,16 @@ async def poll_gateways(
     maxlen = CONFIG.get("storage_maxlen", None)
     storage = storage or CONFIG.get("storage", AsyncMemoryStorage(maxlen))
     queue = asyncio.Queue()
-    name = "poll_gateways()"
 
-    tasks = create_query_tasks(queue=queue)
+    tasks = create_query_tasks(queue=queue, discovered_only=False)
     task = create_task(
         process_queue(queue=queue, storage=storage, callback=callback),
         name="process_queue",
     )
     tasks.append(task)
-    logger.info(f"Started {len(tasks)} tasks in {name}")
+    logger.info(f"Started {len(tasks)} tasks")
 
-def discovery_func_factory(stdscr):
-    progress = ProgressBar(stdscr)
-    async def discover_callback(fraction, **kwargs):
-        nonlocal progress
-        await discover_gateways(callback=progress.draw)
-    return discover_callback
-
-def cancel_func_factory(stdscr):
-    async def cancel_callback(fraction, **kwargs):
-        await cancel_query_coros()
-    return cancel_callback
-
-def poll_callback(bgw):
-    print(f"poll_callback(): {bgw.gw_name:15} last_seen:{bgw.last_seen}")
-
-async def process_queue(
-    queue,
-    storage,
-    callback = None,
-) -> None:
+async def process_queue(queue, storage, callback = None) -> None:
     """
     Asynchronously processes items from a queue.
 
@@ -3339,21 +3358,15 @@ async def process_queue(
     Returns:
         None
     """
-    name = "coro process_queue()"
     c = 0
     while True:
         item = await queue.get()
         if item:
             await process_item(item, storage=storage, callback=callback)
             c += 1
-        logger.info(f"Got {c} items from queue in {name}")
+        logger.info(f"Got {c} items from queue")
 
-async def process_item(
-    item,
-    storage,
-    callback = None,
-    name: str = "process_item()"
-) -> None:
+async def process_item(item, storage, callback = None) -> None:
     """
     Updates a BGW object with item from a JSON string.
 
@@ -3368,27 +3381,25 @@ async def process_item(
     try:
         data = json.loads(item, strict=False)
     except json.JSONDecodeError:
-        logger.error(f"JSONDecodeError in {name}")
+        logger.error(f"JSONDecodeError: {item}")
     else:
         host = data.get("host")
         if host in GATEWAYS:
             rtp_sessions = data.get("rtp_sessions")
             if rtp_sessions:
                 await storage.put(rtp_sessions)
-                logger.info(
-                    f"Put {len(rtp_sessions)} rtp-stats in storage in {name}"
-                )
+                logger.info(f"Put {len(rtp_sessions)} rtp-stats into storage")
             
             bgw = GATEWAYS[host]
             bgw.update(**data)
             
             if callback:
-                logger.info(f"Calling {callback.__name__}({bgw}) in {name}")
-                callback(bgw)
+                logger.info(f"Calling {callback.__name__}({bgw})")
+                callback()
             return bgw
 
 def create_task(
-    coro: Coroutine[Any, Any, Any], 
+    coro: Coroutine[Any, Any, Any],
     name: Optional[str] = None,
     loop: asyncio.AbstractEventLoop = None,
 ) -> asyncio.Task:
@@ -3418,6 +3429,102 @@ async def cancel_query_coros(**kwargs):
         if hasattr(task, "name") and task.name.startswith("coro query_gateway"):
             task.cancel()
             await task
+
+async def discovery_on_func(progressbar, storage, *args, **kwargs):
+    BGWS.clear()
+    try:
+        progressbar.draw()
+        bgws = await create_task(discover_gateways(storage=storage,
+            callback=progressbar.draw), name="discover_gateways")
+    except asyncio.CancelledError:
+        return
+    else:
+        BGWS.extend(sorted(bgws, key=lambda bgw: bgw.gw_number))
+
+async def discovery_off_func(progressbar, mydisplay, *args, **kwargs):
+    for task in asyncio.Task.all_tasks():
+        if hasattr(task, "name") and task.name.startswith("query_gateway"):
+            logger.info(f"Cancelling {task.name}")
+            task.cancel()
+            try:
+                await task
+            except asyncio.CancelledError:
+                pass
+    progressbar.erase()
+    mydisplay.active_workspace.draw_bodywin()
+
+async def polling_on_func(stdscr, storage, mydisplay, *args, **kwargs):
+    color_scheme = COLOR_SCHEMES[CONFIG["color_scheme"]]
+    if not BGWS:
+        popup = Popup(stdscr,
+            body="Discover gateways first!",
+            color_scheme=color_scheme)
+        popup.draw()
+        await asyncio.sleep(2)
+        popup.erase()
+        return
+    
+    try:    
+        await create_task(poll_gateways(storage=storage,
+            callback=mydisplay.active_workspace.draw_bodywin),
+            name="poll_gateways")
+    except asyncio.CancelledError:
+        return
+
+async def polling_off_func(stdscr, *args, **kwargs):
+
+    color_scheme = COLOR_SCHEMES[CONFIG["color_scheme"]]
+    popup = Popup(stdscr, color_scheme=color_scheme)
+    popup.draw()
+    for task in asyncio.Task.all_tasks():
+        if hasattr(task, "name") and (
+            task.name.startswith("query_gateway") or
+            task.name.startswith("polling_gateways")
+        ):
+            task.cancel()
+            try:
+                await task
+            except asyncio.CancelledError:
+                pass
+    popup.erase()
+
+async def clear_storage_callback(stdscr, storage, *args, **kwargs):
+    color_scheme = COLOR_SCHEMES[CONFIG["color_scheme"]]
+    confirmation = Confirmation(stdscr, color_scheme=color_scheme)
+    result = await confirmation.draw()
+    if result:
+        if asyncio.iscoroutinefunction(storage.clear):
+            await storage.clear()
+        else:
+            storage.clear()
+        logger.info("Cleared storage")
+    confirmation.erase()
+
+def discovery_done_callback(mydisplay, fut):
+    try:
+        fut.result()
+    except asyncio.CancelledError:
+        return
+    except Exception:
+        return
+    curses.ungetch(ord("d"))
+    mydisplay.active_workspace.draw_bodywin()
+
+def clear_done_callback(mydisplay, fut):
+    try:
+        fut.result()
+    except asyncio.CancelledError:
+        pass
+    except Exception:
+        pass
+    mydisplay.active_workspace.bodywin.erase()
+    mydisplay.active_workspace.bodywin.refresh()
+
+def unwrap_and_decompress(wrapped_text):
+    base64_str = wrapped_text.replace('\n', '')
+    compressed_bytes = base64.b64decode(base64_str)
+    original_string = zlib.decompress(compressed_bytes).decode('utf-8')
+    return original_string
 
 def change_terminal(to_type="xterm-256color"):
     old_term = os.environ.get("TERM")
@@ -3479,81 +3586,6 @@ def must_resize(stdscr, miny, minx):
         stdscr.addstr(maxy // 2 + 2*i, (maxx - len(msg)) // 2, msg)
     stdscr.refresh()
     return True
-
-async def discovery_on_callback(progressbar, storage, *args, **kwargs):
-    try:
-        progressbar.draw()
-        await create_task(discover_gateways(storage=storage,
-            callback=progressbar.draw), name="discover_gateways")
-    except asyncio.CancelledError:
-        return
-
-async def discovery_off_callback(progressbar, *args, **kwargs):
-    for task in asyncio.Task.all_tasks():
-        if hasattr(task, "name") and (
-            task.name.startswith("query") or
-            task.name.startswith("discover")
-        ):
-            task.cancel()
-            try:
-                await task
-            except asyncio.CancelledError:
-                pass
-    progressbar.erase()
-
-def discovery_done_callback(char, mydisplay, fut):
-    try:
-        fut.result()
-    except asyncio.CancelledError:
-        return
-    except Exception:
-        return
-    curses.ungetch(char)
-    mydisplay.active_workspace.draw_bodywin()
-
-async def polling_on_callback(storage, *args, **kwargs):
-    try:
-        create_task(poll_gateways(storage=storage))
-    except asyncio.CancelledError:
-        return
-
-async def polling_off_callback(*args, **kwargs):
-    for task in asyncio.Task.all_tasks():
-        if hasattr(task, "name") and task.startswith("coro query_gateway"):
-            task.cancel()
-            try:
-                await task
-            except asyncio.CancelledError:
-                pass
-            break
-
-def clear_done_callback(mydisplay, fut):
-    try:
-        fut.result()
-    except asyncio.CancelledError:
-        pass
-    except Exception:
-        pass
-    mydisplay.active_workspace.bodywin.erase()
-    mydisplay.active_workspace.bodywin.refresh()
-
-def unwrap_and_decompress(wrapped_text):
-    base64_str = wrapped_text.replace('\n', '')
-    compressed_bytes = base64.b64decode(base64_str)
-    original_string = zlib.decompress(compressed_bytes).decode('utf-8')
-    return original_string
-
-async def clear_storage_callback(stdscr, storage, *args, **kwargs):
-    logger.info("Created clear_storage_callback()")
-    color_scheme = COLOR_SCHEMES[CONFIG["color_scheme"]]
-    confirmation = Confirmation(stdscr, color_scheme=color_scheme)
-    result = await confirmation.draw()
-    if result:
-        if asyncio.iscoroutinefunction(storage.clear):
-            await storage.clear()
-        else:
-            storage.clear()
-    confirmation.erase()
 
 def main(stdscr, miny: int = 24, minx: int = 80):
     curses.curs_set(0)
@@ -3678,6 +3710,7 @@ def main(stdscr, miny: int = 24, minx: int = 80):
 
     tab = Tab(stdscr, tab_names=[w.name for w in workspaces],
         color_scheme=color_scheme)
+    
     mydisplay = MyDisplay(stdscr, workspaces=workspaces, tab=tab)
 
     button_d = Button(ord("d"), ord("D"),
@@ -3686,15 +3719,16 @@ def main(stdscr, miny: int = 24, minx: int = 80):
         char_alt="🄳 ",
         label_on="Stop  Discovery",
         label_off="Start Discovery",
-        callback_on=discovery_on_callback,
-        callback_off=discovery_off_callback,
-        done_callback_on=functools.partial(discovery_done_callback, ord("d"), mydisplay),
+        exec_func_on=discovery_on_func,
+        exec_func_off=discovery_off_func,
+        done_callback_on=functools.partial(discovery_done_callback, mydisplay),
         status_label="Discovery",
         status_attr_on=curses.color_pair(42)|curses.A_REVERSE,
         status_attr_off=curses.color_pair(2)|curses.A_REVERSE,
         color_scheme=color_scheme,
         stdscr=stdscr,
         progressbar=ProgressBar(stdscr),
+        mydisplay=mydisplay,
         storage=BGWS,
     )
 
@@ -3703,10 +3737,11 @@ def main(stdscr, miny: int = 24, minx: int = 80):
         y=0, x=38,
         char_alt="🄲 ",
         label_on="Clear",
-        callback_on=clear_storage_callback,
+        exec_func_on=clear_storage_callback,
         done_callback_on=functools.partial(clear_done_callback, mydisplay),
         color_scheme=color_scheme,
         stdscr=stdscr,
+        mydisplay=mydisplay,
         storage=BGWS,
     )
 
@@ -3716,14 +3751,15 @@ def main(stdscr, miny: int = 24, minx: int = 80):
         char_alt="🅂 ",
         label_on="Stop  Polling",
         label_off="Start Polling",
-        callback_on=polling_on_callback,
-        callback_off=polling_off_callback,
+        exec_func_on=polling_on_func,
+        exec_func_off=polling_off_func,
         done_callback_on=None,
         status_label="Polling",
         status_attr_on=curses.color_pair(42)|curses.A_REVERSE,
         status_attr_off=curses.color_pair(2)|curses.A_REVERSE,
         color_scheme=color_scheme,
         stdscr=stdscr,
+        mydisplay=mydisplay,
         storage=CONFIG["storage"]
     )
 
@@ -3733,13 +3769,14 @@ def main(stdscr, miny: int = 24, minx: int = 80):
         char_alt="🅁 ",
         label_on="RTP Details",
         label_off="RTP Details",
-        callback_on=None,
-        callback_off=None,
+        exec_func_on=None,
+        exec_func_off=None,
         done_callback_on=None,
         status_attr_on=curses.color_pair(42)|curses.A_REVERSE,
         status_attr_off=curses.color_pair(2)|curses.A_REVERSE,
         color_scheme=color_scheme,
         stdscr=stdscr,
+        mydisplay=mydisplay,
     )
 
     button_c2 = Button(ord("c"), ord("C"),
@@ -3747,10 +3784,11 @@ def main(stdscr, miny: int = 24, minx: int = 80):
         y=0, x=56,
         char_alt="🄲 ",
         label_on="Clear",
-        callback_on=clear_storage_callback,
+        exec_func_on=clear_storage_callback,
         done_callback_on=functools.partial(clear_done_callback, mydisplay),
         color_scheme=color_scheme,
         stdscr=stdscr,
+        mydisplay=mydisplay,
         storage=BGWS,
     )
 
@@ -3775,7 +3813,7 @@ if __name__ == "__main__":
                         help='secs to look back in RTP stats, default 30s')
     parser.add_argument('-m', dest='max_polling', default=19,
                         help='max simultaneous polling sessons, default 20')
-    parser.add_argument('-l', dest='loglevel', default="CRITICAL",
+    parser.add_argument('-l', dest='loglevel', default="INFO",
                         help='loglevel')
     parser.add_argument('-t', dest='timeout', default=12,
                         help='timeout in secs, default 10secs')
