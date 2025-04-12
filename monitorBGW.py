@@ -3108,7 +3108,7 @@ def create_query_tasks(queue=None) -> List[asyncio.Task]:
         task = create_task(query_gateway(
             bgw,
             queue=queue,
-        ), name=f"coro query_gateway() for {bgw.host}")
+        ), name=f"query_gateway_{bgw.host}")
         tasks.append(task)
     
     return tasks
@@ -3189,7 +3189,7 @@ async def query_gateway(
     polling_secs = CONFIG.get("polling_secs", 10)
     max_polling = CONFIG.get("max_polling", 20)
     semaphore = asyncio.Semaphore(max_polling)
-    name = f"coro query_gateway() for {bgw.host}"
+    name = f"query_gateway_{bgw.host}"
     avg_sleep = polling_secs
 
     while True:
@@ -3202,7 +3202,7 @@ async def query_gateway(
                 
                 diff = time.perf_counter() - start
                 script = create_bgw_script(bgw)
-                name = f"coro exec_script() for {bgw.host}"
+                name = f"exec_script_{bgw.host}"
                 stdout = await exec_script(*script, timeout=timeout, name=name)
 
                 if not queue:
@@ -3252,7 +3252,7 @@ async def discover_gateways(storage=None, callback=None) -> Tuple[int, int]:
     ip_filter = CONFIG.get("ip_filter", None)
     maxlen = CONFIG.get("storage_maxlen", None)
     storage = storage or CONFIG.get("storage", AsyncMemoryStorage(maxlen))
-    name = "coro discover_gateways()"
+    name = "discover_gateways()"
 
     GATEWAYS.update({ip: BGW(ip, proto) for ip, proto in
         connected_gateways(ip_filter).items()})
@@ -3303,7 +3303,7 @@ async def poll_gateways(
     tasks = create_query_tasks(queue=queue)
     task = create_task(
         process_queue(queue=queue, storage=storage, callback=callback),
-        name="coro process_queue()",
+        name="process_queue",
     )
     tasks.append(task)
     logger.info(f"Started {len(tasks)} tasks in {name}")
@@ -3484,20 +3484,22 @@ async def discovery_on_callback(progressbar, storage, *args, **kwargs):
     try:
         progressbar.draw()
         await create_task(discover_gateways(storage=storage,
-            callback=progressbar.draw))
+            callback=progressbar.draw), name="discover_gateways")
     except asyncio.CancelledError:
         return
 
 async def discovery_off_callback(progressbar, *args, **kwargs):
-    progressbar.erase()
     for task in asyncio.Task.all_tasks():
-        if hasattr(task, "name") and task.name == "callback_on":
+        if hasattr(task, "name") and (
+            task.name.startswith("query") or
+            task.name.startswith("discover")
+        ):
             task.cancel()
             try:
                 await task
             except asyncio.CancelledError:
                 pass
-            break
+    progressbar.erase()
 
 def discovery_done_callback(char, mydisplay, fut):
     try:
