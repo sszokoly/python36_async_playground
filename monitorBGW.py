@@ -89,7 +89,7 @@ CONFIG = {
     "polling_secs": 5,
     "max_polling": 20,
     "lastn_secs": 30,
-    "loglevel": "ERROR",
+    "loglevel": "CRITICAL",
     "logfile": "bgw.log",
     "expect_log": "expect_log",
     "ip_filter": None,
@@ -2230,7 +2230,7 @@ class Button:
         None
         """
         if char in self.chars_int:
-            logging.info(f"Received: char '{chr(char)}' ({char})")
+            logger.info(f"Received: char '{chr(char)}' ({char})")
             self.press()
 
     def status(self) -> str:
@@ -2600,6 +2600,7 @@ class ProgressBar:
         ProgressBar
             The same instance.
         """
+        self.fraction = 0
         self.win.erase()
         self.win.refresh()
 
@@ -2631,10 +2632,10 @@ class Confirmation:
         while True:
             char = self.win.getch()
             if char in (ord('y'), ord('Y')):
-                logging.info(f"Received: {char}")
+                logger.info(f"Received: {char}")
                 return True
             elif char in (ord('n'), ord('N')):
-                logging.info(f"Received: {char}")
+                logger.info(f"Received: {char}")
                 return False
             else:
                 await asyncio.sleep(0.01)
@@ -2738,7 +2739,7 @@ class Menubar:
         chars_list = [b.chars_int for b in self.buttons]
         for idx, chars in enumerate(chars_list):
             if char in chars:
-                logging.info(f"Received: char '{chr(char)}' ({char})")
+                logger.info(f"Received: char '{chr(char)}' ({char})")
                 await self.buttons[idx].handle_char(char)
                 self.draw()
                 break
@@ -3084,10 +3085,10 @@ def connected_gateways(ip_filter: Optional[Set[str]] = None) -> Dict[str, str]:
                 proto = "encrypted"
             else:
                 proto = "unencrypted"
-            logging.info(f"Found gateway {ip} using {proto} protocol")
+            logger.info(f"Found gateway {ip} using {proto} protocol")
             if not ip_filter or ip in ip_filter:
                 result[ip] = proto
-                logging.info(f"Added gateway {ip} to result dictionary")
+                logger.info(f"Added gateway {ip} to result dictionary")
     
     if not result:
         return {"10.10.48.58": "unencrypted", "10.44.244.51": "encrypted"}
@@ -3269,7 +3270,7 @@ async def discover_gateways(storage=None, callback=None) -> Tuple[int, int]:
                     ok += 1
                     logger.info(f"Discovery {bgw.host} successful in {name}")
         except Exception as e:
-            logging.exception(f"{repr(e)} in {name}")
+            logger.exception(f"{repr(e)} in {name}")
 
         if callback:
             callback(idx/total)
@@ -3426,7 +3427,7 @@ def change_terminal(to_type="xterm-256color"):
     return old_term
 
 def startup():
-    #logger.setLevel(CONFIG["loglevel"].upper())
+    logger.setLevel(CONFIG["loglevel"].upper())
     orig_term = change_terminal()
     orig_stty = os.popen("stty -g").read().strip()
     atexit.register(shutdown, orig_term, orig_stty)
@@ -3541,7 +3542,7 @@ def unwrap_and_decompress(wrapped_text):
     return original_string
 
 async def clear_storage_callback(stdscr, storage, *args, **kwargs):
-    logging.info("Created clear_storage_callback()")
+    logger.info("Created clear_storage_callback()")
     color_scheme = COLOR_SCHEMES[CONFIG["color_scheme"]]
     confirmation = Confirmation(stdscr, color_scheme=color_scheme)
     result = await confirmation.draw()
@@ -3772,7 +3773,7 @@ if __name__ == "__main__":
                         help='secs to look back in RTP stats, default 30s')
     parser.add_argument('-m', dest='max_polling', default=19,
                         help='max simultaneous polling sessons, default 20')
-    parser.add_argument('-l', dest='loglevel', default="ERROR",
+    parser.add_argument('-l', dest='loglevel', default="CRITICAL",
                         help='loglevel')
     parser.add_argument('-t', dest='timeout', default=12,
                         help='timeout in secs, default 10secs')
