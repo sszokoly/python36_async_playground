@@ -19544,3 +19544,28 @@ Traceback (most recent call last):
 KeyboardInterrupt
 2025-04-13 18:07:23,852 -    ERROR - CancelledError for 10.10.48.58 [query_gateway:3810]
 2025-04-13 18:07:23,853 -    ERROR - CancelledError for 10.44.244.51 [query_gateway:3810]
+2025-04-13 18:47:22,521 -    ERROR - CancelledError for 10.44.244.51 [query_gateway:3816]
+2025-04-13 18:49:01,697 -    ERROR - CancelledError for 10.10.48.58 [query_gateway:3816]
+2025-04-13 18:49:01,698 -    ERROR - CancelledError for 10.44.244.51 [query_gateway:3816]
+2025-04-13 18:49:24,410 -    ERROR - Task was destroyed but it is pending!
+task: <Task pending coro=<process_queue() done, defined at /root/Projects/python36_async_playground/monitorBGW.py:3901> wait_for=<Future cancelled>> [default_exception_handler:1285]
+2025-04-13 18:51:12,068 -    ERROR - Task exception was never retrieved
+future: <Task finished coro=<polling_on_func() done, defined at /root/Projects/python36_async_playground/monitorBGW.py:4011> exception=TypeError("'int' object is not iterable",)> [default_exception_handler:1285]
+Traceback (most recent call last):
+  File "/root/Projects/python36_async_playground/monitorBGW.py", line 4025, in polling_on_func
+    name="poll_gateways")
+  File "/root/Projects/python36_async_playground/monitorBGW.py", line 3890, in poll_gateways
+    storage = storage or CONFIG.get("storage", SlicableOrderedDict(maxlen))
+  File "/root/Projects/python36_async_playground/monitorBGW.py", line 1400, in __init__
+    self._items = dict(items) if items else dict()
+TypeError: 'int' object is not iterable
+2025-04-13 18:51:55,123 -    ERROR - Task exception was never retrieved
+future: <Task finished coro=<polling_on_func() done, defined at /root/Projects/python36_async_playground/monitorBGW.py:4011> exception=TypeError("'int' object is not iterable",)> [default_exception_handler:1285]
+Traceback (most recent call last):
+  File "/root/Projects/python36_async_playground/monitorBGW.py", line 4025, in polling_on_func
+    name="poll_gateways")
+  File "/root/Projects/python36_async_playground/monitorBGW.py", line 3890, in poll_gateways
+    storage = storage or CONFIG.get("storage", SlicableOrderedDict(maxlen))
+  File "/root/Projects/python36_async_playground/monitorBGW.py", line 1400, in __init__
+    self._items = dict(items) if items else dict()
+TypeError: 'int' object is not iterable

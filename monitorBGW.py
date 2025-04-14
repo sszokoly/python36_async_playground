@@ -2856,6 +2856,7 @@ class Workspace:
         self.bodywin = self.stdscr.subwin(
             self.maxy - title_width - menubar.maxy, self.maxx,
             yoffset + title_width, xoffset)
+        self.panel = curses.panel.new_panel(self.bodywin)
 
     def iter_attrs(self, obj: object, xoffset: int = 0) -> Iterator[Tuple[int, str, str]]:
         """
@@ -2932,9 +2933,10 @@ class Workspace:
             offset += len(name) + 1
 
     def draw(self):
-        self.draw_titlewin()
-        self.draw_bodywin()
-        self.draw_menubar()
+        if not self.panel.hidden():
+            self.draw_titlewin()
+            self.draw_bodywin()
+            self.draw_menubar()
 
     def draw_titlewin(self):
         self.titlewin.attron(self.attr)
@@ -2974,7 +2976,9 @@ class Workspace:
                     )
             except curses.error:
                 pass
-        self.bodywin.refresh()
+        
+        if not self.panel.hidden():
+            self.bodywin.refresh()
 
     def draw_menubar(self):
         if self.menubar:
@@ -3028,7 +3032,9 @@ class Workspace:
         
         else:
             await self.menubar.handle_char(char)
-        self.draw_bodywin()
+
+        if not self.panel.hidden():
+            self.draw_bodywin()
 
 class MyPanel:
     def __init__(self, stdscr,
@@ -3042,7 +3048,7 @@ class MyPanel:
         storage=None,
         yoffset=2,
         xoffset=0,
-        margin=1,
+        margin=0,
     ) -> None:
         self.stdscr = stdscr
         self.field_attrs = field_attrs
@@ -3058,8 +3064,8 @@ class MyPanel:
         self.margin = margin
         self.maxy = self.stdscr.getmaxyx()[0] - yoffset
         self.maxx = self.stdscr.getmaxyx()[1]
-        nlines = self.maxy #- (2 * self.margin)
-        ncols = self.maxx #- (2 * self.margin)
+        nlines = self.maxy - (2 * self.margin)
+        ncols = self.maxx - (2 * self.margin)
         begin_y = self.yoffset
         begin_x = self.xoffset
         self.win = curses.newwin(nlines, ncols, begin_y, begin_x)
@@ -4022,9 +4028,9 @@ async def polling_on_func(stdscr, storage, mydisplay, *args, **kwargs):
 
 async def polling_off_func(stdscr, *args, **kwargs):
 
-    color_scheme = COLOR_SCHEMES[CONFIG["color_scheme"]]
-    popup = Popup(stdscr, color_scheme=color_scheme)
-    popup.draw()
+    #color_scheme = COLOR_SCHEMES[CONFIG["color_scheme"]]
+    #popup = Popup(stdscr, color_scheme=color_scheme)
+    #popup.draw()
     for task in asyncio.Task.all_tasks():
         if hasattr(task, "name") and (
             task.name.startswith("query_gateway") or
@@ -4035,7 +4041,7 @@ async def polling_off_func(stdscr, *args, **kwargs):
                 await task
             except asyncio.CancelledError:
                 pass
-    popup.erase()
+    #popup.erase()
 
 async def clear_storage_callback(stdscr, storage, *args, **kwargs):
     color_scheme = COLOR_SCHEMES[CONFIG["color_scheme"]]
@@ -4073,16 +4079,18 @@ def draw_workspace_callback(mydisplay):
     aw = mydisplay.active_workspace
     aw.draw_bodywin()
 
-def show_rtpstat_panel(panel, mydisplay, *args, **kwargs):
+def show_rtpstat_panel(rtpstat_panel, mydisplay, *args, **kwargs):
     storage_idx = mydisplay.active_workspace.storage_idx
     posy = mydisplay.active_workspace.bodywin_posy
-    panel.draw(storage_idx + posy)
+    mydisplay.active_workspace.panel.hide()
+    rtpstat_panel.draw(storage_idx + posy)
     curses.panel.update_panels()
 
-def hide_rtpstat_panel(panel, mydisplay, *args, **kwargs):
-    panel.erase()
+def hide_rtpstat_panel(rtpstat_panel, mydisplay, *args, **kwargs):
+    rtpstat_panel.erase()
     curses.panel.update_panels()
     mydisplay.active_workspace.draw()
+    mydisplay.active_workspace.panel.top()
 
 def unwrap_and_decompress(wrapped_text):
     base64_str = wrapped_text.replace('\n', '')
@@ -4365,7 +4373,7 @@ def main(stdscr, miny: int = 24, minx: int = 80):
         color_scheme=color_scheme,
         stdscr=stdscr,
         mydisplay=mydisplay,
-        storage=BGWS,
+        storage=CONFIG["storage"],
     )
 
     system_menubar.buttons = [button_d, button_c1]
