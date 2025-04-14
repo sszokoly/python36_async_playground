@@ -2251,7 +2251,7 @@ class BGW():
         Returns the current RAM utilization as percentage.
         """
         if self.show_utilization:
-            m = re.search(r'10\s+S+\s+\S+\s+(\d+)%', self.show_utilization)
+            m = re.search(r'10\s+\S+\s+\S+\s+(\d+)%', self.show_utilization)
             self._ram_util = f"{m.group(1)}%" if m else ""
             return self._ram_util
         return "NA"
@@ -2810,9 +2810,11 @@ class Tab:
         self.win.refresh()
 
     async def handle_char(self, char):
-        if chr(char) == "\t":
+        if char in (ord("\t"), curses.KEY_RIGHT):
             self.active_tab_idx = (self.active_tab_idx + 1) % len(self.tab_names)
-            self.draw()
+        elif char in (curses.KEY_LEFT, curses.KEY_BACKSPACE):
+            self.active_tab_idx = (self.active_tab_idx - 1) % len(self.tab_names)
+        self.draw()
 
 class Workspace:
     def __init__(self, stdscr,
@@ -3476,8 +3478,13 @@ class MyDisplay():
     async def handle_char(self, char: int) -> None:
         if chr(char) in ("q", "Q"):
             self.set_exit()
-        elif chr(char) == "\t":
-            self.active_ws_idx = (self.active_ws_idx + 1) % len(self.workspaces)
+        elif char in (ord("\t"), curses.KEY_RIGHT,
+                      curses.KEY_BACKSPACE, curses.KEY_LEFT):
+            if char in (ord("\t"), curses.KEY_RIGHT):
+                self.active_ws_idx = (self.active_ws_idx + 1) % len(self.workspaces)
+            else:
+                self.active_ws_idx = (self.active_ws_idx - 1) % len(self.workspaces)
+        
             self.stdscr.erase()
             self.workspaces[self.active_ws_idx].draw()
             await self.tab.handle_char(char)
@@ -3731,7 +3738,7 @@ async def exec_script(*args,
         or process is cancelled, appropriate messages are returned.
     """
     name = name if name else "gateway"
-    proc: Optional[asyncio.subprocess.Process] = None
+    proc = None
 
     try:
         proc = await asyncio.create_subprocess_exec(
@@ -4408,7 +4415,7 @@ if __name__ == "__main__":
                         help='BGW SSH username')
     parser.add_argument('-p', dest='passwd', default='',
                         help='BGW SSH password')
-    parser.add_argument('-n', dest='lastn_secs', default=30,
+    parser.add_argument('-n', dest='lastn_secs', default=3630,
                         help='secs to look back in RTP stats, default 30s')
     parser.add_argument('-m', dest='max_polling', default=19,
                         help='max simultaneous polling sessons, default 20')
