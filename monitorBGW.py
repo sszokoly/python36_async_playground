@@ -767,7 +767,7 @@ RTPSTAT_PANEL_ATTRS = [
     },
     {
         'field_attr': 'session_id',
-        'field_color': 'standout',
+        'field_color': 'bold',
         'field_fmt_spec': '',
         'field_ypos': 1,
         'field_xpos': 13
@@ -781,7 +781,7 @@ RTPSTAT_PANEL_ATTRS = [
     },
         {
         'field_attr': 'status',
-        'field_color': 'standout',
+        'field_color': 'bold',
         'field_fmt_spec': '',
         'field_ypos': 1,
         'field_xpos': 29
@@ -795,7 +795,7 @@ RTPSTAT_PANEL_ATTRS = [
     },
     {
         'field_attr': 'qos',
-        'field_color': 'standout',
+        'field_color': 'bold',
         'field_fmt_spec': '',
         'field_ypos': 1,
         'field_xpos': 48
@@ -809,7 +809,7 @@ RTPSTAT_PANEL_ATTRS = [
     },
     {
         'field_attr': 'samples',
-        'field_color': 'standout',
+        'field_color': 'bold',
         'field_fmt_spec': '',
         'field_ypos': 1,
         'field_xpos': 67
@@ -823,7 +823,7 @@ RTPSTAT_PANEL_ATTRS = [
     },
     {
         'field_attr': 'start_time',
-        'field_color': 'standout',
+        'field_color': 'bold',
         'field_fmt_spec': '',
         'field_ypos': 2,
         'field_xpos': 8
@@ -837,7 +837,7 @@ RTPSTAT_PANEL_ATTRS = [
     },
     {
         'field_attr': 'end_time',
-        'field_color': 'standout',
+        'field_color': 'bold',
         'field_fmt_spec': '',
         'field_ypos': 2,
         'field_xpos': 35
@@ -851,7 +851,7 @@ RTPSTAT_PANEL_ATTRS = [
     },
     {
         'field_attr': 'duration',
-        'field_color': 'standout',
+        'field_color': 'bold',
         'field_fmt_spec': '',
         'field_ypos': 2,
         'field_xpos': 67
@@ -949,7 +949,7 @@ RTPSTAT_PANEL_ATTRS = [
     },
     {
         'field_attr': 'local_ssrc',
-        'field_color': 'standout',
+        'field_color': 'bold',
         'field_fmt_spec': '',
         'field_ypos': 6,
         'field_xpos': 12
@@ -963,7 +963,7 @@ RTPSTAT_PANEL_ATTRS = [
     },
     {
         'field_attr': 'codec_enc',
-        'field_color': 'standout',
+        'field_color': 'bold',
         'field_fmt_spec': '^22',
         'field_ypos': 6,
         'field_xpos': 29
@@ -977,14 +977,14 @@ RTPSTAT_PANEL_ATTRS = [
     },
     {
         'field_attr': 'remote_ssrc',
-        'field_color': 'standout',
+        'field_color': 'bold',
         'field_fmt_spec': '',
         'field_ypos': 6,
         'field_xpos': 59
     },
     {
         'field_attr': 'remote_ssrc_change',
-        'field_color': 'standout',
+        'field_color': 'bold',
         'field_fmt_spec': '',
         'field_ypos': 6,
         'field_xpos': 70
@@ -1012,7 +1012,7 @@ RTPSTAT_PANEL_ATTRS = [
     },
     {
         'field_attr': 'rx_rtp_packets',
-        'field_color': 'standout',
+        'field_color': 'bold',
         'field_fmt_spec': '>7',
         'field_ypos': 9,
         'field_xpos': 22
@@ -1047,7 +1047,7 @@ RTPSTAT_PANEL_ATTRS = [
     },
     {
         'field_attr': 'codec_psize',
-        'field_color': 'standout',
+        'field_color': 'bold',
         'field_fmt_spec': '>5',
         'field_ypos': 9,
         'field_xpos': 59
@@ -1061,7 +1061,7 @@ RTPSTAT_PANEL_ATTRS = [
     },
     {
         'field_attr': 'codec_ptime',
-        'field_color': 'standout',
+        'field_color': 'bold',
         'field_fmt_spec': '',
         'field_ypos': 9,
         'field_xpos': 65
@@ -1075,7 +1075,7 @@ RTPSTAT_PANEL_ATTRS = [
     },
     {
         'field_attr': 'rx_rtp_rtcp',
-        'field_color': 'standout',
+        'field_color': 'bold',
         'field_fmt_spec': '>7',
         'field_ypos': 10,
         'field_xpos': 22
@@ -1089,7 +1089,7 @@ RTPSTAT_PANEL_ATTRS = [
     },
     {
         'field_attr': 'tx_rtp_rtcp',
-        'field_color': 'standout',
+        'field_color': 'bold',
         'field_fmt_spec': '>5',
         'field_ypos': 10,
         'field_xpos': 32
@@ -1103,7 +1103,7 @@ RTPSTAT_PANEL_ATTRS = [
     },
     {
         'field_attr': 'codec_play_time',
-        'field_color': 'standout',
+        'field_color': 'bold',
         'field_fmt_spec': '',
         'field_ypos': 10,
         'field_xpos': 60
@@ -1117,7 +1117,7 @@ RTPSTAT_PANEL_ATTRS = [
     },
     {
         'field_attr': 'rx_rtp_dscp',
-        'field_color': 'standout',
+        'field_color': 'bold',
         'field_fmt_spec': '>7',
         'field_ypos': 11,
         'field_xpos': 22
@@ -1131,7 +1131,7 @@ RTPSTAT_PANEL_ATTRS = [
     },
     {
         'field_attr': 'tx_rtp_dscp',
-        'field_color': 'standout',
+        'field_color': 'bold',
         'field_fmt_spec': '>5',
         'field_ypos': 11,
         'field_xpos': 32
@@ -1145,7 +1145,7 @@ RTPSTAT_PANEL_ATTRS = [
     },
     {
         'field_attr': 'codec_avg_loss',
-        'field_color': 'standout',
+        'field_color': 'bold',
         'field_fmt_spec': '>6',
         'field_ypos': 11,
         'field_xpos': 59
@@ -1159,7 +1159,7 @@ RTPSTAT_PANEL_ATTRS = [
     },
     {
         'field_attr': 'rx_rtp_l2pri',
-        'field_color': 'standout',
+        'field_color': 'bold',
         'field_fmt_spec': '>7',
         'field_ypos': 12,
         'field_xpos': 22
@@ -1173,7 +1173,7 @@ RTPSTAT_PANEL_ATTRS = [
     },
     {
         'field_attr': 'tx_rtp_l2pri',
-        'field_color': 'standout',
+        'field_color': 'bold',
         'field_fmt_spec': '>5',
         'field_ypos': 12,
         'field_xpos': 32
@@ -1187,7 +1187,7 @@ RTPSTAT_PANEL_ATTRS = [
     },
     {
         'field_attr': 'codec_avg_rtt',
-        'field_color': 'standout',
+        'field_color': 'bold',
         'field_fmt_spec': '>7',
         'field_ypos': 12,
         'field_xpos': 58
@@ -1201,7 +1201,7 @@ RTPSTAT_PANEL_ATTRS = [
     },
     {
         'field_attr': 'rx_rtp_duplicates',
-        'field_color': 'standout',
+        'field_color': 'bold',
         'field_fmt_spec': '>7',
         'field_ypos': 13,
         'field_xpos': 22
@@ -1215,7 +1215,7 @@ RTPSTAT_PANEL_ATTRS = [
     },
     {
         'field_attr': 'codec_max_jbuf_delay',
-        'field_color': 'standout',
+        'field_color': 'bold',
         'field_fmt_spec': '>7',
         'field_ypos': 13,
         'field_xpos': 58
@@ -1229,7 +1229,7 @@ RTPSTAT_PANEL_ATTRS = [
     },
     {
         'field_attr': 'rx_rtp_seqfall',
-        'field_color': 'standout',
+        'field_color': 'bold',
         'field_fmt_spec': '>7',
         'field_ypos': 14,
         'field_xpos': 22
@@ -1243,7 +1243,7 @@ RTPSTAT_PANEL_ATTRS = [
     },
     {
         'field_attr': 'codec_jbuf_underruns',
-        'field_color': 'standout',
+        'field_color': 'bold',
         'field_fmt_spec': '>6',
         'field_ypos': 14,
         'field_xpos': 59
@@ -1257,7 +1257,7 @@ RTPSTAT_PANEL_ATTRS = [
     },
     {
         'field_attr': 'codec_jbuf_overruns',
-        'field_color': 'standout',
+        'field_color': 'bold',
         'field_fmt_spec': '',
         'field_ypos': 14,
         'field_xpos': 66
@@ -1285,7 +1285,7 @@ RTPSTAT_PANEL_ATTRS = [
     },
     {
         'field_attr': 'rx_rtp_avg_loss',
-        'field_color': 'standout',
+        'field_color': 'bold',
         'field_fmt_spec': '>7',
         'field_ypos': 17,
         'field_xpos': 22
@@ -1299,7 +1299,7 @@ RTPSTAT_PANEL_ATTRS = [
     },
     {
         'field_attr': 'rem_avg_loss',
-        'field_color': 'standout',
+        'field_color': 'bold',
         'field_fmt_spec': '>6',
         'field_ypos': 17,
         'field_xpos': 59
@@ -1313,7 +1313,7 @@ RTPSTAT_PANEL_ATTRS = [
     },
     {
         'field_attr': 'rx_rtp_avg_jitter',
-        'field_color': 'standout',
+        'field_color': 'bold',
         'field_fmt_spec': '>7',
         'field_ypos': 18,
         'field_xpos': 22
@@ -1327,7 +1327,7 @@ RTPSTAT_PANEL_ATTRS = [
     },
     {
         'field_attr': 'rem_avg_jitter',
-        'field_color': 'standout',
+        'field_color': 'bold',
         'field_fmt_spec': '>7',
         'field_ypos': 18,
         'field_xpos': 58
@@ -1341,12 +1341,13 @@ RTPSTAT_PANEL_ATTRS = [
     },
     {
         'field_attr': 'rx_rtp_avg_rtt',
-        'field_color': 'standout',
+        'field_color': 'bold',
         'field_fmt_spec': '>7',
         'field_ypos': 19,
         'field_xpos': 22
     },
 ]
+
 ################################ COLOR SCHEMES ################################
 COLOR_SCHEMES = {
     'default': {
