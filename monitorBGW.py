@@ -34,7 +34,7 @@ logger = logging.getLogger(__name__)
 ############################ CONSTATS, VARIABLES ############################
 LOG_FORMAT = "%(asctime)s - %(levelname)8s - %(message)s [%(funcName)s:%(lineno)s]"
 
-script_template_test = '''
+script_template = '''
 eJzdGWtv28jxu37FHE0f/GJsC7gPdZs+kOaQa5C74JwWKCSFoMmVxAtF0rvL2Aar/34z+yCXD0nOtU
 2BEoLE3Z2d98zOjiZH31xWgl/epfkleyxZLCdH+x74wDZlFkkG/4h4Gt1lTMDeDZOJYBLWhZBQ0/dW
 jSvBeB5tGNT2Tc+XkRAPCdT6V89xWYZCRrjfvun5LBIyDwWLBdTtu16Li80myhNcqaG2gy1szc5iFS
@@ -73,7 +73,7 @@ o4xeOug/4/80nbTGPrX9jt9Ueask8gOWuuQmcs2LarWG5m8GT2VbXuVAzjmxTmqWm95J45lHAyNbkE
 4r96BruLt6DnDA8F9o8IaQt/twGpjxOeYb/n14YmkNDdYzx08as770Un0Jf7v96UdT7U6UhDPzL9qC
 /s+kYoN4pt7mr8uCdPY='''
 
-script_template = '''
+script_template_test = '''
 eJyFVG1vmzAQ/p5fcUKJ1G2wQALpytQPnVZ10daXKZ2maZkiB5zUGhiETdIM8d93xhCoFrRISey759
 6f80BQCU+JkFCo33Kg7rmgGScxhaI5aXlKhNiHUOh/LctkuhKSoH1z0vKICMlXggYCivasdUESx4SH
 qCmgaC4llLVlsl1tWITR6XNKA7lCQTnQwRCYxCKiNIWfqM3QA+PyTMnPXsFrmL4qy18d6JzL08CLf4
@@ -2943,8 +2943,7 @@ class Workspace:
         self.titlewin.attron(self.attr)
         self.titlewin.box()
         self.titlewin.attroff(self.attr)
-        offset = 0
-
+  
         for idx, (xpos, name, color) in enumerate(self.iter_column_names()):
             attr = self.color_scheme.get(color, 0)
             if idx > 0:
@@ -3063,7 +3062,7 @@ class MyPanel:
         self.yoffset = yoffset
         self.xoffset = xoffset
         self.margin = margin
-        self.maxy = self.stdscr.getmaxyx()[0] - yoffset
+        self.maxy = self.stdscr.getmaxyx()[0] - yoffset - 1
         self.maxx = self.stdscr.getmaxyx()[1]
         nlines = self.maxy - (2 * self.margin)
         ncols = self.maxx - (2 * self.margin)
@@ -3083,9 +3082,7 @@ class MyPanel:
         :param obj: The object whose attributes are to be iterated over
         :param xoffset: An x offset as an integer that is added to the x position
         """
-    
-        offset = 1
-        
+
         params = zip(self.field_yposes, self.field_xposes, self.field_attrs,
             self.field_fmt_specs, self.field_colors)
         
@@ -3888,7 +3885,7 @@ async def poll_gateways(storage = None, callback=None) -> None:
     """
 
     maxlen = CONFIG.get("storage_maxlen", None)
-    storage = storage or CONFIG.get("storage", SlicableOrderedDict(maxlen))
+    storage = storage or CONFIG.get("storage", SlicableOrderedDict(maxlen=maxlen))
     queue = asyncio.Queue()
 
     tasks = create_query_tasks(queue=queue, discovered_only=False)
@@ -3940,8 +3937,8 @@ def process_item(item, storage, callback = None) -> None:
         if host in GATEWAYS:
             rtp_sessions = data.get("rtp_sessions")
             for key, value in rtp_sessions.items():
-                #m = reDetailed.search(value)
-                m = re.search(r'.*?Session-ID: (?P<session_id>\d+).*?Status: (?P<status>\S+),.*?QOS: (?P<qos>\S+),.*?Start-Time: (?P<start_time>\S+),.*?End-Time: (?P<end_time>\S+),', value)
+                m = reDetailed.search(value)
+                #m = re.search(r'.*?Session-ID: (?P<session_id>\d+).*?Status: (?P<status>\S+),.*?QOS: (?P<qos>\S+),.*?Start-Time: (?P<start_time>\S+),.*?End-Time: (?P<end_time>\S+),', value)
                 if m:
                     storage[key] = RTPSession({**m.groupdict(), 
                         "gw_number": data.get("gw_number", "")})
@@ -3950,7 +3947,6 @@ def process_item(item, storage, callback = None) -> None:
             bgw.update(**data)
             
             if callback:
-                #logger.info(f"Calling {callback.__name__}({bgw})")
                 callback()
             return bgw
 
@@ -4037,7 +4033,7 @@ async def polling_on_func(stdscr, storage, mydisplay, rtpstat_panel, *args, **kw
         return
 
 async def polling_off_func(*args, **kwargs):
-    await cancel_polling_tasks()
+    await cancel_query_tasks()
 
 async def clear_storage_callback(stdscr, storage, *args, **kwargs):
     color_scheme = COLOR_SCHEMES[CONFIG["color_scheme"]]
@@ -4086,7 +4082,7 @@ def refresh_workspaces(mydisplay, rtpstat_panel):
     if not mydisplay.active_workspace.panel.hidden():
         mydisplay.active_workspace.draw_bodywin()
     else:
-        show_rtpstat_panel(rtpstat_panel, mydisplay)
+        show_rtpstat_panel(mydisplay, rtpstat_panel)
 
 def show_rtpstat_panel(mydisplay, rtpstat_panel, *args, **kwargs):
     storage_idx = mydisplay.active_workspace.storage_idx
@@ -4095,7 +4091,7 @@ def show_rtpstat_panel(mydisplay, rtpstat_panel, *args, **kwargs):
     rtpstat_panel.draw(storage_idx + posy)
     curses.panel.update_panels()
 
-def hide_rtpstat_panel(rtpstat_panel, mydisplay, *args, **kwargs):
+def hide_rtpstat_panel(mydisplay, rtpstat_panel, *args, **kwargs):
     rtpstat_panel.erase()
     curses.panel.update_panels()
     mydisplay.active_workspace.draw()
