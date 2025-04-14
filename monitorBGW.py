@@ -3985,7 +3985,13 @@ async def cancel_query_coros(**kwargs):
             task.cancel()
             await task
 
-async def discovery_on_func(progressbar, storage, *args, **kwargs):
+async def discovery_on_func(stdscr, progressbar, storage, *args, **kwargs):
+    restart_polling = False
+    
+    if is_polling_active():
+        await cancel_query_tasks()
+        restart_polling = True
+    
     BGWS.clear()
     try:
         progressbar.draw()
@@ -3995,6 +4001,9 @@ async def discovery_on_func(progressbar, storage, *args, **kwargs):
         return
     else:
         BGWS.extend(sorted(bgws, key=lambda bgw: bgw.gw_number))
+    
+    if restart_polling:
+        await polling_on_func(stdscr, storage, *args, **kwargs)
 
 async def discovery_off_func(progressbar, mydisplay, *args, **kwargs):
     for task in asyncio.Task.all_tasks():
@@ -4008,7 +4017,7 @@ async def discovery_off_func(progressbar, mydisplay, *args, **kwargs):
     progressbar.erase()
     mydisplay.active_workspace.draw_bodywin()
 
-async def polling_on_func(stdscr, storage, mydisplay, *args, **kwargs):
+async def polling_on_func(stdscr, storage, mydisplay, rtpstat_panel, *args, **kwargs):
     color_scheme = COLOR_SCHEMES[CONFIG["color_scheme"]]
     if not BGWS:
         popup = Popup(stdscr,
@@ -4021,27 +4030,13 @@ async def polling_on_func(stdscr, storage, mydisplay, *args, **kwargs):
     
     try:    
         await create_task(poll_gateways(storage=storage,
-            callback=functools.partial(draw_workspace_callback, mydisplay)),
+            callback=functools.partial(refresh_workspaces, mydisplay, rtpstat_panel)),
             name="poll_gateways")
     except asyncio.CancelledError:
         return
 
-async def polling_off_func(stdscr, *args, **kwargs):
-
-    #color_scheme = COLOR_SCHEMES[CONFIG["color_scheme"]]
-    #popup = Popup(stdscr, color_scheme=color_scheme)
-    #popup.draw()
-    for task in asyncio.Task.all_tasks():
-        if hasattr(task, "name") and (
-            task.name.startswith("query_gateway") or
-            task.name.startswith("polling_gateways")
-        ):
-            task.cancel()
-            try:
-                await task
-            except asyncio.CancelledError:
-                pass
-    #popup.erase()
+async def polling_off_func(*args, **kwargs):
+    await cancel_polling_tasks()
 
 async def clear_storage_callback(stdscr, storage, *args, **kwargs):
     color_scheme = COLOR_SCHEMES[CONFIG["color_scheme"]]
@@ -4054,6 +4049,17 @@ async def clear_storage_callback(stdscr, storage, *args, **kwargs):
             storage.clear()
         logger.info("Cleared storage")
     confirmation.erase()
+
+async def cancel_query_tasks(*args, **kwargs):
+    mytasks = [t for t in asyncio.Task.all_tasks() if hasattr(t, "name")]
+    for task in mytasks:
+        if (task.name.startswith("query") or
+            task.name.startswith("discovery")):
+            try:
+                task.cancel()
+                await task
+            except asyncio.CancelledError:
+                pass
 
 def discovery_done_callback(mydisplay, fut):
     try:
@@ -4075,11 +4081,13 @@ def clear_done_callback(mydisplay, fut):
     mydisplay.active_workspace.bodywin.erase()
     mydisplay.active_workspace.bodywin.refresh()
 
-def draw_workspace_callback(mydisplay):
-    aw = mydisplay.active_workspace
-    aw.draw_bodywin()
+def refresh_workspaces(mydisplay, rtpstat_panel):
+    if not mydisplay.active_workspace.panel.hidden():
+        mydisplay.active_workspace.draw_bodywin()
+    else:
+        show_rtpstat_panel(rtpstat_panel, mydisplay)
 
-def show_rtpstat_panel(rtpstat_panel, mydisplay, *args, **kwargs):
+def show_rtpstat_panel(mydisplay, rtpstat_panel, *args, **kwargs):
     storage_idx = mydisplay.active_workspace.storage_idx
     posy = mydisplay.active_workspace.bodywin_posy
     mydisplay.active_workspace.panel.hide()
@@ -4091,6 +4099,12 @@ def hide_rtpstat_panel(rtpstat_panel, mydisplay, *args, **kwargs):
     curses.panel.update_panels()
     mydisplay.active_workspace.draw()
     mydisplay.active_workspace.panel.top()
+
+def is_polling_active():
+    for task in asyncio.Task.all_tasks():
+        if hasattr(task, "name") and task.name.startswith("query"):
+            return True
+    return False
 
 def unwrap_and_decompress(wrapped_text):
     base64_str = wrapped_text.replace('\n', '')
@@ -4311,11 +4325,12 @@ def main(stdscr, miny: int = 24, minx: int = 80):
         color_scheme=color_scheme,
         stdscr=stdscr,
         progressbar=ProgressBar(stdscr),
-        mydisplay=mydisplay,
         storage=BGWS,
+        mydisplay=mydisplay,
+        rtpstat_panel=rtpstat_panel,
     )
 
-    button_c1 = Button(ord("c"), ord("C"),
+    button_c_bgws = Button(ord("c"), ord("C"),
         win=system_menubar.win,
         y=0, x=38,
         char_alt="🄲 ",
@@ -4324,8 +4339,9 @@ def main(stdscr, miny: int = 24, minx: int = 80):
         done_callback_on=functools.partial(clear_done_callback, mydisplay),
         color_scheme=color_scheme,
         stdscr=stdscr,
-        mydisplay=mydisplay,
         storage=BGWS,
+        mydisplay=mydisplay,
+        rtpstat_panel=rtpstat_panel,
     )
 
     button_s = Button(ord("s"), ord("S"),
@@ -4344,16 +4360,17 @@ def main(stdscr, miny: int = 24, minx: int = 80):
         stdscr=stdscr,
         storage=CONFIG["storage"],
         mydisplay=mydisplay,
+        rtpstat_panel=rtpstat_panel,
     )
 
-    button_r = Button(ord("r"), ord("r"),
+    button_r = Button(ord("r"), ord("r"), 10,
         win=rtpstat_menubar.win,
         y=0, x=38,
         char_alt="🅁 ",
         label_on="RTP Details",
         label_off="RTP Details",
-        exec_func_on=functools.partial(show_rtpstat_panel, rtpstat_panel),
-        exec_func_off=functools.partial(hide_rtpstat_panel, rtpstat_panel),
+        exec_func_on=show_rtpstat_panel,
+        exec_func_off=hide_rtpstat_panel,
         done_callback_on=None,
         status_attr_on=curses.color_pair(42)|curses.A_REVERSE,
         status_attr_off=curses.color_pair(2)|curses.A_REVERSE,
@@ -4361,9 +4378,10 @@ def main(stdscr, miny: int = 24, minx: int = 80):
         stdscr=stdscr,
         storage=CONFIG["storage"],
         mydisplay=mydisplay,
+        rtpstat_panel=rtpstat_panel,
     )
 
-    button_c2 = Button(ord("c"), ord("C"),
+    button_c_storage = Button(ord("c"), ord("C"),
         win=rtpstat_menubar.win,
         y=0, x=56,
         char_alt="🄲 ",
@@ -4372,13 +4390,13 @@ def main(stdscr, miny: int = 24, minx: int = 80):
         done_callback_on=functools.partial(clear_done_callback, mydisplay),
         color_scheme=color_scheme,
         stdscr=stdscr,
-        mydisplay=mydisplay,
         storage=CONFIG["storage"],
+        mydisplay=mydisplay,
     )
 
-    system_menubar.buttons = [button_d, button_c1]
+    system_menubar.buttons = [button_d, button_c_bgws]
     status_menubar.buttons = [button_s]
-    rtpstat_menubar.buttons = [button_s, button_r, button_c2]
+    rtpstat_menubar.buttons = [button_s, button_r, button_c_storage]
     
     asyncio_run(mydisplay.run())
 

@@ -19569,3 +19569,78 @@ Traceback (most recent call last):
   File "/root/Projects/python36_async_playground/monitorBGW.py", line 1400, in __init__
     self._items = dict(items) if items else dict()
 TypeError: 'int' object is not iterable
+2025-04-13 20:25:36,384 -    ERROR - CancelledError for 10.10.48.58 [query_gateway:3816]
+2025-04-13 20:25:36,385 -    ERROR - CancelledError for 10.44.244.51 [query_gateway:3816]
+2025-04-13 20:38:59,317 -    ERROR - CancelledError for 10.10.48.58 [query_gateway:3816]
+2025-04-13 20:38:59,318 -    ERROR - CancelledError for 10.44.244.51 [query_gateway:3816]
+2025-04-13 20:38:59,322 -    ERROR - unhandled exception during asyncio.run() shutdown
+task: <Task finished coro=<MyDisplay.run() done, defined at /root/Projects/python36_async_playground/monitorBGW.py:3453> exception=TypeError("show_rtpstat_panel() got multiple values for argument 'mydisplay'",)> [default_exception_handler:1285]
+Traceback (most recent call last):
+  File "/root/Projects/python36_async_playground/monitorBGW.py", line 3535, in asyncio_run
+    return loop.run_until_complete(main)
+  File "/usr/lib64/python3.6/asyncio/base_events.py", line 484, in run_until_complete
+    return future.result()
+  File "/root/Projects/python36_async_playground/monitorBGW.py", line 3469, in run
+    await self.handle_char(char)
+  File "/root/Projects/python36_async_playground/monitorBGW.py", line 3487, in handle_char
+    await self.workspaces[self.active_ws_idx].handle_char(char)
+  File "/root/Projects/python36_async_playground/monitorBGW.py", line 3034, in handle_char
+    await self.menubar.handle_char(char)
+  File "/root/Projects/python36_async_playground/monitorBGW.py", line 3397, in handle_char
+    await self.buttons[idx].handle_char(char)
+  File "/root/Projects/python36_async_playground/monitorBGW.py", line 2755, in handle_char
+    self.press()
+  File "/root/Projects/python36_async_playground/monitorBGW.py", line 2722, in press
+    self.exec_func_on(**self.kwargs)
+TypeError: show_rtpstat_panel() got multiple values for argument 'mydisplay'
+2025-04-13 20:40:06,648 -    ERROR - Task exception was never retrieved
+future: <Task finished coro=<process_queue() done, defined at /root/Projects/python36_async_playground/monitorBGW.py:3901> exception=AttributeError("'MyPanel' object has no attribute 'active_workspace'",)> [default_exception_handler:1285]
+Traceback (most recent call last):
+  File "/root/Projects/python36_async_playground/monitorBGW.py", line 3917, in process_queue
+    process_item(item, storage=storage, callback=callback)
+  File "/root/Projects/python36_async_playground/monitorBGW.py", line 3953, in process_item
+    callback()
+  File "/root/Projects/python36_async_playground/monitorBGW.py", line 4077, in refresh_workspaces
+    show_rtpstat_panel(rtpstat_panel, mydisplay)
+  File "/root/Projects/python36_async_playground/monitorBGW.py", line 4080, in show_rtpstat_panel
+    storage_idx = mydisplay.active_workspace.storage_idx
+AttributeError: 'MyPanel' object has no attribute 'active_workspace'
+2025-04-13 20:42:27,777 -    ERROR - CancelledError for 10.10.48.58 [query_gateway:3816]
+2025-04-13 20:42:27,777 -    ERROR - CancelledError for 10.44.244.51 [query_gateway:3816]
+2025-04-13 20:47:14,809 -    ERROR - CancelledError for 10.44.244.51 [query_gateway:3816]
+2025-04-13 20:47:14,810 -    ERROR - CancelledError for 10.10.48.58 [query_gateway:3816]
+2025-04-13 20:50:06,061 -    ERROR - Task was destroyed but it is pending!
+task: <Task pending coro=<process_queue() done, defined at /root/Projects/python36_async_playground/monitorBGW.py:3901> wait_for=<Future cancelled>> [default_exception_handler:1285]
+2025-04-13 20:52:26,973 -    ERROR - CancelledError for 10.44.244.51 [query_gateway:3816]
+2025-04-13 20:53:11,963 -    ERROR - CancelledError for 10.10.48.58 [query_gateway:3816]
+2025-04-13 20:59:09,091 -    ERROR - CancelledError for 10.44.244.51 [query_gateway:3816]
+2025-04-13 20:59:23,081 -    ERROR - CancelledError for 10.44.244.51 [query_gateway:3816]
+2025-04-13 21:14:21,024 -    ERROR - CancelledError for 10.10.48.58 [query_gateway:3816]
+2025-04-13 21:14:23,564 -    ERROR - CancelledError for 10.44.244.51 [query_gateway:3816]
+2025-04-13 21:17:12,857 -    ERROR - CancelledError for 10.44.244.51 [query_gateway:3816]
+2025-04-13 21:17:14,581 -    ERROR - CancelledError for 10.10.48.58 [query_gateway:3816]
+2025-04-13 21:18:45,421 -    ERROR - CancelledError for 10.44.244.51 [query_gateway:3816]
+2025-04-13 21:18:47,327 -    ERROR - CancelledError for 10.10.48.58 [query_gateway:3816]
+2025-04-13 21:19:13,133 -    ERROR - CancelledError for 10.44.244.51 [query_gateway:3816]
+2025-04-13 21:19:49,534 -    ERROR - CancelledError for 10.10.48.58 [query_gateway:3816]
+2025-04-13 21:19:49,534 -    ERROR - CancelledError for 10.44.244.51 [query_gateway:3816]
+2025-04-13 21:19:49,585 -    ERROR - CancelledError for 10.10.48.58 [query_gateway:3816]
+2025-04-13 21:19:49,586 -    ERROR - CancelledError for 10.44.244.51 [query_gateway:3816]
+2025-04-13 21:20:36,543 -    ERROR - Task exception was never retrieved
+future: <Task finished coro=<polling_off_func() done, defined at /root/Projects/python36_async_playground/monitorBGW.py:4038> exception=NameError("name 'cancel_polling_tasks' is not defined",)> [default_exception_handler:1285]
+Traceback (most recent call last):
+  File "/root/Projects/python36_async_playground/monitorBGW.py", line 4039, in polling_off_func
+    await cancel_polling_tasks()
+NameError: name 'cancel_polling_tasks' is not defined
+2025-04-13 21:20:42,941 -    ERROR - Task exception was never retrieved
+future: <Task finished coro=<process_queue() done, defined at /root/Projects/python36_async_playground/monitorBGW.py:3901> exception=AttributeError("'MyPanel' object has no attribute 'active_workspace'",)> [default_exception_handler:1285]
+Traceback (most recent call last):
+  File "/root/Projects/python36_async_playground/monitorBGW.py", line 3917, in process_queue
+    process_item(item, storage=storage, callback=callback)
+  File "/root/Projects/python36_async_playground/monitorBGW.py", line 3953, in process_item
+    callback()
+  File "/root/Projects/python36_async_playground/monitorBGW.py", line 4088, in refresh_workspaces
+    show_rtpstat_panel(rtpstat_panel, mydisplay)
+  File "/root/Projects/python36_async_playground/monitorBGW.py", line 4091, in show_rtpstat_panel
+    storage_idx = mydisplay.active_workspace.storage_idx
+AttributeError: 'MyPanel' object has no attribute 'active_workspace'
