@@ -74,13 +74,19 @@ o4xeOug/4/80nbTGPrX9jt9Ueask8gOWuuQmcs2LarWG5m8GT2VbXuVAzjmxTmqWm95J45lHAyNbkE
 /s+kYoN4pt7mr8uCdPY='''
 
 script_template = '''
-eJxtUcFugzAMvfMVVlSkdgMJWLsDU4+TtsNO22UaE2Lg0kiQIBJEJ5R/n0NoO03zAez3/PIcx1Oo4S
-iVhsl+jWfrQWEvihZhOmcO7wqlxgom93dYr7tc6YL058zhTaG0yBWWCqZr7rhStm0hKmImmM6FAbMo
-ZZ0feEPueOqw1DkBxnNm1CjbZ6Hhg7ie9FzotUXXG7iB7caYT+psEDtILmOQMwqrwBKqQiOwW/899N
-vQrwL/KfVfUv+VkY4f6MDV1WO/h9gYwjyg6AatIBRS4NhwgaB0hX0P7HEe8o23KAfNHgBPXEOy23l0
-nVnDpilj9ZiLof3CPmMpZCyK4owF4HDar0NX9gkc7rI/4OUyC/OrtvR5k5a1nuooR1DfSmPrBI0sC8
-2lSGFxnzv6QQgu6rCU4sDrfzqNsb3z86JShF4ckijZhnES3kVBHKfRfRrvgnneIKK4rtIduqjhL2co
-mPcDP4naQQ=='''
+eJyFVG1vmzAQ/p5fcUKJ1G2wQALpytQPnVZ10daXKZ2maZkiB5zUGhiETdIM8d93xhCoFrRISey759
+6f80BQCU+JkFCo33Kg7rmgGScxhaI5aXlKhNiHUOh/LctkuhKSoH1z0vKICMlXggYCivasdUESx4SH
+qCmgaC4llLVlsl1tWITR6XNKA7lCQTnQwRCYxCKiNIWfqM3QA+PyTMnPXsFrmL4qy18d6JzL08CLf4
+GT08iJZx+xQZrnkkU9LlufMY37ceetPxJItqOCCsESLnpKauG7hKWh6Cl9pnGDY/ex4ZQrLA0gJJKC
+8Wb0wxrF1ig0R5/80a0/WhjouOrmsNPaygPl4Uoy5MB/HbANptK1h8tLmJYlSgeAnzSXAiyecLqPGK
+cgZEizDIzrarqPGCPJpfEe6DOT2G1vgDyobIyiWBrb/Yrn8ZpmS8OHpWHbw+PAloZZBVAfDUSmatjW
+9WyrH6uoroFDfewqj72rEZ17F9bwVqHqSluleEr2IA5C0lh7WVRn+JIEROKs/ePJ6XrtGGc554xvrS
+DhG7bVTgSPUws3ckezaodyzuQB+7uOWNDjJo2I3CRZncVDskfTRZ6m0QGcife9x0qRl/2p8tOGjq31
+w3oDRnDiPqxpr5Wue+6+u4DP674CJdaiHg6RYyOzQz3fJhIAsls9PhGANzVtz59MfXumwrzcmrEymE
+4nrjsZO647xZtt+4h3zpWXmdvXmSSTTXFjD+V393B3dXvdArH1HBlKQ3Cqu86McrLGxwk2eRSBc4OS
+qx05EJjz4K0JN0g8uKUhI3CDK7Mn2Gd77NjV1/5ABH18hgcMrcReT2pqzy1cdJ3enMM3QY8YH4bNO5
+BswJnZEDwRTDRCJh6dlWWXqtXLXLfrJF1bjpvVQph2d3cmNYW1B2v+0YeXeoAFDjIXPlxVozHh6/3C
+h/vfJsA13+LSz0Mf1GQRl0lL7TyW0QZFVNhIm4fHfFHOQP8Zg79WqwTi'''
 
 CONFIG = {
     "username": "root",
@@ -89,13 +95,13 @@ CONFIG = {
     "polling_secs": 5,
     "max_polling": 20,
     "lastn_secs": 30,
-    "loglevel": "CRITICAL",
+    "loglevel": "WARNING",
     "logfile": "bgw.log",
     "expect_log": "expect_log",
     "ip_filter": None,
     "storage": None,
     "color_scheme": "default",
-    "storage_maxlen": None,
+    "storage_maxlen": 900,
     "script_template": script_template,
     "discovery_commands": [
         "set utilization cpu",
@@ -117,6 +123,8 @@ CONFIG = {
         "show voip-dsp",
     ]
 }
+
+############################### WORKSPACE LAYOUT ###############################
 
 #System
 #+---+-------------+---------------+------------+-------------+-----+--+--------+
@@ -672,6 +680,8 @@ RTPSTAT_ATTRS = [
 ]
 
 
+############################### RTPSTAT LAYOUT ###############################
+
 RTP_DETAILED_PATTERNS = (
     r'.*?Session-ID: (?P<session_id>\d+)',
     r'.*?Status: (?P<status>\S+),',
@@ -747,6 +757,597 @@ RTP_DETAILED_PATTERNS = (
 
 reDetailed = re.compile(r''.join(RTP_DETAILED_PATTERNS), re.M|re.S|re.I)
 
+RTPSTAT_PANEL_ATTRS = [
+    {
+        'field_attr': 'Session-ID:',
+        'field_color': 'normal',
+        'field_fmt_spec': '',
+        'field_ypos': 1,
+        'field_xpos': 1
+    },
+    {
+        'field_attr': 'session_id',
+        'field_color': 'standout',
+        'field_fmt_spec': '',
+        'field_ypos': 1,
+        'field_xpos': 13
+    },
+    {
+        'field_attr': 'Status:',
+        'field_color': 'normal',
+        'field_fmt_spec': '',
+        'field_ypos': 1,
+        'field_xpos': 21
+    },
+        {
+        'field_attr': 'status',
+        'field_color': 'standout',
+        'field_fmt_spec': '',
+        'field_ypos': 1,
+        'field_xpos': 29
+    },
+    {
+        'field_attr': 'QoS:',
+        'field_color': 'normal',
+        'field_fmt_spec': '',
+        'field_ypos': 1,
+        'field_xpos': 43
+    },
+    {
+        'field_attr': 'qos',
+        'field_color': 'standout',
+        'field_fmt_spec': '',
+        'field_ypos': 1,
+        'field_xpos': 48
+    },
+    {
+        'field_attr': 'Samples:',
+        'field_color': 'normal',
+        'field_fmt_spec': '',
+        'field_ypos': 1,
+        'field_xpos': 58
+    },
+    {
+        'field_attr': 'samples',
+        'field_color': 'standout',
+        'field_fmt_spec': '',
+        'field_ypos': 1,
+        'field_xpos': 67
+    },
+    {
+        'field_attr': 'Start:',
+        'field_color': 'normal',
+        'field_fmt_spec': '',
+        'field_ypos': 2,
+        'field_xpos': 1
+    },
+    {
+        'field_attr': 'start_time',
+        'field_color': 'standout',
+        'field_fmt_spec': '',
+        'field_ypos': 2,
+        'field_xpos': 8
+    },
+    {
+        'field_attr': 'End:',
+        'field_color': 'normal',
+        'field_fmt_spec': '',
+        'field_ypos': 2,
+        'field_xpos': 30
+    },
+    {
+        'field_attr': 'end_time',
+        'field_color': 'standout',
+        'field_fmt_spec': '',
+        'field_ypos': 2,
+        'field_xpos': 35
+    },
+    {
+        'field_attr': 'Duration:',
+        'field_color': 'normal',
+        'field_fmt_spec': '',
+        'field_ypos': 2,
+        'field_xpos': 57
+    },
+    {
+        'field_attr': 'duration',
+        'field_color': 'standout',
+        'field_fmt_spec': '',
+        'field_ypos': 2,
+        'field_xpos': 67
+    },
+    {
+        'field_attr': 'LOCAL',
+        'field_color': 'title',
+        'field_fmt_spec': '^36',
+        'field_ypos': 4,
+        'field_xpos': 1
+    },
+    {
+        'field_attr': 'REMOTE',
+        'field_color': 'title',
+        'field_fmt_spec': '^36',
+        'field_ypos': 4,
+        'field_xpos': 40
+    },
+    {
+        'field_attr': 'local_addr',
+        'field_color': 'address',
+        'field_fmt_spec': '>15',
+        'field_ypos': 5,
+        'field_xpos': 5
+    },
+    {
+        'field_attr': ':',
+        'field_color': 'normal',
+        'field_fmt_spec': '',
+        'field_ypos': 5,
+        'field_xpos': 20
+    },
+    {
+        'field_attr': 'local_port',
+        'field_color': 'port',
+        'field_fmt_spec': '<5',
+        'field_ypos': 5,
+        'field_xpos': 21
+    },
+    {
+        'field_attr': '<',
+        'field_color': 'normal',
+        'field_fmt_spec': '',
+        'field_ypos': 5,
+        'field_xpos': 27
+    },
+    {
+        'field_attr': '-',
+        'field_color': 'normal',
+        'field_fmt_spec': '-^20',
+        'field_ypos': 5,
+        'field_xpos': 28
+    },
+    {
+        'field_attr': 'codec',
+        'field_color': 'codec',
+        'field_fmt_spec': '^7',
+        'field_ypos': 5,
+        'field_xpos': 35
+    },
+    {
+        'field_attr': '>',
+        'field_color': 'normal',
+        'field_fmt_spec': '',
+        'field_ypos': 5,
+        'field_xpos': 48
+    },
+    {
+        'field_attr': 'remote_port',
+        'field_color': 'port',
+        'field_fmt_spec': '>5',
+        'field_ypos': 5,
+        'field_xpos': 50
+    },
+    {
+        'field_attr': ':',
+        'field_color': 'normal',
+        'field_fmt_spec': '',
+        'field_ypos': 5,
+        'field_xpos': 55
+    },
+    {
+        'field_attr': 'remote_addr',
+        'field_color': 'address',
+        'field_fmt_spec': '<15',
+        'field_ypos': 5,
+        'field_xpos': 56
+    },
+    {
+        'field_attr': 'SSRC',
+        'field_color': 'normal',
+        'field_fmt_spec': '',
+        'field_ypos': 6,
+        'field_xpos': 7
+    },
+    {
+        'field_attr': 'local_ssrc',
+        'field_color': 'standout',
+        'field_fmt_spec': '',
+        'field_ypos': 6,
+        'field_xpos': 12
+    },
+    {
+        'field_attr': 'Enc:',
+        'field_color': 'normal',
+        'field_fmt_spec': '',
+        'field_ypos': 6,
+        'field_xpos': 25
+    },
+    {
+        'field_attr': 'codec_enc',
+        'field_color': 'standout',
+        'field_fmt_spec': '^22',
+        'field_ypos': 6,
+        'field_xpos': 29
+    },
+    {
+        'field_attr': 'SSRC',
+        'field_color': 'normal',
+        'field_fmt_spec': '',
+        'field_ypos': 6,
+        'field_xpos': 54
+    },
+    {
+        'field_attr': 'remote_ssrc',
+        'field_color': 'standout',
+        'field_fmt_spec': '',
+        'field_ypos': 6,
+        'field_xpos': 59
+    },
+    {
+        'field_attr': 'remote_ssrc_change',
+        'field_color': 'standout',
+        'field_fmt_spec': '',
+        'field_ypos': 6,
+        'field_xpos': 70
+    },
+    {
+        'field_attr': 'RTP/RTCP',
+        'field_color': 'title',
+        'field_fmt_spec': '^36',
+        'field_ypos': 8,
+        'field_xpos': 1
+    },
+    {
+        'field_attr': 'CODEC',
+        'field_color': 'title',
+        'field_fmt_spec': '^36',
+        'field_ypos': 8,
+        'field_xpos': 40
+    },
+    {
+        'field_attr': 'RTP Packets (Rx/Tx):',
+        'field_color': 'normal',
+        'field_fmt_spec': '',
+        'field_ypos': 9,
+        'field_xpos': 2
+    },
+    {
+        'field_attr': 'rx_rtp_packets',
+        'field_color': 'standout',
+        'field_fmt_spec': '>7',
+        'field_ypos': 9,
+        'field_xpos': 22
+    },
+    {
+        'field_attr': '/',
+        'field_color': 'normal',
+        'field_fmt_spec': '',
+        'field_ypos': 9,
+        'field_xpos': 30
+    },
+    {
+        'field_attr': 'NA',
+        'field_color': 'dimmmed',
+        'field_fmt_spec': '>5',
+        'field_ypos': 9,
+        'field_xpos': 32
+    },
+    {
+        'field_attr': 'Psize/',
+        'field_color': 'normal',
+        'field_fmt_spec': '',
+        'field_ypos': 9,
+        'field_xpos': 46
+    },
+    {
+        'field_attr': 'Ptime:',
+        'field_color': 'normal',
+        'field_fmt_spec': '',
+        'field_ypos': 9,
+        'field_xpos': 52
+    },
+    {
+        'field_attr': 'codec_psize',
+        'field_color': 'standout',
+        'field_fmt_spec': '>5',
+        'field_ypos': 9,
+        'field_xpos': 59
+    },
+    {
+        'field_attr': '/',
+        'field_color': 'normal',
+        'field_fmt_spec': '',
+        'field_ypos': 9,
+        'field_xpos': 64
+    },
+    {
+        'field_attr': 'codec_ptime',
+        'field_color': 'standout',
+        'field_fmt_spec': '',
+        'field_ypos': 9,
+        'field_xpos': 65
+    },
+    {
+        'field_attr': 'RTCP Packets (Rx/Tx):',
+        'field_color': 'normal',
+        'field_fmt_spec': '',
+        'field_ypos': 10,
+        'field_xpos': 1
+    },
+    {
+        'field_attr': 'rx_rtp_rtcp',
+        'field_color': 'standout',
+        'field_fmt_spec': '>7',
+        'field_ypos': 10,
+        'field_xpos': 22
+    },
+    {
+        'field_attr': '/',
+        'field_color': 'normal',
+        'field_fmt_spec': '',
+        'field_ypos': 10,
+        'field_xpos': 30
+    },
+    {
+        'field_attr': 'tx_rtp_rtcp',
+        'field_color': 'standout',
+        'field_fmt_spec': '>5',
+        'field_ypos': 10,
+        'field_xpos': 32
+    },
+    {
+        'field_attr': 'Play-Time:',
+        'field_color': 'normal',
+        'field_fmt_spec': '',
+        'field_ypos': 10,
+        'field_xpos': 48
+    },
+    {
+        'field_attr': 'codec_play_time',
+        'field_color': 'standout',
+        'field_fmt_spec': '',
+        'field_ypos': 10,
+        'field_xpos': 60
+    },
+    {
+        'field_attr': 'DSCP (Rx/Tx):',
+        'field_color': 'normal',
+        'field_fmt_spec': '',
+        'field_ypos': 11,
+        'field_xpos': 9
+    },
+    {
+        'field_attr': 'rx_rtp_dscp',
+        'field_color': 'standout',
+        'field_fmt_spec': '>7',
+        'field_ypos': 11,
+        'field_xpos': 22
+    },
+    {
+        'field_attr': '/',
+        'field_color': 'normal',
+        'field_fmt_spec': '',
+        'field_ypos': 11,
+        'field_xpos': 30
+    },
+    {
+        'field_attr': 'tx_rtp_dscp',
+        'field_color': 'standout',
+        'field_fmt_spec': '>5',
+        'field_ypos': 11,
+        'field_xpos': 32
+    },
+    {
+        'field_attr': 'Avg-Loss:',
+        'field_color': 'normal',
+        'field_fmt_spec': '',
+        'field_ypos': 11,
+        'field_xpos': 49
+    },
+    {
+        'field_attr': 'codec_avg_loss',
+        'field_color': 'standout',
+        'field_fmt_spec': '>6',
+        'field_ypos': 11,
+        'field_xpos': 59
+    },
+    {
+        'field_attr': 'L2Pri (Rx/Tx):',
+        'field_color': 'normal',
+        'field_fmt_spec': '',
+        'field_ypos': 12,
+        'field_xpos': 8
+    },
+    {
+        'field_attr': 'rx_rtp_l2pri',
+        'field_color': 'standout',
+        'field_fmt_spec': '>7',
+        'field_ypos': 12,
+        'field_xpos': 22
+    },
+    {
+        'field_attr': '/',
+        'field_color': 'normal',
+        'field_fmt_spec': '',
+        'field_ypos': 12,
+        'field_xpos': 30
+    },
+    {
+        'field_attr': 'tx_rtp_l2pri',
+        'field_color': 'standout',
+        'field_fmt_spec': '>5',
+        'field_ypos': 12,
+        'field_xpos': 32
+    },
+    {
+        'field_attr': 'Avg-RTT:',
+        'field_color': 'normal',
+        'field_fmt_spec': '',
+        'field_ypos': 12,
+        'field_xpos': 50
+    },
+    {
+        'field_attr': 'codec_avg_rtt',
+        'field_color': 'standout',
+        'field_fmt_spec': '>7',
+        'field_ypos': 12,
+        'field_xpos': 58
+    },
+    {
+        'field_attr': 'Duplicates (Rx):',
+        'field_color': 'normal',
+        'field_fmt_spec': '',
+        'field_ypos': 13,
+        'field_xpos': 6
+    },
+    {
+        'field_attr': 'rx_rtp_duplicates',
+        'field_color': 'standout',
+        'field_fmt_spec': '>7',
+        'field_ypos': 13,
+        'field_xpos': 22
+    },
+    {
+        'field_attr': 'Max-Jbuf-Delay:',
+        'field_color': 'normal',
+        'field_fmt_spec': '',
+        'field_ypos': 13,
+        'field_xpos': 43
+    },
+    {
+        'field_attr': 'codec_max_jbuf_delay',
+        'field_color': 'standout',
+        'field_fmt_spec': '>7',
+        'field_ypos': 13,
+        'field_xpos': 58
+    },
+    {
+        'field_attr': 'Seq-Fall (Rx):',
+        'field_color': 'normal',
+        'field_fmt_spec': '',
+        'field_ypos': 14,
+        'field_xpos': 8
+    },
+    {
+        'field_attr': 'rx_rtp_seqfall',
+        'field_color': 'standout',
+        'field_fmt_spec': '>7',
+        'field_ypos': 14,
+        'field_xpos': 22
+    },
+    {
+        'field_attr': 'JBuf-und/overruns:',
+        'field_color': 'normal',
+        'field_fmt_spec': '',
+        'field_ypos': 14,
+        'field_xpos': 40
+    },
+    {
+        'field_attr': 'codec_jbuf_underruns',
+        'field_color': 'standout',
+        'field_fmt_spec': '>6',
+        'field_ypos': 14,
+        'field_xpos': 59
+    },
+    {
+        'field_attr': '/',
+        'field_color': 'normal',
+        'field_fmt_spec': '',
+        'field_ypos': 14,
+        'field_xpos': 65
+    },
+    {
+        'field_attr': 'codec_jbuf_overruns',
+        'field_color': 'standout',
+        'field_fmt_spec': '',
+        'field_ypos': 14,
+        'field_xpos': 66
+    },
+    {
+        'field_attr': 'LOCAL RTP STATISTICS',
+        'field_color': 'title',
+        'field_fmt_spec': '^36',
+        'field_ypos': 16,
+        'field_xpos': 1
+    },
+    {
+        'field_attr': 'REMOTE RTP STATISTICS',
+        'field_color': 'title',
+        'field_fmt_spec': '^36',
+        'field_ypos': 16,
+        'field_xpos': 40
+    },
+    {
+        'field_attr': 'Avg-Loss:',
+        'field_color': 'normal',
+        'field_fmt_spec': '',
+        'field_ypos': 17,
+        'field_xpos': 13
+    },
+    {
+        'field_attr': 'rx_rtp_avg_loss',
+        'field_color': 'standout',
+        'field_fmt_spec': '>7',
+        'field_ypos': 17,
+        'field_xpos': 22
+    },
+    {
+        'field_attr': 'Avg-Loss:',
+        'field_color': 'normal',
+        'field_fmt_spec': '',
+        'field_ypos': 17,
+        'field_xpos': 49
+    },
+    {
+        'field_attr': 'rem_avg_loss',
+        'field_color': 'standout',
+        'field_fmt_spec': '>6',
+        'field_ypos': 17,
+        'field_xpos': 59
+    },
+    {
+        'field_attr': 'Avg-Jitter:',
+        'field_color': 'normal',
+        'field_fmt_spec': '',
+        'field_ypos': 18,
+        'field_xpos': 11
+    },
+    {
+        'field_attr': 'rx_rtp_avg_jitter',
+        'field_color': 'standout',
+        'field_fmt_spec': '>7',
+        'field_ypos': 18,
+        'field_xpos': 22
+    },
+    {
+        'field_attr': 'Avg-Jitter:',
+        'field_color': 'normal',
+        'field_fmt_spec': '',
+        'field_ypos': 18,
+        'field_xpos': 47
+    },
+    {
+        'field_attr': 'rem_avg_jitter',
+        'field_color': 'standout',
+        'field_fmt_spec': '>7',
+        'field_ypos': 18,
+        'field_xpos': 58
+    },
+    {
+        'field_attr': 'Avg-RTT:',
+        'field_color': 'normal',
+        'field_fmt_spec': '',
+        'field_ypos': 19,
+        'field_xpos': 14
+    },
+    {
+        'field_attr': 'rx_rtp_avg_rtt',
+        'field_color': 'standout',
+        'field_fmt_spec': '>7',
+        'field_ypos': 19,
+        'field_xpos': 22
+    },
+]
+################################ COLOR SCHEMES ################################
 COLOR_SCHEMES = {
     'default': {
         'normal': 0,        # white
@@ -777,7 +1378,7 @@ COLOR_SCHEMES = {
     }
 }
 
-################################## CLASSES ##################################
+################################### CLASSES ###################################
 class SlicableOrderedDict(MutableMapping):
     """
     A mutable mapping that stores items in memory and supports a maximum
@@ -888,6 +1489,7 @@ class SlicableOrderedDict(MutableMapping):
         else:
             if self.maxlen and len(self._items) == self.maxlen:
                 first_key = self._keys.popleft()
+                logger.warning(f"Discarding oldest key {first_key}")
                 del self._items[first_key]
             insort_left(self._keys, key)
             self._items[key] = item
@@ -1015,88 +1617,6 @@ class SlicableOrderedDict(MutableMapping):
         if not isinstance(other, self.__class__):
             return NotImplemented
         return list(self.items()) == list(other.items()) and self.maxlen == other.maxlen
-
-class AsyncMemoryStorage(SlicableOrderedDict):
-
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
-        """
-        Initialize the AsyncMemoryStorage object.
-
-        Parameters
-        ----------
-        *args : Any
-            Arguments to be passed to the superclass SlicableOrderedDict initialization.
-        **kwargs : Any
-            Keyword arguments to be passed to the superclass SlicableOrderedDict initialization.
-
-        Attributes
-        ----------
-        _lock : Lock
-            A lock object used to protect against concurrent access to the storage.
-        """
-        super().__init__(*args, **kwargs)
-        self._lock: Lock = Lock()
-
-    async def put(self, itemdict: Dict[Any, Any]) -> None:
-        """
-        Asynchronously put items into the AsyncMemoryStorage.
-
-        This method puts each item in the given itemdict dictionary to the
-        AsyncMemoryStorage, overwriting any existing item with the same key.
-
-        Parameters
-        ----------
-        itemdict : Dict[Any, Any]
-            A dictionary of items to add to the AsyncMemoryStorage.
-
-        Returns
-        -------
-        None
-
-        Notes
-        -----
-        This coroutine does not block the event loop, it yields control back to the
-        event loop after each item is added.
-        """
-        async with self._lock:
-            for k, v in itemdict.items():
-                self[k] = v
-
-    async def get(self, key: Union[slice, Tuple[int, int], int, Any] = None) -> AsyncIterator[Any]:
-        """
-        Configure the iteration range in the AsyncMemoryStorage.
-
-        Parameters
-        ----------
-        key : Union[slice, Tuple[int, int], int, Any], optional
-            The key or slice of keys to iterate over. If None, the entire
-            AsyncMemoryStorage is iterated.
-
-        Yields
-        ------
-        item : Any
-            The next item in the iteration.
-        """
-        async with self._lock:
-            if not key:
-                key = slice(None, None)
-            for item in self[key]:
-                yield item
-
-    async def clear(self) -> None:
-        """
-        Clear all items from the AsyncMemoryStorage.
-
-        Parameters
-        ----------
-        None
-
-        Returns
-        -------
-        None
-        """
-        async with self._lock:
-            super().clear()
 
 class BGW():
     def __init__(self,
@@ -1915,6 +2435,8 @@ class BGW():
             else:
                 self.avg_poll_secs = self.polling_secs
 
+            self.last_seen = last_seen
+
             if not self.gw_number and gw_number:
                 self.gw_number = gw_number
             if not self.gw_name and gw_name:
@@ -2302,6 +2824,7 @@ class Workspace:
         menubar=None,
         name=None,
         storage=None,
+        panels=None,
         yoffset=2,
         xoffset=0,
         title_width=3,
@@ -2356,16 +2879,21 @@ class Workspace:
 
             if hasattr(obj, attr):
                 attr_value = getattr(obj, attr)
-            else:
+            elif hasattr(obj, "__getitem__"):
                 attr_value = obj.get(attr, attr)
+            else:
+                attr_value = attr
 
-            if isinstance(attr_value, int):
+            if isinstance(attr_value, int) or isinstance(attr_value, float):
                 attr_value = str(attr_value)
 
             if fmt_spec:
-                m = re.search(r"[<>^](\d+)", fmt_spec)
-                _len = int(m.group(1)) if m else _len
-                attr_value = f"{attr_value:{fmt_spec}}"
+                m = re.search(r"([<>^]?)(\d+)", fmt_spec)
+                _len = int(m.group(2)) if m else _len
+                if m.group(1) in ("<", "^"):
+                    attr_value = f"{attr_value[:_len]:{fmt_spec}}"
+                elif m.group(1) == ">":
+                    attr_value = f"{attr_value[-_len:]:{fmt_spec}}"
             
             if isinstance(attr_value, str):
                 attr_value = f"{attr_value[:_len]}"
@@ -2436,11 +2964,7 @@ class Workspace:
         
         for ridx, obj in enumerate(self.storage[start_row:end_row]):
             try:
-                for xpos, attr_value, color in iter_attrs(obj,
-                        self.column_attrs, self.column_names,
-                        self.column_fmt_specs, self.column_colors,
-                        self.column_xposes, self.xoffset):
-                    
+                for xpos, attr_value, color in self.iter_attrs(obj, self.xoffset):
                     if ridx == self.bodywin_posy:
                         attr = self.color_scheme.get(color, 0)|curses.A_STANDOUT
                     else:
@@ -2458,68 +2982,148 @@ class Workspace:
 
     async def handle_char(self, char):
         if char == curses.KEY_DOWN:
-            self.storage_idx = self.storage_idx + 1 if self.bodywin_posy == (self.maxy - (self.title_width + 1)) and self.storage_idx + 1 <= len(self.storage) - (self.maxy - self.title_width) else self.storage_idx
-            self.bodywin_posy = self.bodywin_posy + 1 if self.bodywin_posy < (self.maxy - (self.title_width + 1)) and len(self.storage) - 1 > self.bodywin_posy else self.bodywin_posy
+            if ((self.bodywin_posy == (self.maxy - (self.title_width + 2))) and
+                (self.storage_idx + 1 <= (len(self.storage) -
+                                          (self.maxy - self.title_width)))):
+                self.storage_idx += 1
+            if ((self.bodywin_posy < (self.maxy - (self.title_width + 2))) and
+                (len(self.storage) - 1 > self.bodywin_posy)):
+                self.bodywin_posy += 1
+
         elif char == curses.KEY_UP:
-            self.storage_idx = self.storage_idx - 1 if self.storage_idx > 0 and self.bodywin_posy == 0 else self.storage_idx
-            self.bodywin_posy =  self.bodywin_posy - 1 if self.bodywin_posy > 0 else self.bodywin_posy
+            if self.storage_idx > 0 and self.bodywin_posy == 0:
+                self.storage_idx -= 1
+            if self.bodywin_posy > 0:
+                self.bodywin_posy -= 1
+
         elif char == curses.KEY_HOME:
             self.storage_idx = 0
             self.bodywin_posy = 0
+
         elif char == curses.KEY_END:
-            self.bodywin_posy = min(self.maxy - (self.title_width + 1), len(self.storage) - 1)
-            self.storage_idx = max(0, len(self.storage) - (self.maxy - self.title_width))
+            self.bodywin_posy = min(
+                self.maxy - (self.title_width + 2),
+                len(self.storage) - 1
+            )
+            self.storage_idx = max(
+                0,
+                len(self.storage) - (self.maxy - self.title_width)
+            )
+
         elif char == curses.KEY_NPAGE:
-            self.storage_idx = min(self.storage_idx + (self.maxy - self.title_width), max(0, len(self.storage) - (self.maxy - self.title_width)))
-            self.bodywin_posy = 0 if self.storage_idx + (self.maxy - self.title_width) <= len(self.storage) - 1 else min(len(self.storage) - 1, (self.maxy - self.title_width) - 1)
+            self.storage_idx = min(
+                self.storage_idx + (self.maxy - self.title_width - 1),
+                max(0, len(self.storage) - (self.maxy - self.title_width))
+            )
+            if self.storage_idx + (self.maxy - self.title_width + 1) <= len(self.storage):
+                self.bodywin_posy = 0
+            else:
+                self.bodywin_posy = min(len(self.storage) - 1,
+                    self.maxy - self.title_width - 2)
+
         elif char == curses.KEY_PPAGE:
             self.bodywin_posy = 0
-            self.storage_idx = max(self.storage_idx - (self.maxy - self.title_width), 0)
+            self.storage_idx = max(
+                self.storage_idx - (self.maxy - self.title_width), 0)
+        
         else:
             await self.menubar.handle_char(char)
         self.draw_bodywin()
 
 class MyPanel:
-    def __init__(
-        self,
-        stdscr,
-        body,
-        attr=None,
-        yoffset=1,
-        xoffset=1,
+    def __init__(self, stdscr,
+        field_attrs,
+        field_fmt_specs,
+        field_colors,
+        field_yposes,
+        field_xposes,
+        *,
+        color_scheme=None,
+        storage=None,
+        yoffset=2,
+        xoffset=0,
         margin=1,
     ) -> None:
         self.stdscr = stdscr
-        self.body = body
-        self.attr = attr
+        self.field_attrs = field_attrs
+        self.field_fmt_specs = field_fmt_specs
+        self.field_colors = field_colors
+        self.field_yposes = field_yposes
+        self.field_xposes = field_xposes
+        self.color_scheme = color_scheme or {"normal": 0, "standout": 65536}
+        self.storage = storage if storage is not None else []
+        self.attr = self.color_scheme["normal"]
         self.yoffset = yoffset
         self.xoffset = xoffset
         self.margin = margin
-        self._initialize()
-
-    def _initialize(self):
-        maxy, maxx = self.stdscr.getmaxyx()
-        nlines = maxy - (2 * self.margin)
-        ncols = maxx - (2 * self.margin)
+        self.maxy = self.stdscr.getmaxyx()[0] - yoffset
+        self.maxx = self.stdscr.getmaxyx()[1]
+        nlines = self.maxy #- (2 * self.margin)
+        ncols = self.maxx #- (2 * self.margin)
         begin_y = self.yoffset
         begin_x = self.xoffset
         self.win = curses.newwin(nlines, ncols, begin_y, begin_x)
         self.panel = curses.panel.new_panel(self.win)
-        self.attr = self.attr if self.attr else curses.color_pair(0)
 
-    def draw(self, body=None):
-        if body:
-            self.win.erase()
-            self.body = body
+    def iter_attrs(self, obj: object, xoffset: int = 0) -> Iterator[Tuple[int, str, str]]:
+        """
+        Iterate over the attributes of the given object.
+
+        - `xpos`: The x position of the attribute
+        - `attr_value`: The value of the attribute, formatted with `fmt_spec`
+        - `color`: The color of the attribute as a string
+
+        :param obj: The object whose attributes are to be iterated over
+        :param xoffset: An x offset as an integer that is added to the x position
+        """
+    
+        offset = 1
+        
+        params = zip(self.field_yposes, self.field_xposes, self.field_attrs,
+            self.field_fmt_specs, self.field_colors)
+        
+        for ypos, xpos, attr_name, fmt_spec, color in params:
+            _len = len(attr_name)
+
+            if hasattr(obj, attr_name):
+                attr_value = getattr(obj, attr_name)
+            elif hasattr(obj, "__getitem__"):
+                attr_value = obj.get(attr_name, attr_name)
+            else:
+                attr_value = attr_name
+
+            if isinstance(attr_value, int) or isinstance(attr_value, float):
+                attr_value = str(attr_value)
+
+            if fmt_spec:
+                m = re.search(r"([<>^]?)(\d+)", fmt_spec)
+                _len = int(m.group(2)) if m else _len
+                if m.group(1) in ("<", "^"):
+                    attr_value = f"{attr_value[:_len]:{fmt_spec}}"
+                elif m.group(1) == ">":
+                    attr_value = f"{attr_value[-_len:]:{fmt_spec}}"
+
+            yield ypos, xpos + xoffset, attr_value, color
+
+    def draw(self, key=0):
+        self.win.attron(self.attr)
         self.win.box()
-        self.win.addstr(self.margin, self.margin, self.body, self.attr)
+        self.win.attroff(self.attr)
+        obj = self.storage[key]
+        for ypos, xpos, attr_value, color in self.iter_attrs(obj, self.xoffset):
+            color_attr = self.color_scheme.get(color, self.color_scheme["normal"])
+            try:
+                self.win.addstr(ypos, xpos, attr_value, color_attr)
+                self.win.refresh()
+            except curses.error:
+                pass
         self.win.refresh()
-        return self
+        self.panel.top()
 
     def erase(self):
         self.win.erase()
         self.win.refresh()
-        return self
+        self.panel.hide()
 
 class ProgressBar:
     def __init__(self, stdscr: "_curses._CursesWindow",
@@ -2961,64 +3565,6 @@ def custom_exception_handler(loop, context):
         return
     loop.default_exception_handler(context)
 
-def iter_attrs(
-    obj: object,
-    column_attrs: List[str],
-    column_names: List[str] = None,
-    column_fmt_specs: List[str] = None,
-    column_colors: List[str] = None,
-    column_xposes: List[int] = None,
-    xoffset: int = 0
-) -> Iterator[Tuple[int, str, str]]:
-    """
-    Iterate over the attributes of the given object.
-
-    - `xpos`: The x position of the attribute
-    - `attr_value`: The value of the attribute, formatted with `fmt_spec`
-    - `color`: The color of the attribute as a string
-
-    :param obj: The object whose attributes are to be iterated over
-    :param column_attrs: A list of attribute/key names of the object
-    :param column_names: A list of column name
-    :param column_fmt_specs: A list of format specifications, one per attribute
-    :param column_colors: A list of colors, one per attribute
-    :param column_xposes: A list of x positions as integers, one per attribute
-    :param xoffset: An x offset as an integer that is added to the x position
-    """
-    column_names = column_names or column_attrs
-    column_fmt_specs = column_fmt_specs or [f">{len(x)}" for x in column_names]
-    column_colors = column_colors or ["base" for x in column_names]
-    column_xposes = column_xposes or [None for x in column_names]
-    offset = 1
-    
-    column_params = zip(column_attrs, column_names, column_fmt_specs,
-        column_colors, column_xposes)
-    
-    for attr, name, fmt_spec, color, xpos in column_params:
-        _len = len(name)
-
-        if hasattr(obj, attr):
-            attr_value = getattr(obj, attr)
-        else:
-            attr_value = obj.get(attr, attr)
-
-        if isinstance(attr_value, int):
-            attr_value = str(attr_value)
-
-        if fmt_spec:
-            m = re.search(r"[<>^](\d+)", fmt_spec)
-            _len = int(m.group(1)) if m else _len
-            attr_value = f"{attr_value:{fmt_spec}}"
-        
-        if isinstance(attr_value, str):
-            attr_value = f"{attr_value[:_len]}"
-
-        if not xpos:
-            xpos = offset
-        
-        yield xpos + xoffset, attr_value, color
-        offset += len(attr_value) + 1
-
 def iter_column_names(
     column_names: List[str],
     column_fmt_specs: Optional[List[str]] = None,
@@ -3294,7 +3840,7 @@ async def discover_gateways(storage=None, callback=None) -> Tuple[int, int]:
 
     ip_filter = CONFIG.get("ip_filter", None)
     maxlen = CONFIG.get("storage_maxlen", None)
-    storage = storage or CONFIG.get("storage", AsyncMemoryStorage(maxlen))
+    storage = storage or CONFIG.get("storage", SlicableOrderedDict(maxlen=maxlen))
     bgws = []
 
     GATEWAYS.clear()
@@ -3309,7 +3855,7 @@ async def discover_gateways(storage=None, callback=None) -> Tuple[int, int]:
         try:
             result = await fut
             if result:
-                bgw = await process_item(result, storage=storage)
+                bgw = process_item(result, storage=storage)
                 if bgw:
                     ok += 1
                     bgws.append(bgw)
@@ -3335,7 +3881,7 @@ async def poll_gateways(storage = None, callback=None) -> None:
     """
 
     maxlen = CONFIG.get("storage_maxlen", None)
-    storage = storage or CONFIG.get("storage", AsyncMemoryStorage(maxlen))
+    storage = storage or CONFIG.get("storage", SlicableOrderedDict(maxlen))
     queue = asyncio.Queue()
 
     tasks = create_query_tasks(queue=queue, discovered_only=False)
@@ -3362,11 +3908,11 @@ async def process_queue(queue, storage, callback = None) -> None:
     while True:
         item = await queue.get()
         if item:
-            await process_item(item, storage=storage, callback=callback)
+            process_item(item, storage=storage, callback=callback)
             c += 1
         logger.info(f"Got {c} items from queue")
 
-async def process_item(item, storage, callback = None) -> None:
+def process_item(item, storage, callback = None) -> None:
     """
     Updates a BGW object with item from a JSON string.
 
@@ -3386,15 +3932,18 @@ async def process_item(item, storage, callback = None) -> None:
         host = data.get("host")
         if host in GATEWAYS:
             rtp_sessions = data.get("rtp_sessions")
-            if rtp_sessions:
-                await storage.put(rtp_sessions)
-                logger.info(f"Put {len(rtp_sessions)} rtp-stats into storage")
+            for key, value in rtp_sessions.items():
+                #m = reDetailed.search(value)
+                m = re.search(r'.*?Session-ID: (?P<session_id>\d+).*?Status: (?P<status>\S+),.*?QOS: (?P<qos>\S+),.*?Start-Time: (?P<start_time>\S+),.*?End-Time: (?P<end_time>\S+),', value)
+                if m:
+                    storage[key] = RTPSession({**m.groupdict(), 
+                        "gw_number": data.get("gw_number", "")})
             
             bgw = GATEWAYS[host]
             bgw.update(**data)
             
             if callback:
-                logger.info(f"Calling {callback.__name__}({bgw})")
+                #logger.info(f"Calling {callback.__name__}({bgw})")
                 callback()
             return bgw
 
@@ -3466,7 +4015,7 @@ async def polling_on_func(stdscr, storage, mydisplay, *args, **kwargs):
     
     try:    
         await create_task(poll_gateways(storage=storage,
-            callback=mydisplay.active_workspace.draw_bodywin),
+            callback=functools.partial(draw_workspace_callback, mydisplay)),
             name="poll_gateways")
     except asyncio.CancelledError:
         return
@@ -3519,6 +4068,21 @@ def clear_done_callback(mydisplay, fut):
         pass
     mydisplay.active_workspace.bodywin.erase()
     mydisplay.active_workspace.bodywin.refresh()
+
+def draw_workspace_callback(mydisplay):
+    aw = mydisplay.active_workspace
+    aw.draw_bodywin()
+
+def show_rtpstat_panel(panel, mydisplay, *args, **kwargs):
+    storage_idx = mydisplay.active_workspace.storage_idx
+    posy = mydisplay.active_workspace.bodywin_posy
+    panel.draw(storage_idx + posy)
+    curses.panel.update_panels()
+
+def hide_rtpstat_panel(panel, mydisplay, *args, **kwargs):
+    panel.erase()
+    curses.panel.update_panels()
+    mydisplay.active_workspace.draw()
 
 def unwrap_and_decompress(wrapped_text):
     base64_str = wrapped_text.replace('\n', '')
@@ -3615,6 +4179,17 @@ def main(stdscr, miny: int = 24, minx: int = 80):
     status_menubar = Menubar(stdscr, color_scheme=color_scheme)
     rtpstat_menubar = Menubar(stdscr, color_scheme=color_scheme)
     
+    rtpstat_panel = MyPanel(
+            stdscr,
+            field_attrs=[x['field_attr'] for x in RTPSTAT_PANEL_ATTRS],
+            field_fmt_specs=[x['field_fmt_spec'] for x in RTPSTAT_PANEL_ATTRS],
+            field_colors=[x['field_color'] for x in RTPSTAT_PANEL_ATTRS],
+            field_yposes=[x['field_ypos'] for x in RTPSTAT_PANEL_ATTRS],
+            field_xposes=[x['field_xpos'] for x in RTPSTAT_PANEL_ATTRS],
+            color_scheme=color_scheme,
+            storage=CONFIG["storage"]
+        )
+
     workspaces = [
         Workspace(
             stdscr,
@@ -3705,7 +4280,7 @@ def main(stdscr, miny: int = 24, minx: int = 80):
             menubar=rtpstat_menubar,
             storage=CONFIG["storage"],
             name="RTP-Stat",
-        )   
+        )
     ]
 
     tab = Tab(stdscr, tab_names=[w.name for w in workspaces],
@@ -3759,8 +4334,8 @@ def main(stdscr, miny: int = 24, minx: int = 80):
         status_attr_off=curses.color_pair(2)|curses.A_REVERSE,
         color_scheme=color_scheme,
         stdscr=stdscr,
+        storage=CONFIG["storage"],
         mydisplay=mydisplay,
-        storage=CONFIG["storage"]
     )
 
     button_r = Button(ord("r"), ord("r"),
@@ -3769,13 +4344,14 @@ def main(stdscr, miny: int = 24, minx: int = 80):
         char_alt="🅁 ",
         label_on="RTP Details",
         label_off="RTP Details",
-        exec_func_on=None,
-        exec_func_off=None,
+        exec_func_on=functools.partial(show_rtpstat_panel, rtpstat_panel),
+        exec_func_off=functools.partial(hide_rtpstat_panel, rtpstat_panel),
         done_callback_on=None,
         status_attr_on=curses.color_pair(42)|curses.A_REVERSE,
         status_attr_off=curses.color_pair(2)|curses.A_REVERSE,
         color_scheme=color_scheme,
         stdscr=stdscr,
+        storage=CONFIG["storage"],
         mydisplay=mydisplay,
     )
 
@@ -3813,7 +4389,7 @@ if __name__ == "__main__":
                         help='secs to look back in RTP stats, default 30s')
     parser.add_argument('-m', dest='max_polling', default=19,
                         help='max simultaneous polling sessons, default 20')
-    parser.add_argument('-l', dest='loglevel', default="INFO",
+    parser.add_argument('-l', dest='loglevel', default="WARNING",
                         help='loglevel')
     parser.add_argument('-t', dest='timeout', default=12,
                         help='timeout in secs, default 10secs')
@@ -3822,7 +4398,7 @@ if __name__ == "__main__":
     parser.add_argument('-i', dest='ip_filter', default=None, nargs='+',
                         help='BGW IP filter')
     parser.add_argument('-s', dest='storage', 
-                        default=AsyncMemoryStorage(
+                        default=SlicableOrderedDict(
                                 maxlen=CONFIG.get("storage_maxlen")),
                         help='RTP storage type')
     args = parser.parse_args()
