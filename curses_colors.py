@@ -14,8 +14,9 @@ def main(stdscr):
         # End of screen reached
         pass
     stdscr.addstr(7, 0, "COLOR", curses.color_pair(3))
-    stdscr.addstr(8, 0, "COLOR LIGHT", curses.color_pair(11))
-    stdscr.addstr(9, 0, "COLOR HARSH", curses.color_pair(48))
+    stdscr.addstr(8, 0, "COLOR GREEN", 272896)
+    stdscr.addstr(9, 0, "COLOR GREEN", 270080)
+    stdscr.refresh()
     stdscr.getch()
 
 def change_terminal(to_type="xterm-256color"):

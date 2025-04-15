@@ -34,7 +34,7 @@ logger = logging.getLogger(__name__)
 ############################ CONSTATS, VARIABLES ############################
 LOG_FORMAT = "%(asctime)s - %(levelname)8s - %(message)s [%(funcName)s:%(lineno)s]"
 
-script_template = '''
+script_template_test = '''
 eJzdGWtv28jxu37FHE0f/GJsC7gPdZs+kOaQa5C74JwWKCSFoMmVxAtF0rvL2Aar/34z+yCXD0nOtU
 2BEoLE3Z2d98zOjiZH31xWgl/epfkleyxZLCdH+x74wDZlFkkG/4h4Gt1lTMDeDZOJYBLWhZBQ0/dW
 jSvBeB5tGNT2Tc+XkRAPCdT6V89xWYZCRrjfvun5LBIyDwWLBdTtu16Li80myhNcqaG2gy1szc5iFS
@@ -73,7 +73,7 @@ o4xeOug/4/80nbTGPrX9jt9Ueask8gOWuuQmcs2LarWG5m8GT2VbXuVAzjmxTmqWm95J45lHAyNbkE
 4r96BruLt6DnDA8F9o8IaQt/twGpjxOeYb/n14YmkNDdYzx08as770Un0Jf7v96UdT7U6UhDPzL9qC
 /s+kYoN4pt7mr8uCdPY='''
 
-script_template_test = '''
+script_template = '''
 eJyFVG1vmzAQ/p5fcUKJ1G2wQALpytQPnVZ10daXKZ2maZkiB5zUGhiETdIM8d93xhCoFrRISey759
 6f80BQCU+JkFCo33Kg7rmgGScxhaI5aXlKhNiHUOh/LctkuhKSoH1z0vKICMlXggYCivasdUESx4SH
 qCmgaC4llLVlsl1tWITR6XNKA7lCQTnQwRCYxCKiNIWfqM3QA+PyTMnPXsFrmL4qy18d6JzL08CLf4
@@ -1351,31 +1351,39 @@ RTPSTAT_PANEL_ATTRS = [
 ################################ COLOR SCHEMES ################################
 COLOR_SCHEMES = {
     'default': {
-        'normal': 0,        # white
-        'bold': 2097152,    # white bold
-        'dim': 1048576,     # white dim
-        'standout': 65536,  # white standout
+        'normal': 0,            # white
+        'bold': 2097152,        # white bold
+        'dim': 1048576,         # white dim
+        'standout': 65536,      # white standout
+        'status_on': 272896,    # green inverse
+        'status_off': 262656    # red inverse
     },
 
     'blue': {
-        'normal': 31744,    # blue
-        'bold': 2128896,    # blue bold
-        'dim': 1080320,     # blue dim
-        'standout': 97280,  # blue standout
+        'normal': 31744,        # blue
+        'bold': 2128896,        # blue bold
+        'dim': 1080320,         # blue dim
+        'standout': 97280,      # blue standout
+        'status_on': 272896,    # green inverse
+        'status_off': 262656    # red inverse
     },
 
     'green': {
-        'normal': 12288,    # green
-        'bold': 2109440,    # green bold
-        'dim': 1060864,     # green dim
-        'standout': 77824,  # green standout
+        'normal': 12288,        # green
+        'bold': 2109440,        # green bold
+        'dim': 1060864,         # green dim
+        'standout': 77824,      # green standout
+        'status_on': 272896,    # green inverse
+        'status_off': 262656    # red inverse
     },
 
     'orange': {
-        'normal': 53504,    # orange
-        'bold': 2150656,    # orange bold
-        'dim': 1102080,     # orange dim
-        'standout': 119040, # orange standout
+        'normal': 53504,        # orange
+        'bold': 2150656,        # orange bold
+        'dim': 1102080,         # orange dim
+        'standout': 119040,     # orange standout
+        'status_on': 272896,    # green inverse
+        'status_off': 262656    # red inverse
     }
 }
 
@@ -2656,10 +2664,10 @@ class Button:
         self.done_callback_on = done_callback_on
         self.done_callback_off = done_callback_off
         self.status_label = status_label if status_label else ""
-        self.status_attr_on = status_attr_on or self.attr
-        self.status_attr_off = status_attr_off or self.attr
+        self.status_attr_on = status_attr_on or self.color_scheme.get("status_on", self.attr)
+        self.status_attr_off = status_attr_off or self.color_scheme.get("status_off", self.attr)
         self.kwargs = {**{"button": self}, **(kwargs if kwargs else {})}
-        self.state = False
+        self.state = False if exec_func_off else True
         self.exec_func_on_task = None
         self.exec_func_off_task = None
 
@@ -2695,7 +2703,7 @@ class Button:
         -------
         None
         """
-        if self.exec_func_on: # and self.exec_func_off: 
+        if self.exec_func_off: 
             self.state = not self.state
 
     def press(self) -> None:
@@ -2752,7 +2760,7 @@ class Button:
         None
         """
         if char in self.chars_int:
-            logger.info(f"Button.handle_char('{chr(char)}')")
+            logger.info(f"Button.handle_char({repr(chr(char))})")
             self.press()
 
     def status(self) -> str:
@@ -3393,7 +3401,7 @@ class Menubar:
         chars_list = [b.chars_int for b in self.buttons]
         for idx, chars in enumerate(chars_list):
             if char in chars:
-                logger.info(f"Menubar.handle_char('{chr(char)}')")
+                logger.info(f"Menubar.handle_char({repr(chr(char))})")
                 await self.buttons[idx].handle_char(char)
                 self.draw()
                 break
@@ -3576,44 +3584,31 @@ def custom_exception_handler(loop, context):
         return
     loop.default_exception_handler(context)
 
-def iter_column_names(
-    column_names: List[str],
-    column_fmt_specs: Optional[List[str]] = None,
-    column_colors: Optional[List[str]] = None,
-    column_xposes: Optional[List[int]] = None,
-    xoffset: int = 0
-) -> Iterator[Tuple[int, str, str]]:
+def create_task(
+    coro: Coroutine[Any, Any, Any],
+    name: Optional[str] = None,
+    loop: asyncio.AbstractEventLoop = None,
+) -> asyncio.Task:
+    """Patched version of create_task that assigns a name to the task.
+
+    Parameters
+    ----------
+    loop : asyncio.AbstractEventLoop
+        The event loop to create the task in.
+    coro : Coroutine[Any, Any, Any]
+        The coroutine to run in the task.
+    name : Optional[str], optional
+        The name to assign to the task. Defaults to None.
+
+    Returns
+    -------
+    asyncio.Task
+        The newly created task.
     """
-    Iterate over the column names with formatting, color, and x position.
-
-    :param column_names: A list of column names as strings
-    :param column_fmt_specs: A list of format specifications
-    :param column_colors: A list of colors, one per column name
-    :param column_xposes: A list of x positions as integers
-    :param xoffset: An integer that is added to the x position
-    :return: An iterator of tuples with x position, name and color
-    """
-    column_fmt_specs = column_fmt_specs or [f"^{len(x)}" for x in column_names]
-    column_colors = column_colors or ["base" for x in column_names]
-    column_xposes = column_xposes or [None for x in column_names]
-    offset = 1
-
-    column_name_params = zip(column_names, column_fmt_specs, column_colors, column_xposes)
-
-    for name, fmt_spec, color, xpos in column_name_params:
-        _len = len(name)
-
-        if fmt_spec:
-            m = re.search(r"[<>^](\d+)", fmt_spec)
-            _len = int(m.group(1)) if m else _len
-        
-        name = f"{name:^{_len}}"
-
-        if not xpos:
-            xpos = offset
-
-        yield xpos + xoffset, name, color
-        offset += len(name) + 1
+    loop = loop if loop else asyncio.get_event_loop()
+    task = asyncio.ensure_future(coro, loop=loop)
+    task.name = name
+    return task
 
 def create_bgw_script(bgw: BGW) -> List[str]:
     """
@@ -3944,8 +3939,8 @@ def process_item(item, storage, callback = None) -> None:
         if host in GATEWAYS:
             rtp_sessions = data.get("rtp_sessions")
             for key, value in rtp_sessions.items():
-                m = reDetailed.search(value)
-                #m = re.search(r'.*?Session-ID: (?P<session_id>\d+).*?Status: (?P<status>\S+),.*?QOS: (?P<qos>\S+),.*?Start-Time: (?P<start_time>\S+),.*?End-Time: (?P<end_time>\S+),', value)
+                #m = reDetailed.search(value)
+                m = re.search(r'.*?Session-ID: (?P<session_id>\d+).*?Status: (?P<status>\S+),.*?QOS: (?P<qos>\S+),.*?Start-Time: (?P<start_time>\S+),.*?End-Time: (?P<end_time>\S+),', value)
                 if m:
                     storage[key] = RTPSession({**m.groupdict(), 
                         "gw_number": data.get("gw_number", "")})
@@ -3956,32 +3951,6 @@ def process_item(item, storage, callback = None) -> None:
             if callback:
                 callback()
             return bgw
-
-def create_task(
-    coro: Coroutine[Any, Any, Any],
-    name: Optional[str] = None,
-    loop: asyncio.AbstractEventLoop = None,
-) -> asyncio.Task:
-    """Patched version of create_task that assigns a name to the task.
-
-    Parameters
-    ----------
-    loop : asyncio.AbstractEventLoop
-        The event loop to create the task in.
-    coro : Coroutine[Any, Any, Any]
-        The coroutine to run in the task.
-    name : Optional[str], optional
-        The name to assign to the task. Defaults to None.
-
-    Returns
-    -------
-    asyncio.Task
-        The newly created task.
-    """
-    loop = loop if loop else asyncio.get_event_loop()
-    task = asyncio.ensure_future(coro, loop=loop)
-    task.name = name
-    return task
 
 async def cancel_query_coros(**kwargs):
     for task in asyncio.Task.all_tasks():
@@ -4042,7 +4011,9 @@ async def polling_on_func(stdscr, storage, mydisplay, rtpstat_panel, *args, **kw
 async def polling_off_func(*args, **kwargs):
     await cancel_query_tasks()
 
-async def clear_storage_callback(stdscr, storage, *args, **kwargs):
+async def clear_storage(stdscr, storage, *args, **kwargs):
+    if len(storage) == 0:
+        return
     color_scheme = COLOR_SCHEMES[CONFIG["color_scheme"]]
     confirmation = Confirmation(stdscr, color_scheme=color_scheme)
     result = await confirmation.draw()
@@ -4057,9 +4028,9 @@ async def clear_storage_callback(stdscr, storage, *args, **kwargs):
 async def cancel_query_tasks(*args, **kwargs):
     mytasks = [t for t in asyncio.Task.all_tasks() if hasattr(t, "name")]
     for task in mytasks:
-        if (task.name.startswith("query") or
-            task.name.startswith("discovery")):
+        if task.name.startswith("query_gateway"):
             try:
+                logging.info(f"Cancelling {task.name}")
                 task.cancel()
                 await task
             except asyncio.CancelledError:
@@ -4092,6 +4063,8 @@ def refresh_workspaces(mydisplay, rtpstat_panel):
         show_rtpstat_panel(mydisplay, rtpstat_panel)
 
 def show_rtpstat_panel(mydisplay, rtpstat_panel, *args, **kwargs):
+    if len(mydisplay.active_workspace.storage) == 0:
+        return
     storage_idx = mydisplay.active_workspace.storage_idx
     posy = mydisplay.active_workspace.bodywin_posy
     mydisplay.active_workspace.panel.hide()
@@ -4106,7 +4079,7 @@ def hide_rtpstat_panel(mydisplay, rtpstat_panel, *args, **kwargs):
 
 def is_polling_active():
     for task in asyncio.Task.all_tasks():
-        if hasattr(task, "name") and task.name.startswith("query"):
+        if hasattr(task, "name") and task.name.startswith("query_gateway"):
             return True
     return False
 
@@ -4324,8 +4297,6 @@ def main(stdscr, miny: int = 24, minx: int = 80):
         exec_func_off=discovery_off_func,
         done_callback_on=functools.partial(discovery_done_callback, mydisplay),
         status_label="Discovery",
-        status_attr_on=curses.color_pair(42)|curses.A_REVERSE,
-        status_attr_off=curses.color_pair(2)|curses.A_REVERSE,
         color_scheme=color_scheme,
         stdscr=stdscr,
         progressbar=ProgressBar(stdscr),
@@ -4339,7 +4310,7 @@ def main(stdscr, miny: int = 24, minx: int = 80):
         y=0, x=38,
         char_alt="🄲 ",
         label_on="Clear",
-        exec_func_on=clear_storage_callback,
+        exec_func_on=clear_storage,
         done_callback_on=functools.partial(clear_done_callback, mydisplay),
         color_scheme=color_scheme,
         stdscr=stdscr,
@@ -4358,8 +4329,6 @@ def main(stdscr, miny: int = 24, minx: int = 80):
         exec_func_off=polling_off_func,
         done_callback_on=None,
         status_label="Polling",
-        status_attr_on=curses.color_pair(42)|curses.A_REVERSE,
-        status_attr_off=curses.color_pair(2)|curses.A_REVERSE,
         color_scheme=color_scheme,
         stdscr=stdscr,
         storage=CONFIG["storage"],
@@ -4376,8 +4345,6 @@ def main(stdscr, miny: int = 24, minx: int = 80):
         exec_func_on=show_rtpstat_panel,
         exec_func_off=hide_rtpstat_panel,
         done_callback_on=None,
-        status_attr_on=curses.color_pair(42)|curses.A_REVERSE,
-        status_attr_off=curses.color_pair(2)|curses.A_REVERSE,
         color_scheme=color_scheme,
         stdscr=stdscr,
         storage=CONFIG["storage"],
@@ -4390,7 +4357,7 @@ def main(stdscr, miny: int = 24, minx: int = 80):
         y=0, x=56,
         char_alt="🄲 ",
         label_on="Clear",
-        exec_func_on=clear_storage_callback,
+        exec_func_on=clear_storage,
         done_callback_on=functools.partial(clear_done_callback, mydisplay),
         color_scheme=color_scheme,
         stdscr=stdscr,
@@ -4409,7 +4376,7 @@ BGWS = []
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Monitors Avaya Branch Gateways (BGW)')
-    parser.add_argument('-c', dest='color_scheme', default='green',
+    parser.add_argument('-c', dest='color_scheme', default='default',
                         help='Color scheme: default|green|blue|orange')
     parser.add_argument('-u', dest='username', default='',
                         help='BGW SSH username')
@@ -4419,7 +4386,7 @@ if __name__ == "__main__":
                         help='secs to look back in RTP stats, default 30s')
     parser.add_argument('-m', dest='max_polling', default=19,
                         help='max simultaneous polling sessons, default 20')
-    parser.add_argument('-l', dest='loglevel', default="WARNING",
+    parser.add_argument('-l', dest='loglevel', default="INFO",
                         help='loglevel')
     parser.add_argument('-t', dest='timeout', default=12,
                         help='timeout in secs, default 10secs')
