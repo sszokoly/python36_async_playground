@@ -3329,14 +3329,15 @@ class ProgressBar:
 
 class Confirmation:
     def __init__(self, stdscr, color_scheme=None, body=None,
-        yoffset=-1, margin=1,
+        callback=None,yoffset=-1, margin=1,
     ) -> None:
         self.stdscr = stdscr
         self.color_scheme = color_scheme or {"normal": 0, "standout": 65536}
         self.body = body or "Do you confirm (Y)?"
-        self.attr = self.color_scheme.get("normal", 0)
+        self.callback = callback
         self.yoffset = yoffset
         self.margin = margin
+        self.attr = self.color_scheme.get("normal", 0)
         
         maxy, maxx = self.stdscr.getmaxyx()
         nlines = 3 + (2 * self.margin)
@@ -3347,22 +3348,11 @@ class Confirmation:
         self.panel = curses.panel.new_panel(self.win)
         self.win.attron(self.attr)
         self.win.nodelay(True)
-
-    async def draw(self):
-        self.win.box()
-        
-        try:
-            self.win.addstr(self.margin + 1, self.margin + 1,
-                self.body, self.attr)
-        except _curses.error:
-            pass
-        
-        self.panel.show()
         self.panel.top()
-        self.win.noutrefresh()
-        curses.panel.update_panels()
-        curses.doupdate()
-        
+        self.panel.show()
+        self.refresh()
+
+    async def ask(self):
         while True:
             char = self.win.getch()
             if char == curses.ERR:
@@ -3374,11 +3364,23 @@ class Confirmation:
             else:
                 return None
 
+    def refresh(self):
+        self.win.box()
+        try:
+            self.win.addstr(self.margin + 1, self.margin + 1,
+                self.body, self.attr)
+        except _curses.error:
+            pass
+        self.win.noutrefresh()
+        curses.panel.update_panels()
+        curses.doupdate()
+
     def erase(self):
         self.win.erase()
-        self.win.refresh()
+        self.win.noutrefresh()
         self.panel.hide()
         curses.panel.update_panels()
+        curses.doupdate()
 
 class Popup:
     def __init__(
@@ -3484,8 +3486,12 @@ class MyDisplay():
             curses.doupdate()
             char = self.stdscr.getch()
            
-            if self.confirmation:
-                await asyncio.sleep(0.05)
+            if self.confirmation and not self.confirmation.panel.hidden():
+                result = await self.confirmation.ask()
+                if self.confirmation.callback:
+                    await self.confirmation.callback(result)
+                self.confirmation.erase()
+                self.confirmation = None
             elif char == curses.ERR:
                 await asyncio.sleep(0.05)
             elif char == curses.KEY_RESIZE:
@@ -4101,35 +4107,28 @@ async def polling_off_func(button):
     button.menubar.draw()
     await cancel_query_gateway_tasks()
 
-async def clear_storage_warning(stdscr, color_scheme):
-    confirm = Confirmation(stdscr, color_scheme,
-        body="Proceed with clearing (Y)?")
-    result = await confirm.draw()
-    confirm.erase()
-    return result
-
-async def clear_storage(button):
-    name = button.mydisplay.active_workspace.name
-    
+async def confirm_clear_storage(button):
     if len(button.storage) == 0:
-        logger.debug(f"Nothing to clear, '{name}' storage is empty.")
+        logger.debug(f"Nothing to clear, storage is empty.")
         return
 
-    button.mydisplay.confirmation = True
-    result = await clear_storage_warning(button.stdscr, button.color_scheme)
-    
+    confirmation = Confirmation(
+        button.stdscr,
+        button.color_scheme,
+        body="Proceed with clearing (Y)?",
+        callback=functools.partial(clear_storage, button),
+    )
+    button.mydisplay.confirmation = confirmation
+
+async def clear_storage(button, result):
     if result:
         if asyncio.iscoroutinefunction(button.storage.clear):
             await button.storage.clear()
         else:
             button.storage.clear()
-        logger.info(f"Cleared '{name}' storage")
-    
-        button.mydisplay.active_workspace.bodywin.erase()
-        button.mydisplay.active_workspace.draw_bodywin()
-        button.mydisplay.confirmation = False
-
-    return result
+        logger.info("Cleared storage")
+    button.mydisplay.active_workspace.bodywin.erase()
+    button.mydisplay.active_workspace.draw_bodywin()
 
 async def cancel_query_gateway_tasks():
     tasks = get_query_gateway_tasks()
@@ -4169,9 +4168,8 @@ def refresh_workspaces(button):
         button.mydisplay.active_workspace.draw_bodywin()
     elif not button.rtpstat_panel.panel.hidden():
         show_rtpstat_panel(button)
-    if button.mydisplay.confirmation:
-        curses.panel.update_panels()
-        curses.doupdate()
+    if button.mydisplay.confirmation and not button.mydisplay.confirmation.panel.hidden():
+       button.mydisplay.confirmation.refresh()
 
 def show_rtpstat_panel(button):
     if len(button.mydisplay.active_workspace.storage) == 0:
@@ -4390,7 +4388,7 @@ def main(stdscr, miny: int = 24, minx: int = 80):
         y=0, x=38,
         char_alt="🄲 ",
         label_on="Clear",
-        exec_func_on=clear_storage,
+        exec_func_on=confirm_clear_storage,
         #done_callback_on=functools.partial(clear_done_callback, mydisplay),
         color_scheme=color_scheme,
         stdscr=stdscr,
@@ -4437,7 +4435,7 @@ def main(stdscr, miny: int = 24, minx: int = 80):
         y=0, x=56,
         char_alt="🄲 ",
         label_on="Clear",
-        exec_func_on=clear_storage,
+        exec_func_on=confirm_clear_storage,
         #done_callback_on=functools.partial(clear_done_callback, mydisplay),
         color_scheme=color_scheme,
         stdscr=stdscr,
