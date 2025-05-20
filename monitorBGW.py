@@ -3,10 +3,8 @@
 # -*- encoding: utf-8 -*-
 import argparse
 import asyncio
-import atexit
 import base64
 import _curses, curses, curses.ascii, curses.panel
-import enum
 import functools
 import json
 import logging
@@ -2587,15 +2585,115 @@ class RTPSession:
     def asdict(self):
         return self.__dict__
 
+class Menubar:
+    def __init__(self, stdscr: "_curses._CursesWindow",
+        xoffset: Optional[int] = 0,
+        color_scheme = None,
+        status_bar_width: Optional[int] = 13,
+        buttons = None) -> None:
+        """
+        Initialize the menubar.
+
+        Parameters
+        ----------
+        stdscr : _curses._CursesWindow
+            The curses window that the menubar will be drawn on.
+        nlines : int, optional
+            The number of lines the menubar should use. Defaults to 1.
+        attr : int, optional
+            The curses attribute to use when drawing the menubar. Defaults to
+            curses.A_REVERSE.
+        xoffset : int, optional
+            The x offset of the menubar. Defaults to 0.
+        status_bar_width : int, optional
+            The width of the status bar. Defaults to 20.
+        buttons : List[Button], optional
+            A list of Button objects that should be used to populate the
+            menubar. Defaults to an empty list.
+        """
+        self.stdscr = stdscr
+        self.xoffset = xoffset
+        self.color_scheme = color_scheme or {"normal": 0, "standout": 65536}
+        self.status_bar_width = status_bar_width
+        self.buttons = buttons if buttons else []
+        self.attr = self.color_scheme.get("normal", 0)
+        self.attr_standout = self.color_scheme.get("standout", 65536)
+        maxy, maxx = stdscr.getmaxyx()
+        self.win = stdscr.subwin(1, maxx, maxy - 1, xoffset)
+        self.maxy, self.maxx = self.win.getmaxyx()
+
+    def draw(self) -> None:
+        """
+        Draw the menubar.
+
+        Returns
+        -------
+        None
+        """
+        try:    
+            self.win.addstr(0, 0, " " * (self.maxx), self.attr_standout)
+        except _curses.error:
+            pass
+        
+        offset = 0
+        labels, attrs = zip(*[b.status() for b in self.buttons])
+        labels, attrs = list(labels), list(attrs)
+        visible_labels = [l for l in labels if l]
+        nseparators = max(0, len(visible_labels) - 1)
+        noffset = offset
+
+        if visible_labels:
+            width = (self.status_bar_width - nseparators) // len(visible_labels)
+        else:
+            width = (self.status_bar_width - nseparators)
+
+        for label, attr in zip(labels, attrs):
+            if label:
+                if nseparators and noffset > offset:
+                    self.win.addstr(0, noffset, "│", self.attr)
+                    noffset += 1
+                label = f"{label[:width]:^{width}}"
+                try:
+                    self.win.addstr(0, noffset, label, attr)
+                except _curses.error:
+                    pass
+                noffset += len(label)
+
+        for button in self.buttons:
+            button.draw()
+
+        self.win.refresh()
+
+    async def handle_char(self, char: int) -> None:
+        """
+        Process a keypress for one of the buttons in the menubar.
+
+        Parameters
+        ----------
+        char : int
+            The character code of the key that was pressed.
+
+        Returns
+        -------
+        None
+        """
+        chars_list = [b.chars_int for b in self.buttons]
+        for idx, chars in enumerate(chars_list):
+            if char in chars:
+                logger.info(f"Menubar.handle_char({repr(chr(char))})")
+                await self.buttons[idx].handle_char(char)
+                self.draw()
+                break
+
 class Button:
     def __init__(self, *chars_int: int,
-        win: "_curses._CursesWindow",
+        menubar: Menubar,
         y: Optional[int] = 0,
         x: Optional[int] = 0,
         char_alt: Optional[str] = None,
-        label_off: Optional[str] = None,
-        label_on: Optional[str] = None,
         color_scheme = None,
+        label_on: Optional[str] = None,
+        label_off: Optional[str] = None,
         exec_func_on: Optional[Callable[[], None]] = None,
         exec_func_off: Optional[Callable[[], None]] = None,
         done_callback_on: Optional[Callable[[], None]] = None,
@@ -2653,25 +2751,29 @@ class Button:
         """
 
         self.chars_int = chars_int
-        self.win = win
+        self.menubar = menubar
         self.y = y
         self.x = x
         self.char_alt = char_alt
-        self.label_off = label_off or ("On" if not label_on else label_on)
-        self.label_on = label_on or "Off"
+        self.label_on = label_on or "On"
+        self.label_off = label_off or label_on
         self.color_scheme = color_scheme or {"normal": 0, "standout": 65536}
         self.attr = self.color_scheme.get("standout", 65536)
         self.exec_func_on = exec_func_on
         self.exec_func_off = exec_func_off
         self.done_callback_on = done_callback_on
         self.done_callback_off = done_callback_off
-        self.status_label = status_label if status_label else ""
-        self.status_attr_on = status_attr_on or self.color_scheme.get("status_on", self.attr)
-        self.status_attr_off = status_attr_off or self.color_scheme.get("status_off", self.attr)
-        self.kwargs = {**{"button": self}, **(kwargs if kwargs else {})}
-        self.state = False if exec_func_off else True
+        self.status_label = status_label or ""
+        self.status_attr_on = (status_attr_on or 
+            self.color_scheme.get("status_on", self.attr))
+        self.status_attr_off = (status_attr_off or
+            self.color_scheme.get("status_off", self.attr))
+        self.state = False
         self.exec_func_on_task = None
         self.exec_func_off_task = None
+        
+        for key, value in kwargs.items():
+            setattr(self, key, value)
 
     def draw(self) -> None:
         """
@@ -2681,21 +2783,24 @@ class Button:
         -------
         None
         """
-        if self.char_alt:
-            char = self.char_alt
-        elif any(chr(c).isalnum() for c in self.chars_int):
-            char = next(c for c in self.chars_int if chr(c).isalnum())
-        else:
-            char = repr(chr(self.chars_int[0]))
-
-        label = self.label_on if self.state else self.label_off
+        char = self.char_alt
+        if not char:
+            for c in self.chars_int:
+                if chr(c).isalnum():
+                    char = chr(c)
+                    break
+            else:
+                char = repr(chr(self.chars_int[0]))
+        
+        label = self.label_off if not self.state else self.label_on
 
         try:
-            self.win.addstr(self.y, self.x, f"{char}={label}", self.attr)
+            self.menubar.win.addstr(self.y, self.x,
+                f"{char}={label}", self.attr)
         except curses.error:
             pass
 
-        self.win.refresh()
+        self.menubar.win.refresh()
 
     def toggle(self) -> None:
         """
@@ -2705,7 +2810,7 @@ class Button:
         -------
         None
         """
-        if self.exec_func_off: 
+        if self.exec_func_off:
             self.state = not self.state
 
     def press(self) -> None:
@@ -2718,30 +2823,28 @@ class Button:
         -------
         None
         """
-        self.toggle()
-
-        if self.state:
+        if not self.state:
             if self.exec_func_on:
                 if asyncio.iscoroutinefunction(self.exec_func_on):
                     self.exec_func_on_task: asyncio.Task = create_task(
-                        self.exec_func_on(**self.kwargs),
+                        self.exec_func_on(self),
                         name=f"{self.exec_func_on.__name__}")
                     if self.done_callback_on:
                         self.exec_func_on_task.add_done_callback(
                             self.done_callback_on)
                 else:
-                    self.exec_func_on(**self.kwargs)
+                    self.exec_func_on(self)
         else:
             if self.exec_func_off:
                 if asyncio.iscoroutinefunction(self.exec_func_off):
                     self.exec_func_off_task: asyncio.Task = create_task(
-                        self.exec_func_off(**self.kwargs),
+                        self.exec_func_off(self),
                         name=f"{self.exec_func_off.__name__}")
                     if self.done_callback_off:
                         self.exec_func_off_task.add_done_callback(
                             self.done_callback_off)
                 else:
-                    self.exec_func_off(**self.kwargs)
+                    self.exec_func_off(self)
                 
                 if self.exec_func_on_task and not self.exec_func_on_task.done():
                     self.exec_func_on_task.remove_done_callback(
@@ -3082,6 +3185,7 @@ class MyPanel:
         begin_x = self.xoffset
         self.win = curses.newwin(nlines, ncols, begin_y, begin_x)
         self.panel = curses.panel.new_panel(self.win)
+        self.panel.hide()
 
     def iter_attrs(self, obj: object, xoffset: int = 0) -> Iterator[Tuple[int, str, str]]:
         """
@@ -3224,14 +3328,16 @@ class ProgressBar:
         self.win.refresh()
 
 class Confirmation:
-    def __init__(self, stdscr, body=None, color_scheme=None, yoffset=-1, margin=1,
+    def __init__(self, stdscr, color_scheme=None, body=None,
+        callback=None,yoffset=-1, margin=1,
     ) -> None:
         self.stdscr = stdscr
-        self.body = body or "Do you confirm (Y/N)?"
         self.color_scheme = color_scheme or {"normal": 0, "standout": 65536}
-        self.attr = self.color_scheme.get("normal", 0)
+        self.body = body or "Do you confirm (Y)?"
+        self.callback = callback
         self.yoffset = yoffset
         self.margin = margin
+        self.attr = self.color_scheme.get("normal", 0)
         
         maxy, maxx = self.stdscr.getmaxyx()
         nlines = 3 + (2 * self.margin)
@@ -3243,27 +3349,38 @@ class Confirmation:
         self.win.attron(self.attr)
         self.win.nodelay(True)
         self.panel.top()
-    
-    async def draw(self):
+        self.panel.show()
+        self.refresh()
+
+    async def ask(self):
+        while True:
+            char = self.win.getch()
+            if char == curses.ERR:
+                await asyncio.sleep(0.05)
+            elif char in (ord('y'), ord('Y')):
+                return True
+            elif char in (ord('n'), ord('N')):
+                return False
+            else:
+                return None
+
+    def refresh(self):
         self.win.box()
         try:
             self.win.addstr(self.margin + 1, self.margin + 1,
                 self.body, self.attr)
         except _curses.error:
             pass
-        self.win.refresh()
-        while True:
-            char = self.win.getch()
-            if char in (ord('y'), ord('Y')):
-                return True
-            elif char in (ord('n'), ord('N')):
-                return False
-            else:
-                await asyncio.sleep(0.01)
+        self.win.noutrefresh()
+        curses.panel.update_panels()
+        curses.doupdate()
 
     def erase(self):
         self.win.erase()
-        self.win.refresh()
+        self.win.noutrefresh()
+        self.panel.hide()
+        curses.panel.update_panels()
+        curses.doupdate()
 
 class Popup:
     def __init__(
@@ -3307,106 +3424,6 @@ class Popup:
     def erase(self):
         self.win.erase()
         self.win.refresh()
-
-class Menubar:
-    def __init__(self, stdscr: "_curses._CursesWindow",
-        xoffset: Optional[int] = 0,
-        color_scheme = None,
-        status_bar_width: Optional[int] = 13,
-        buttons: List[Button] = None) -> None:
-        """
-        Initialize the menubar.
-
-        Parameters
-        ----------
-        stdscr : _curses._CursesWindow
-            The curses window that the menubar will be drawn on.
-        nlines : int, optional
-            The number of lines the menubar should use. Defaults to 1.
-        attr : int, optional
-            The curses attribute to use when drawing the menubar. Defaults to
-            curses.A_REVERSE.
-        xoffset : int, optional
-            The x offset of the menubar. Defaults to 0.
-        status_bar_width : int, optional
-            The width of the status bar. Defaults to 20.
-        buttons : List[Button], optional
-            A list of Button objects that should be used to populate the
-            menubar. Defaults to an empty list.
-        """
-        self.stdscr = stdscr
-        self.xoffset = xoffset
-        self.color_scheme = color_scheme or {"normal": 0, "standout": 65536}
-        self.status_bar_width = status_bar_width
-        self.buttons = buttons if buttons else []
-        self.attr = self.color_scheme.get("normal", 0)
-        self.attr_standout = self.color_scheme.get("standout", 65536)
-        maxy, maxx = stdscr.getmaxyx()
-        self.win = stdscr.subwin(1, maxx, maxy - 1, xoffset)
-        self.maxy, self.maxx = self.win.getmaxyx()
-
-    def draw(self) -> None:
-        """
-        Draw the menubar.
-
-        Returns
-        -------
-        None
-        """
-        try:    
-            self.win.addstr(0, 0, " " * (self.maxx), self.attr_standout)
-        except _curses.error:
-            pass
-        
-        offset = 0
-        labels, attrs = zip(*[b.status() for b in self.buttons])
-        labels, attrs = list(labels), list(attrs)
-        visible_labels = [l for l in labels if l]
-        nseparators = max(0, len(visible_labels) - 1)
-        noffset = offset
-
-        if visible_labels:
-            width = (self.status_bar_width - nseparators) // len(visible_labels)
-        else:
-            width = (self.status_bar_width - nseparators)
-
-        for label, attr in zip(labels, attrs):
-            if label:
-                if nseparators and noffset > offset:
-                    self.win.addstr(0, noffset, "│", self.attr)
-                    noffset += 1
-                label = f"{label[:width]:^{width}}"
-                try:
-                    self.win.addstr(0, noffset, label, attr)
-                except _curses.error:
-                    pass
-                noffset += len(label)
-
-        for button in self.buttons:
-            button.draw()
-
-        self.win.refresh()
-
-    async def handle_char(self, char: int) -> None:
-        """
-        Process a keypress for one of the buttons in the menubar.
-
-        Parameters
-        ----------
-        char : int
-            The character code of the key that was pressed.
-
-        Returns
-        -------
-        None
-        """
-        chars_list = [b.chars_int for b in self.buttons]
-        for idx, chars in enumerate(chars_list):
-            if char in chars:
-                logger.info(f"Menubar.handle_char({repr(chr(char))})")
-                await self.buttons[idx].handle_char(char)
-                self.draw()
-                break
 
 class MyDisplay():
     def __init__(self,
@@ -3465,8 +3482,17 @@ class MyDisplay():
         self.make_display()
         
         while not self.done:
+            curses.panel.update_panels()
+            curses.doupdate()
             char = self.stdscr.getch()
-            if char == curses.ERR:
+           
+            if self.confirmation and not self.confirmation.panel.hidden():
+                result = await self.confirmation.ask()
+                if self.confirmation.callback:
+                    await self.confirmation.callback(result)
+                self.confirmation.erase()
+                self.confirmation = None
+            elif char == curses.ERR:
                 await asyncio.sleep(0.05)
             elif char == curses.KEY_RESIZE:
                 self.maxy, self.maxx = self.stdscr.getmaxyx()
@@ -3699,7 +3725,31 @@ def connected_gateways(ip_filter: Optional[Set[str]] = None) -> Dict[str, str]:
                 logger.info(f"Added gateway {ip} to result dictionary")
     
     if not result: # to be removed
-        return {"10.10.48.58": "unencrypted", "10.44.244.51": "encrypted"}
+        return {
+            "10.10.48.58": "unencrypted",
+            "10.44.244.51": "encrypted",
+            # "10.44.244.52": "encrypted",
+            # "192.168.100.151": "encrypted",
+            # "192.168.100.152": "unencrypted",
+            # "172.18.20.10": "unencrypted",
+            # "10.10.48.59": "unencrypted",
+            # "10.44.244.54": "encrypted",
+            # "10.44.244.58": "encrypted",
+            # "192.168.100.61": "encrypted",
+            # "192.168.100.62": "unencrypted",
+            # "172.18.30.10": "unencrypted",
+            # "10.10.48.60": "unencrypted",
+            # "10.44.244.55": "encrypted",
+            # "10.44.244.59": "encrypted",
+            # "192.168.100.63": "encrypted",  
+            # "192.168.100.64": "unencrypted",
+            # "172.18.30.11": "unencrypted",
+            # "10.10.48.61": "unencrypted",
+            # "10.44.244.56": "encrypted",
+            # "10.44.244.60": "encrypted",
+            # "192.168.190.65": "encrypted",
+            # "192.168.130.26": "unencrypted",
+        }
     
     return {ip: result[ip] for ip in sorted(result)}
 
@@ -3979,37 +4029,44 @@ def process_item(item, storage, callback = None) -> None:
                 callback()
             return bgw
 
-async def cancel_query_coros(**kwargs):
+async def cancel_query_coros():
     for task in asyncio.Task.all_tasks():
         if hasattr(task, "name") and task.name.startswith("coro query_gateway"):
             task.cancel()
             await task
 
-async def discovery_on_func(stdscr, progressbar, storage, *args, **kwargs):
-    
+async def confirm_stop_polling(stdscr, color_scheme):
+    confirm = Confirmation(stdscr, color_scheme,
+        body="Polling is active! Stop polling first!")
+    await confirm.draw()
+    confirm.erase()
+
+async def discovery_on_func(button):
     if is_polling_active():
-        color_scheme = COLOR_SCHEMES[CONFIG["color_scheme"]]
-        popup = Popup(stdscr,
-            body="Stop polling first!",
-            color_scheme=color_scheme)
-        popup.draw()
-        await asyncio.sleep(2)
-        popup.erase()
-        #await discovery_off_func()
+        await confirm_stop_polling(button.stdscr, button.color_scheme)
         return
     
-    BGWS.clear()
-    
+    if len(button.storage) > 0:
+        result = await clear_storage(button)
+        if not result:
+            return
+
     try:
-        progressbar.draw()
-        bgws = await create_task(discover_gateways(storage=storage,
-            callback=progressbar.draw), name="discover_gateways")
+        button.toggle()
+        button.menubar.draw()
+        button.progressbar.draw()
+        bgws = await create_task(discover_gateways(storage=button.storage,
+            callback=button.progressbar.draw), name="discover_gateways")
     except asyncio.CancelledError:
         return
     else:
-        BGWS.extend(sorted(bgws, key=lambda bgw: bgw.gw_number))
+        button.storage.extend(sorted(bgws, key=lambda bgw: bgw.gw_number))
+        button.toggle()
+        button.menubar.draw()
+        button.progressbar.erase()
+        button.mydisplay.active_workspace.draw_bodywin()
 
-async def discovery_off_func(progressbar, mydisplay, *args, **kwargs):
+async def discovery_off_func(button):
     for task in get_query_gateway_tasks():
         logger.info(f"Cancelling {task.name}")
         task.cancel()
@@ -4017,45 +4074,63 @@ async def discovery_off_func(progressbar, mydisplay, *args, **kwargs):
             await task
         except asyncio.CancelledError:
             pass
-    progressbar.erase()
-    mydisplay.active_workspace.draw_bodywin()
 
-async def polling_on_func(stdscr, storage, mydisplay, rtpstat_panel, *args, **kwargs):
-    color_scheme = COLOR_SCHEMES[CONFIG["color_scheme"]]
-    if not BGWS:
-        popup = Popup(stdscr,
-            body="Discover gateways first!",
-            color_scheme=color_scheme)
-        popup.draw()
-        await asyncio.sleep(2)
-        popup.erase()
+    button.progressbar.erase()
+    button.toggle()
+    button.menubar.draw()
+    button.mydisplay.active_workspace.draw_bodywin()
+
+async def confirm_discover_gateways(stdscr, color_scheme):
+    confirm = Confirmation(stdscr, color_scheme,
+        body="Discover gateways first!")
+    result =await confirm.draw()
+    confirm.erase()
+    return result
+
+async def polling_on_func(button):
+    
+    if len(BGWS) == 0:
+        await confirm_discover_gateways(button.stdscr, button.color_scheme)
         return
     
-    try:    
-        await create_task(poll_gateways(storage=storage,
-            callback=functools.partial(refresh_workspaces, mydisplay, rtpstat_panel)),
+    try:
+        button.toggle()
+        button.menubar.draw()
+        await create_task(poll_gateways(storage=button.storage,
+            callback=functools.partial(refresh_workspaces, button)),
             name="poll_gateways")
     except asyncio.CancelledError:
         return
 
-async def polling_off_func(*args, **kwargs):
+async def polling_off_func(button):
+    button.toggle()
+    button.menubar.draw()
     await cancel_query_gateway_tasks()
 
-async def clear_storage(stdscr, storage, *args, **kwargs):
-    if len(storage) == 0:
+async def confirm_clear_storage(button):
+    if len(button.storage) == 0:
+        logger.debug(f"Nothing to clear, storage is empty.")
         return
-    color_scheme = COLOR_SCHEMES[CONFIG["color_scheme"]]
-    confirmation = Confirmation(stdscr, color_scheme=color_scheme)
-    result = await confirmation.draw()
-    if result:
-        if asyncio.iscoroutinefunction(storage.clear):
-            await storage.clear()
-        else:
-            storage.clear()
-        logger.info("Cleared storage")
-    confirmation.erase()
 
-async def cancel_query_gateway_tasks(*args, **kwargs):
+    confirmation = Confirmation(
+        button.stdscr,
+        button.color_scheme,
+        body="Proceed with clearing (Y)?",
+        callback=functools.partial(clear_storage, button),
+    )
+    button.mydisplay.confirmation = confirmation
+
+async def clear_storage(button, result):
+    if result:
+        if asyncio.iscoroutinefunction(button.storage.clear):
+            await button.storage.clear()
+        else:
+            button.storage.clear()
+        logger.info("Cleared storage")
+    button.mydisplay.active_workspace.bodywin.erase()
+    button.mydisplay.active_workspace.draw_bodywin()
+
+async def cancel_query_gateway_tasks():
     tasks = get_query_gateway_tasks()
     for task in tasks:
         try:
@@ -4088,26 +4163,32 @@ def clear_done_callback(mydisplay, fut):
     mydisplay.active_workspace.bodywin.erase()
     mydisplay.active_workspace.bodywin.refresh()
 
-def refresh_workspaces(mydisplay, rtpstat_panel):
-    if not mydisplay.active_workspace.panel.hidden():
-        mydisplay.active_workspace.draw_bodywin()
-    else:
-        show_rtpstat_panel(mydisplay, rtpstat_panel)
+def refresh_workspaces(button):
+    if not button.mydisplay.active_workspace.panel.hidden():
+        button.mydisplay.active_workspace.draw_bodywin()
+    elif not button.rtpstat_panel.panel.hidden():
+        show_rtpstat_panel(button)
+    if button.mydisplay.confirmation and not button.mydisplay.confirmation.panel.hidden():
+       button.mydisplay.confirmation.refresh()
 
-def show_rtpstat_panel(mydisplay, rtpstat_panel, *args, **kwargs):
-    if len(mydisplay.active_workspace.storage) == 0:
+def show_rtpstat_panel(button):
+    if len(button.mydisplay.active_workspace.storage) == 0:
         return
-    storage_idx = mydisplay.active_workspace.storage_idx
-    posy = mydisplay.active_workspace.bodywin_posy
-    mydisplay.active_workspace.panel.hide()
-    rtpstat_panel.draw(storage_idx + posy)
+    storage_idx = button.mydisplay.active_workspace.storage_idx
+    posy = button.mydisplay.active_workspace.bodywin_posy
+    button.mydisplay.active_workspace.panel.hide()
+    button.rtpstat_panel.panel.top()
     curses.panel.update_panels()
+    button.rtpstat_panel.draw(storage_idx + posy)
+    button.toggle()
 
-def hide_rtpstat_panel(mydisplay, rtpstat_panel, *args, **kwargs):
-    rtpstat_panel.erase()
+def hide_rtpstat_panel(button):
+    button.rtpstat_panel.erase()
+    button.rtpstat_panel.panel.hide()
     curses.panel.update_panels()
-    mydisplay.active_workspace.draw()
-    mydisplay.active_workspace.panel.top()
+    button.mydisplay.active_workspace.draw()
+    button.mydisplay.active_workspace.panel.top()
+    button.toggle()
 
 def unwrap_and_decompress(wrapped_text):
     base64_str = wrapped_text.replace('\n', '')
@@ -4184,7 +4265,7 @@ def main(stdscr, miny: int = 24, minx: int = 80):
             field_yposes=[x['field_ypos'] for x in RTPSTAT_PANEL_ATTRS],
             field_xposes=[x['field_xpos'] for x in RTPSTAT_PANEL_ATTRS],
             color_scheme=color_scheme,
-            storage=CONFIG["storage"]
+            storage=CONFIG["storage"],
         )
 
     workspaces = [
@@ -4240,7 +4321,7 @@ def main(stdscr, miny: int = 24, minx: int = 80):
             name="Port",
         ),
 
-      Workspace(
+        Workspace(
             stdscr,
             column_attrs=[x['column_attr'] for x in SERVICE_ATTRS],
             column_names=[x['column_name'] for x in SERVICE_ATTRS],
@@ -4286,14 +4367,13 @@ def main(stdscr, miny: int = 24, minx: int = 80):
     mydisplay = MyDisplay(stdscr, workspaces=workspaces, tab=tab)
 
     button_d = Button(ord("d"), ord("D"),
-        win=system_menubar.win,
+        menubar=system_menubar,
         y=0, x=18,
         char_alt="🄳 ",
         label_on="Discovery Stop ",
         label_off="Discovery Start",
         exec_func_on=discovery_on_func,
         exec_func_off=discovery_off_func,
-        done_callback_on=functools.partial(discovery_done_callback, mydisplay),
         status_label="Discovery",
         color_scheme=color_scheme,
         stdscr=stdscr,
@@ -4304,12 +4384,12 @@ def main(stdscr, miny: int = 24, minx: int = 80):
     )
 
     button_c_bgws = Button(ord("c"), ord("C"),
-        win=system_menubar.win,
+        menubar=system_menubar,
         y=0, x=38,
         char_alt="🄲 ",
         label_on="Clear",
-        exec_func_on=clear_storage,
-        done_callback_on=functools.partial(clear_done_callback, mydisplay),
+        exec_func_on=confirm_clear_storage,
+        #done_callback_on=functools.partial(clear_done_callback, mydisplay),
         color_scheme=color_scheme,
         stdscr=stdscr,
         storage=BGWS,
@@ -4318,7 +4398,7 @@ def main(stdscr, miny: int = 24, minx: int = 80):
     )
 
     button_s = Button(ord("s"), ord("S"),
-        win=rtpstat_menubar.win,
+        menubar=rtpstat_menubar,
         y=0, x=18,
         char_alt="🅂 ",
         label_on="Stop  Polling",
@@ -4335,7 +4415,7 @@ def main(stdscr, miny: int = 24, minx: int = 80):
     )
 
     button_r = Button(ord("r"), ord("r"), 10,
-        win=rtpstat_menubar.win,
+        menubar=rtpstat_menubar,
         y=0, x=38,
         char_alt="🅁 ",
         label_on="RTP Details",
@@ -4351,12 +4431,12 @@ def main(stdscr, miny: int = 24, minx: int = 80):
     )
 
     button_c_storage = Button(ord("c"), ord("C"),
-        win=rtpstat_menubar.win,
+        menubar=rtpstat_menubar,
         y=0, x=56,
         char_alt="🄲 ",
         label_on="Clear",
-        exec_func_on=clear_storage,
-        done_callback_on=functools.partial(clear_done_callback, mydisplay),
+        exec_func_on=confirm_clear_storage,
+        #done_callback_on=functools.partial(clear_done_callback, mydisplay),
         color_scheme=color_scheme,
         stdscr=stdscr,
         storage=CONFIG["storage"],
@@ -4367,7 +4447,7 @@ def main(stdscr, miny: int = 24, minx: int = 80):
     status_menubar.buttons = [button_s]
     rtpstat_menubar.buttons = [button_s, button_r, button_c_storage]
     
-    asyncio_run(mydisplay.run())
+    asyncio_run(mydisplay.run(), debug=True)
 
 def get_username() -> str:
     """Prompt user for SSH username of gateways.
