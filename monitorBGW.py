@@ -3820,7 +3820,11 @@ async def exec_cmd(
         )
         logger.info(f"Created subprocess with PID {proc.pid} in {name}")
         
+        start = time.perf_counter()
         stdout, stderr = await asyncio.wait_for(proc.communicate(), timeout)
+        diff = round(time.perf_counter() - start, 2)
+        logger.debug(f"Execution time of PID {proc.pid} in {name} is {diff}s")
+        
         stdout_str = stdout.decode().strip()
         stderr_str = stderr.decode().strip()
 
@@ -4035,19 +4039,22 @@ async def cancel_query_coros():
             task.cancel()
             await task
 
-async def confirm_stop_polling(stdscr, color_scheme):
-    confirm = Confirmation(stdscr, color_scheme,
-        body="Polling is active! Stop polling first!")
-    await confirm.draw()
-    confirm.erase()
+async def confirm_stop_polling(button):
+    if is_polling_active():
+        confirmation = Confirmation(
+            button.stdscr,
+            button.color_scheme,
+            body="Polling is active! Stop polling first!",
+        )
+        button.mydisplay.confirmation = confirmation
 
 async def discovery_on_func(button):
     if is_polling_active():
-        await confirm_stop_polling(button.stdscr, button.color_scheme)
+        await confirm_stop_polling(button)
         return
     
     if len(button.storage) > 0:
-        result = await clear_storage(button)
+        result = await confirm_clear_storage(button)
         if not result:
             return
 
@@ -4080,17 +4087,17 @@ async def discovery_off_func(button):
     button.menubar.draw()
     button.mydisplay.active_workspace.draw_bodywin()
 
-async def confirm_discover_gateways(stdscr, color_scheme):
-    confirm = Confirmation(stdscr, color_scheme,
-        body="Discover gateways first!")
-    result =await confirm.draw()
-    confirm.erase()
-    return result
+async def confirm_discover_gateways(button):
+    confirmation = Confirmation(
+        button.stdscr,
+        button.color_scheme,
+        body="Discover gateways first!",
+    )
+    button.mydisplay.confirmation = confirmation
 
 async def polling_on_func(button):
-    
     if len(BGWS) == 0:
-        await confirm_discover_gateways(button.stdscr, button.color_scheme)
+        await confirm_discover_gateways(button)
         return
     
     try:
@@ -4389,7 +4396,6 @@ def main(stdscr, miny: int = 24, minx: int = 80):
         char_alt="🄲 ",
         label_on="Clear",
         exec_func_on=confirm_clear_storage,
-        #done_callback_on=functools.partial(clear_done_callback, mydisplay),
         color_scheme=color_scheme,
         stdscr=stdscr,
         storage=BGWS,
