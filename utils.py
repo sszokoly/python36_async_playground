@@ -22,10 +22,11 @@ def custom_exception_handler(loop, context):
     # For other exceptions, call the default handler.
     loop.default_exception_handler(context)
 
-async def exec_script(
+async def exec_cmd(
     *args,
     timeout: Optional[int] = None,
-    name: Optional[str] = None
+    name: Optional[str] = None,
+    **kwargs
 ) -> Tuple[str, str]:
     """
     Runs command asynchronously with support for timeouts and error handling.
@@ -39,7 +40,7 @@ async def exec_script(
         Tuple[str, str]: A tuple containing stdout and stderr. If timeout occurs 
         or process is cancelled, appropriate messages are returned.
     """
-    name = name or 'exec_script()'
+    name = name or 'exec_cmd()'
     proc: Optional[asyncio.subprocess.Process] = None
 
     try:
@@ -48,7 +49,7 @@ async def exec_script(
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
         )
-        logger.info(f"Created process PID {proc.pid} in {name}")
+        logger.info(f"Created subprocess with PID {proc.pid} in {name}")
         
         stdout, stderr = await asyncio.wait_for(proc.communicate(), timeout)
         stdout_str = stdout.decode().strip()
@@ -69,7 +70,7 @@ async def exec_script(
                 proc.kill()
                 await proc.wait()
             except Exception as e:
-                logger.error(f"{repr(e)} for PID {proc.pid} in {name}")
+                logger.error(f"{repr(e)} terminating PID {proc.pid} in {name}")
 
 
 def asyncio_run(
@@ -143,13 +144,13 @@ if __name__ == "__main__":
         async def canceltask(task):
             await asyncio.sleep(1)
             task.cancel()
-            await task
+            #await task
             return "Cancelled"
 
         loop = asyncio.get_event_loop()
-        task1 = loop.create_task(exec_script('/usr/bin/printf', timeout=3, name="task1"))
-        task2 = loop.create_task(exec_script('/usr/bin/sleep', '4', timeout=3, name="task2"))
-        task3 = loop.create_task(exec_script('/usr/bin/sleep', '2', timeout=3, name="task3"))
+        task1 = loop.create_task(exec_cmd('/usr/bin/sleep', '1',timeout=3, name="task1"))
+        task2 = loop.create_task(exec_cmd('/usr/bin/sleep', '4', timeout=3, name="task2"))
+        task3 = loop.create_task(exec_cmd('/usr/bin/sleep', '2', timeout=3, name="task3"))
         task4 = loop.create_task(canceltask(task3))
         results = await asyncio.gather(task1, task2, task3, task4, return_exceptions=True)
         for result in results:
