@@ -3229,7 +3229,13 @@ class MyPanel:
         self.win.attron(self.attr)
         self.win.box()
         self.win.attroff(self.attr)
-        obj = self.storage[key]
+        
+        try:
+            obj = self.storage[key]
+        except KeyError:
+            logger.error(f"KeyError with {key}")
+            return
+
         for ypos, xpos, attr_value, color in self.iter_attrs(obj, self.xoffset):
             color_attr = self.color_scheme.get(color, self.color_scheme["normal"])
             try:
@@ -3727,27 +3733,27 @@ def connected_gateways(ip_filter: Optional[Set[str]] = None) -> Dict[str, str]:
         return {
             "10.10.48.58": "unencrypted",
             "10.44.244.51": "encrypted",
-            # "10.44.244.52": "encrypted",
-            # "192.168.100.151": "encrypted",
-            # "192.168.100.152": "unencrypted",
-            # "172.18.20.10": "unencrypted",
-            # "10.10.48.59": "unencrypted",
-            # "10.44.244.54": "encrypted",
-            # "10.44.244.58": "encrypted",
-            # "192.168.100.61": "encrypted",
-            # "192.168.100.62": "unencrypted",
-            # "172.18.30.10": "unencrypted",
-            # "10.10.48.60": "unencrypted",
-            # "10.44.244.55": "encrypted",
-            # "10.44.244.59": "encrypted",
-            # "192.168.100.63": "encrypted",  
-            # "192.168.100.64": "unencrypted",
-            # "172.18.30.11": "unencrypted",
-            # "10.10.48.61": "unencrypted",
-            # "10.44.244.56": "encrypted",
-            # "10.44.244.60": "encrypted",
-            # "192.168.190.65": "encrypted",
-            # "192.168.130.26": "unencrypted",
+            "10.44.244.52": "encrypted",
+            "192.168.100.151": "encrypted",
+            "192.168.100.152": "unencrypted",
+            "172.18.20.10": "unencrypted",
+            "10.10.48.59": "unencrypted",
+            "10.44.244.54": "encrypted",
+            "10.44.244.58": "encrypted",
+            "192.168.100.61": "encrypted",
+            "192.168.100.62": "unencrypted",
+            "172.18.30.10": "unencrypted",
+            "10.10.48.60": "unencrypted",
+            "10.44.244.55": "encrypted",
+            "10.44.244.59": "encrypted",
+            "192.168.100.63": "encrypted",  
+            "192.168.100.64": "unencrypted",
+            "172.18.30.11": "unencrypted",
+            "10.10.48.61": "unencrypted",
+            "10.44.244.56": "encrypted",
+            "10.44.244.60": "encrypted",
+            "192.168.190.65": "encrypted",
+            "192.168.130.26": "unencrypted",
         }
     
     return {ip: result[ip] for ip in sorted(result)}
@@ -3785,10 +3791,22 @@ def get_query_gateway_tasks() -> List[asyncio.Task]:
     Get all tasks that query a gateway.
 
     Returns:
-        List of Tasks that query a gateway.
+        List of 'query_gateway' named tasks.
     """
     return [task for task in asyncio.Task.all_tasks()
             if hasattr(task, "name") and task.name.startswith("query_gateway")]
+
+
+def get_discover_gateways_tasks() -> List[asyncio.Task]:
+    """
+    Get all discover_gateways tasks.
+
+    Returns:
+        List of 'discover_gateways' named tasks.
+    """
+    return [task for task in asyncio.Task.all_tasks()
+            if hasattr(task, "name") and task.name.startswith("discover_gateways")]
+
 
 async def exec_cmd(
     *args,
@@ -4032,17 +4050,11 @@ def process_item(item, storage, callback = None) -> None:
                 callback()
             return bgw
 
-async def cancel_query_coros():
-    for task in asyncio.Task.all_tasks():
-        if hasattr(task, "name") and task.name.startswith("coro query_gateway"):
-            task.cancel()
-            await task
-
 async def confirm_stop_polling(button):
     confirmation = Confirmation(
         button.stdscr,
         button.color_scheme,
-        body="Polling is active! Stop polling first? (Y/N)",
+        body="Polling is active! Stop polling first!",
     )
     button.mydisplay.confirmation = confirmation
     result = await button.mydisplay.confirmation.queue.get()
@@ -4073,16 +4085,13 @@ async def confirm_discover_gateways(button):
 
 async def discovery_on_func(button):
     if is_polling_active():
-        result = await confirm_stop_polling(button)
-        if not result:
-            return
-        await polling_off_func(button)
+        await confirm_stop_polling(button)
+        return
     
     if len(button.storage) > 0:
-        result = await confirm_clear_storage(button)
+        result = await clear_storage(button)
         if not result:
             return
-        await clear_storage(button)
     
     try:
         button.toggle()
@@ -4100,19 +4109,9 @@ async def discovery_on_func(button):
         button.mydisplay.active_workspace.draw_bodywin()
 
 async def discovery_off_func(button):
-    for task in get_query_gateway_tasks():
-        logger.info(f"Cancelling {task.name}")
-        task.cancel()
-        try:
-            await task
-        except asyncio.CancelledError:
-            pass
-
-    button.progressbar.erase()
-    button.toggle()
-    button.menubar.draw()
-    button.mydisplay.active_workspace.draw_bodywin()
-
+    await cancel_query_gateway_tasks()
+    await cancel_discovery_gateways_tasks()
+    
 async def polling_on_func(button):
     if len(BGWS) == 0:
         await confirm_discover_gateways(button)
@@ -4137,6 +4136,10 @@ async def clear_storage(button):
         logger.debug(f"Nothing to clear, storage is empty.")
         return
     
+    if is_polling_active() and button.storage is BGWS:
+        result = await confirm_stop_polling(button)
+        return
+    
     result = await confirm_clear_storage(button)
     if not result:
         return
@@ -4148,6 +4151,7 @@ async def clear_storage(button):
     logger.info("Cleared storage")
     button.mydisplay.active_workspace.bodywin.erase()
     button.mydisplay.active_workspace.draw_bodywin()
+    return True
 
 async def cancel_query_gateway_tasks():
     tasks = get_query_gateway_tasks()
@@ -4159,18 +4163,18 @@ async def cancel_query_gateway_tasks():
         except asyncio.CancelledError:
             pass
 
+async def cancel_discovery_gateways_tasks():
+    tasks = get_discover_gateways_tasks()
+    for task in tasks:
+        try:
+            logging.info(f"Cancelling {task.name}")
+            task.cancel()
+            await task
+        except asyncio.CancelledError:
+            pass
+
 def is_polling_active():
     return True if get_query_gateway_tasks() else False
-
-def discovery_done_callback(mydisplay, fut):
-    try:
-        fut.result()
-    except asyncio.CancelledError:
-        return
-    except Exception:
-        return
-    curses.ungetch(ord("d"))
-    mydisplay.active_workspace.draw_bodywin()
 
 def clear_done_callback(mydisplay, fut):
     try:
@@ -4464,7 +4468,7 @@ def main(stdscr, miny: int = 24, minx: int = 80):
     status_menubar.buttons = [button_s]
     rtpstat_menubar.buttons = [button_s, button_r, button_c_storage]
     
-    asyncio_run(mydisplay.run(), debug=True)
+    asyncio_run(mydisplay.run(), debug=False)
 
 def get_username() -> str:
     """Prompt user for SSH username of gateways.
