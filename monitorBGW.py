@@ -3338,6 +3338,7 @@ class Confirmation:
         self.yoffset = yoffset
         self.margin = margin
         self.attr = self.color_scheme.get("normal", 0)
+        self.queue = Queue()
         
         maxy, maxx = self.stdscr.getmaxyx()
         nlines = 3 + (2 * self.margin)
@@ -3352,17 +3353,16 @@ class Confirmation:
         self.panel.show()
         self.refresh()
 
-    async def ask(self):
-        while True:
-            char = self.win.getch()
-            if char == curses.ERR:
-                await asyncio.sleep(0.05)
-            elif char in (ord('y'), ord('Y')):
-                return True
-            elif char in (ord('n'), ord('N')):
-                return False
-            else:
-                return None
+    async def handle_char(self, char):
+        if char in (ord('y'), ord('Y')):
+            await self.queue.put(True)
+        elif char in (ord('n'), ord('N')):
+            await self.queue.put(False)
+        else:
+            await self.queue.put(None)
+        
+        if self.callback:
+            self.callback()
 
     def refresh(self):
         self.win.box()
@@ -3486,14 +3486,9 @@ class MyDisplay():
             curses.doupdate()
             char = self.stdscr.getch()
            
-            if self.confirmation and not self.confirmation.panel.hidden():
-                result = await self.confirmation.ask()
-                if self.confirmation.callback:
-                    await self.confirmation.callback(result)
-                self.confirmation.erase()
-                self.confirmation = None
-            elif char == curses.ERR:
+            if char == curses.ERR:
                 await asyncio.sleep(0.05)
+
             elif char == curses.KEY_RESIZE:
                 self.maxy, self.maxx = self.stdscr.getmaxyx()
                 if self.maxy >= self.miny and self.maxx >= self.minx:
@@ -3501,6 +3496,10 @@ class MyDisplay():
                 else:
                     self.stdscr.erase()
                     break
+            
+            elif self.confirmation and not self.confirmation.panel.hidden():
+                await self.confirmation.handle_char(char)
+
             else:
                 await self.handle_char(char)
 
@@ -4040,24 +4039,51 @@ async def cancel_query_coros():
             await task
 
 async def confirm_stop_polling(button):
-    if is_polling_active():
-        confirmation = Confirmation(
-            button.stdscr,
-            button.color_scheme,
-            body="Polling is active! Stop polling first!",
-        )
-        button.mydisplay.confirmation = confirmation
+    confirmation = Confirmation(
+        button.stdscr,
+        button.color_scheme,
+        body="Polling is active! Stop polling first? (Y/N)",
+    )
+    button.mydisplay.confirmation = confirmation
+    result = await button.mydisplay.confirmation.queue.get()
+    button.mydisplay.confirmation = None
+    return result
+
+async def confirm_clear_storage(button):
+    confirmation = Confirmation(
+        button.stdscr,
+        button.color_scheme,
+        body="Proceed with clearing (Y/N)?",
+    )
+    button.mydisplay.confirmation = confirmation
+    result = await button.mydisplay.confirmation.queue.get()
+    button.mydisplay.confirmation = None
+    return result
+
+async def confirm_discover_gateways(button):
+    confirmation = Confirmation(
+        button.stdscr,
+        button.color_scheme,
+        body="Discover gateways first!",
+    )
+    button.mydisplay.confirmation = confirmation
+    result = await button.mydisplay.confirmation.queue.get()
+    button.mydisplay.confirmation = None
+    return result
 
 async def discovery_on_func(button):
     if is_polling_active():
-        await confirm_stop_polling(button)
-        return
+        result = await confirm_stop_polling(button)
+        if not result:
+            return
+        await polling_off_func(button)
     
     if len(button.storage) > 0:
         result = await confirm_clear_storage(button)
         if not result:
             return
-
+        await clear_storage(button)
+    
     try:
         button.toggle()
         button.menubar.draw()
@@ -4087,14 +4113,6 @@ async def discovery_off_func(button):
     button.menubar.draw()
     button.mydisplay.active_workspace.draw_bodywin()
 
-async def confirm_discover_gateways(button):
-    confirmation = Confirmation(
-        button.stdscr,
-        button.color_scheme,
-        body="Discover gateways first!",
-    )
-    button.mydisplay.confirmation = confirmation
-
 async def polling_on_func(button):
     if len(BGWS) == 0:
         await confirm_discover_gateways(button)
@@ -4114,26 +4132,20 @@ async def polling_off_func(button):
     button.menubar.draw()
     await cancel_query_gateway_tasks()
 
-async def confirm_clear_storage(button):
+async def clear_storage(button):
     if len(button.storage) == 0:
         logger.debug(f"Nothing to clear, storage is empty.")
         return
-
-    confirmation = Confirmation(
-        button.stdscr,
-        button.color_scheme,
-        body="Proceed with clearing (Y)?",
-        callback=functools.partial(clear_storage, button),
-    )
-    button.mydisplay.confirmation = confirmation
-
-async def clear_storage(button, result):
-    if result:
-        if asyncio.iscoroutinefunction(button.storage.clear):
-            await button.storage.clear()
-        else:
-            button.storage.clear()
-        logger.info("Cleared storage")
+    
+    result = await confirm_clear_storage(button)
+    if not result:
+        return
+    
+    if asyncio.iscoroutinefunction(button.storage.clear):
+        await button.storage.clear()
+    else:
+        button.storage.clear()
+    logger.info("Cleared storage")
     button.mydisplay.active_workspace.bodywin.erase()
     button.mydisplay.active_workspace.draw_bodywin()
 
@@ -4395,7 +4407,7 @@ def main(stdscr, miny: int = 24, minx: int = 80):
         y=0, x=38,
         char_alt="🄲 ",
         label_on="Clear",
-        exec_func_on=confirm_clear_storage,
+        exec_func_on=clear_storage,
         color_scheme=color_scheme,
         stdscr=stdscr,
         storage=BGWS,
@@ -4441,8 +4453,7 @@ def main(stdscr, miny: int = 24, minx: int = 80):
         y=0, x=56,
         char_alt="🄲 ",
         label_on="Clear",
-        exec_func_on=confirm_clear_storage,
-        #done_callback_on=functools.partial(clear_done_callback, mydisplay),
+        exec_func_on=clear_storage,
         color_scheme=color_scheme,
         stdscr=stdscr,
         storage=CONFIG["storage"],
