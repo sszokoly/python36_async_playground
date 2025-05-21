@@ -2906,7 +2906,7 @@ class Tab:
             
             try:
                 self.win.addstr(ypos, xpos,
-                    "╭" + "─" * self.tab_width + "╮", self.attr)
+                    "┌" + "─" * self.tab_width + "┐", self.attr)
                 self.win.addstr(ypos + 1, xpos,
                     "│" + " " * self.tab_width + "│", self.attr)
                 
