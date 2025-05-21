@@ -2359,10 +2359,16 @@ class BGW():
         """
         if self.show_temp:
             if self._temp is None:
-                m = re.search(
-                    r'Temperature\s+:\s+(\S+) \((\S+)\)', self.show_temp
-                )
-                self._temp = f"{m.group(1)}/{m.group(2)}" if m else ""
+                m = re.search(r'Temperature : (\S+)', self.show_temp)
+                celsius = m.group(1) if m else ""
+                m = re.search(r'Temperature : \S+ \((\S+)\)', self.show_temp)
+                fahrenheit = m.group(1) if m else ""
+                if celsius and fahrenheit:
+                    self._temp = f"{celsius}/{fahrenheit}"
+                elif celsius:
+                    self._temp = celsius
+                elif fahrenheit:
+                    self._temp = fahrenheit
             return self._temp
         return "NA"
 
@@ -2476,7 +2482,7 @@ class BGW():
                     return re.search(r"".join((
                         r'.*?(?P<port>\d+/\d+)',
                         r'.*?(?P<name>.*)',
-                        r'.*?(?P<status>(connected|no link))',
+                        r'.*?(?P<status>(connected|no link|disabled))',
                         r'.*?(?P<vlan>\d+)',
                         r'.*?(?P<level>\d+)',
                         r'.*?(?P<neg>\S+)',
