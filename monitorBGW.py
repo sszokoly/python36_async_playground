@@ -2940,7 +2940,6 @@ class Workspace:
         menubar=None,
         name=None,
         storage=None,
-        panels=None,
         yoffset=2,
         xoffset=0,
         title_width=3,
@@ -2959,10 +2958,12 @@ class Workspace:
         self.storage = storage if storage is not None else []
         self.yoffset = yoffset
         self.xoffset = xoffset
-        self.color_scheme = color_scheme or {"normal": 0, "standout": 65536}
         self.title_width = title_width
+        self.color_scheme = color_scheme or {"normal": 0, "standout": 65536}
+
         self.bodywin_posy = 0
         self.bodywin_posx = 0
+        self.autoscroll = True
         self.storage_idx = 0
         self.attr = self.color_scheme["normal"]
         self.maxy = self.stdscr.getmaxyx()[0] - yoffset
@@ -3076,6 +3077,13 @@ class Workspace:
         self.titlewin.refresh()
 
     def draw_bodywin(self):
+        if self.autoscroll:
+            if self.storage_idx + (self.maxy - 3) >= len(self.storage):
+                self.storage_idx = max(0, len(self.storage) - (self.maxy - 3))
+            else:
+                self.storage_idx += 1
+            self.bodywin_posy = min(self.maxy - (self.title_width + 2),
+                                    len(self.storage) - 1)
         start_row = self.storage_idx
         end_row = min(self.storage_idx + (self.maxy - 3), len(self.storage))
         
@@ -3103,44 +3111,48 @@ class Workspace:
         if char == curses.KEY_DOWN:
             if ((self.bodywin_posy == (self.maxy - (self.title_width + 2))) and
                 (self.storage_idx + 1 <= (len(self.storage) -
-                                          (self.maxy - self.title_width)))):
+                                         (self.maxy - self.title_width)))):
                 self.storage_idx += 1
             if ((self.bodywin_posy < (self.maxy - (self.title_width + 2))) and
-                (len(self.storage) - 1 > self.bodywin_posy)):
+                                     (len(self.storage) - 1 > self.bodywin_posy)):
                 self.bodywin_posy += 1
+            if self.bodywin_posy == min(len(self.storage) - 1,
+                                        self.maxy - self.title_width - 2):
+                self.autoscroll = True
 
         elif char == curses.KEY_UP:
+            self.autoscroll = False
             if self.storage_idx > 0 and self.bodywin_posy == 0:
                 self.storage_idx -= 1
             if self.bodywin_posy > 0:
                 self.bodywin_posy -= 1
 
         elif char == curses.KEY_HOME:
+            self.autoscroll = False
             self.storage_idx = 0
             self.bodywin_posy = 0
 
         elif char == curses.KEY_END:
-            self.bodywin_posy = min(
-                self.maxy - (self.title_width + 2),
-                len(self.storage) - 1
-            )
-            self.storage_idx = max(
-                0,
-                len(self.storage) - (self.maxy - self.title_width)
-            )
+            self.autoscroll = True
+            self.bodywin_posy = min(self.maxy - (self.title_width + 2),
+                                    len(self.storage) - 1)
+            self.storage_idx = max(0, len(self.storage) -
+                                      (self.maxy - self.title_width))
 
         elif char == curses.KEY_NPAGE:
             self.storage_idx = min(
                 self.storage_idx + (self.maxy - self.title_width - 1),
-                max(0, len(self.storage) - (self.maxy - self.title_width))
-            )
-            if self.storage_idx + (self.maxy - self.title_width + 1) <= len(self.storage):
+                max(0, len(self.storage) - (self.maxy - self.title_width)))
+            if (self.storage_idx +
+                (self.maxy - self.title_width + 1)) <= len(self.storage):
                 self.bodywin_posy = 0
             else:
+                self.autoscroll = True
                 self.bodywin_posy = min(len(self.storage) - 1,
                     self.maxy - self.title_width - 2)
 
         elif char == curses.KEY_PPAGE:
+            self.autoscroll = False
             self.bodywin_posy = 0
             self.storage_idx = max(
                 self.storage_idx - (self.maxy - self.title_width), 0)
@@ -3287,7 +3299,7 @@ class ProgressBar:
         begin_y = maxy // 2 + yoffset
         begin_x = maxx // 2 - (width // 2)
         self.win = curses.newwin(1, width, begin_y, begin_x)
-        curses.panel.new_panel(self.win)
+        self.panel = curses.panel.new_panel(self.win)
         self.win.attron(self.attr_bg)
 
     def draw(self, fraction: Optional[float] = None) -> "ProgressBar":
@@ -3317,7 +3329,9 @@ class ProgressBar:
         except _curses.error:
             pass
         
-        self.win.refresh()
+        self.win.noutrefresh()
+        curses.panel.update_panels()
+        curses.doupdate()
         return self
 
     def erase(self) -> "ProgressBar":
@@ -3331,7 +3345,10 @@ class ProgressBar:
         """
         self.fraction = 0
         self.win.erase()
-        self.win.refresh()
+        self.win.noutrefresh()
+        self.panel.hide()
+        curses.panel.update_panels()
+        curses.doupdate()
 
 class Confirmation:
     def __init__(self, stdscr, color_scheme=None, body=None,
@@ -3734,27 +3751,27 @@ def connected_gateways(ip_filter: Optional[Set[str]] = None) -> Dict[str, str]:
         return {
             "10.10.48.58": "unencrypted",
             "10.44.244.51": "encrypted",
-            "10.44.244.52": "encrypted",
-            "192.168.100.151": "encrypted",
-            "192.168.100.152": "unencrypted",
-            "172.18.20.10": "unencrypted",
-            "10.10.48.59": "unencrypted",
-            "10.44.244.54": "encrypted",
-            "10.44.244.58": "encrypted",
-            "192.168.100.61": "encrypted",
-            "192.168.100.62": "unencrypted",
-            "172.18.30.10": "unencrypted",
-            "10.10.48.60": "unencrypted",
-            "10.44.244.55": "encrypted",
-            "10.44.244.59": "encrypted",
-            "192.168.100.63": "encrypted",  
-            "192.168.100.64": "unencrypted",
-            "172.18.30.11": "unencrypted",
-            "10.10.48.61": "unencrypted",
-            "10.44.244.56": "encrypted",
-            "10.44.244.60": "encrypted",
-            "192.168.190.65": "encrypted",
-            "192.168.130.26": "unencrypted",
+            # "10.44.244.52": "encrypted",
+            # "192.168.100.151": "encrypted",
+            # "192.168.100.152": "unencrypted",
+            # "172.18.20.10": "unencrypted",
+            # "10.10.48.59": "unencrypted",
+            # "10.44.244.54": "encrypted",
+            # "10.44.244.58": "encrypted",
+            # "192.168.100.61": "encrypted",
+            # "192.168.100.62": "unencrypted",
+            # "172.18.30.10": "unencrypted",
+            # "10.10.48.60": "unencrypted",
+            # "10.44.244.55": "encrypted",
+            # "10.44.244.59": "encrypted",
+            # "192.168.100.63": "encrypted",  
+            # "192.168.100.64": "unencrypted",
+            # "172.18.30.11": "unencrypted",
+            # "10.10.48.61": "unencrypted",
+            # "10.44.244.56": "encrypted",
+            # "10.44.244.60": "encrypted",
+            # "192.168.190.65": "encrypted",
+            # "192.168.130.26": "unencrypted",
         }
     
     return {ip: result[ip] for ip in sorted(result)}
@@ -3797,7 +3814,6 @@ def get_query_gateway_tasks() -> List[asyncio.Task]:
     return [task for task in asyncio.Task.all_tasks()
             if hasattr(task, "name") and task.name.startswith("query_gateway")]
 
-
 def get_discover_gateways_tasks() -> List[asyncio.Task]:
     """
     Get all discover_gateways tasks.
@@ -3807,7 +3823,6 @@ def get_discover_gateways_tasks() -> List[asyncio.Task]:
     """
     return [task for task in asyncio.Task.all_tasks()
             if hasattr(task, "name") and task.name.startswith("discover_gateways")]
-
 
 async def exec_cmd(
     *args,
