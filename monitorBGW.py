@@ -37,7 +37,7 @@ LOG_FORMAT = "%(asctime)s - %(levelname)8s - %(message)s [%(funcName)s:%(lineno)
 GATEWAYS = {}
 BGWS = []
 
-EXPECT_SCRIPT_TEMPLATE_TEST = '''
+EXPECT_SCRIPT_TEMPLATE = '''
 eJzdGWtv28jxu37FHE0f/GJsC7gPdZs+kOaQa5C74JwWKCSFoMmVxAtF0rvL2Aar/34z+yCXD0nOtU
 2BEoLE3Z2d98zOjiZH31xWgl/epfkleyxZLCdH+x74wDZlFkkG/4h4Gt1lTMDeDZOJYBLWhZBQ0/dW
 jSvBeB5tGNT2Tc+XkRAPCdT6V89xWYZCRrjfvun5LBIyDwWLBdTtu16Li80myhNcqaG2gy1szc5iFS
@@ -76,7 +76,7 @@ o4xeOug/4/80nbTGPrX9jt9Ueask8gOWuuQmcs2LarWG5m8GT2VbXuVAzjmxTmqWm95J45lHAyNbkE
 4r96BruLt6DnDA8F9o8IaQt/twGpjxOeYb/n14YmkNDdYzx08as770Un0Jf7v96UdT7U6UhDPzL9qC
 /s+kYoN4pt7mr8uCdPY='''
 
-EXPECT_SCRIPT_TEMPLATE = '''
+EXPECT_SCRIPT_TEMPLATE_TEST = '''
 eJyFVG1vmzAQ/p5fcUKJ1G2wQALpytQPnVZ10daXKZ2maZkiB5zUGhiETdIM8d93xhCoFrRISey759
 6f80BQCU+JkFCo33Kg7rmgGScxhaI5aXlKhNiHUOh/LctkuhKSoH1z0vKICMlXggYCivasdUESx4SH
 qCmgaC4llLVlsl1tWITR6XNKA7lCQTnQwRCYxCKiNIWfqM3QA+PyTMnPXsFrmL4qy18d6JzL08CLf4
@@ -4043,8 +4043,8 @@ def process_item(item, storage, callback = None) -> None:
         if host in GATEWAYS:
             rtp_sessions = data.get("rtp_sessions")
             for key, value in rtp_sessions.items():
-                #m = reRTPDetailed.search(value)
-                m = re.search(r'.*?Session-ID: (?P<session_id>\d+).*?Status: (?P<status>\S+),.*?QOS: (?P<qos>\S+),.*?Start-Time: (?P<start_time>\S+),.*?End-Time: (?P<end_time>\S+),', value)
+                m = reRTPDetailed.search(value)
+                #m = re.search(r'.*?Session-ID: (?P<session_id>\d+).*?Status: (?P<status>\S+),.*?QOS: (?P<qos>\S+),.*?Start-Time: (?P<start_time>\S+),.*?End-Time: (?P<end_time>\S+),', value)
                 if m:
                     storage[key] = RTPSession({**m.groupdict(), 
                         "gw_number": data.get("gw_number", "")})
