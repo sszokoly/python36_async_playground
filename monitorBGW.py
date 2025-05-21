@@ -1,5 +1,5 @@
 
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- encoding: utf-8 -*-
 import argparse
 import asyncio
@@ -286,7 +286,7 @@ HW_ATTRS = [
 #+---+------+------+------+------+------+------+------+------+--------+----+----+
 #│BGW│  v1  |  v2  |  v3  |  v4  |  v5  |  v6  |  v7  |  v8  | v10 hw |PSU1|PSU2|
 #+---+------+------+------+------+------+------+------+------+--------+----+----+
-#|001|S8300E│MM714B│MM714B│MM714B│MM714B│MM714B│S8300E│S8300E│      3A|400W│400W|
+#|001|S8300E│MM714B│MM714B│MM714B│MM714B│MM714B│MM714B│MM714B│      3A|400W│400W|
 #+---+------+------+------+------+------+------+------+------+--------+----+----+
 
 MODULE_ATTRS = [
@@ -301,56 +301,56 @@ MODULE_ATTRS = [
         'column_attr': 'mm_v1',
         'column_name': 'v1',
         'column_color': 'normal',
-        'column_fmt_spec': '>6',
+        'column_fmt_spec': '<6',
         'column_xpos': 5,
     },
     {
         'column_attr': 'mm_v2',
         'column_name': 'v2',
         'column_color': 'normal',
-        'column_fmt_spec': '>6',
+        'column_fmt_spec': '<6',
         'column_xpos': 12,
     },
     {
         'column_attr': 'mm_v3',
         'column_name': 'v3',
         'column_color': 'normal',
-        'column_fmt_spec': '>6',
+        'column_fmt_spec': '<6',
         'column_xpos': 19,
     },
     {
         'column_attr': 'mm_v4',
         'column_name': 'v4',
         'column_color': 'normal',
-        'column_fmt_spec': '>6',
+        'column_fmt_spec': '<6',
         'column_xpos': 26,
     },
     {
         'column_attr': 'mm_v5',
         'column_name': 'v5',
         'column_color': 'normal',
-        'column_fmt_spec': '>6',
+        'column_fmt_spec': '<6',
         'column_xpos': 33,
     },
     {
         'column_attr': 'mm_v6',
         'column_name': 'v6',
         'column_color': 'normal',
-        'column_fmt_spec': '>6',
+        'column_fmt_spec': '<6',
         'column_xpos': 40,
     },
     {
         'column_attr': 'mm_v7',
         'column_name': 'v7',
         'column_color': 'normal',
-        'column_fmt_spec': '>6',
+        'column_fmt_spec': '<6',
         'column_xpos': 47,
     },
     {
         'column_attr': 'mm_v8',
         'column_name': 'v8',
         'column_color': 'normal',
-        'column_fmt_spec': '>6',
+        'column_fmt_spec': '<6',
         'column_xpos': 54,
     },
     {
@@ -471,11 +471,11 @@ PORT_ATTRS = [
 ]
 
 #Service
-#+---+---------+---------------+----+---------+--------+---------------+--------+
-#|BGW|RTP-Stats|Capture-Service|SNMP|SNMP-Trap| SLAMon | SLAMon Server |  LLDP  |
-#+---+---------+---------------+----+---------+--------+---------------+--------+
-#|001| disabled|       disabled|v2&3|  enabled| enabled|101.101.111.198|disabled|
-#+---+---------+---------------+----+---------+--------+---------------+--------+
+#+---+--------+-----------------+----+--------+--------+---------------+--------+
+#|BGW|RTP-Stat| Capture-Service |SNMP|SNMPTrap| SLAMon | SLAMon Server |  LLDP  |
+#+---+--------+-----------------+----+--------+--------+---------------+--------+
+#|001|disabled| enabled/inactive|v2&3|disabled|disabled|101.101.111.198|disabled|
+#+---+--------+-----------------+----+--------+--------+---------------+--------+
 
 SERVICE_ATTRS = [
     {
@@ -489,29 +489,29 @@ SERVICE_ATTRS = [
         'column_attr': 'rtp_stat_service',
         'column_name': 'RTP-Stats',
         'column_color': 'normal',
-        'column_fmt_spec': '>9',
+        'column_fmt_spec': '>8',
         'column_xpos': 5,
     },
     {
         'column_attr': 'capture_service',
         'column_name': 'Capture-Service',
         'column_color': 'normal',
-        'column_fmt_spec': '>15',
-        'column_xpos': 15,
+        'column_fmt_spec': '>17',
+        'column_xpos': 14,
     },
     {
         'column_attr': 'snmp',
         'column_name': 'SNMP',
         'column_color': 'normal',
         'column_fmt_spec': '>4',
-        'column_xpos': 31,
+        'column_xpos': 32,
     },
     {
         'column_attr': 'snmp_trap',
-        'column_name': 'SNMP-Trap',
+        'column_name': 'SNMPTrap',
         'column_color': 'normal',
-        'column_fmt_spec': '>9',
-        'column_xpos': 36,
+        'column_fmt_spec': '>8',
+        'column_xpos': 37,
     },
     {
         'column_attr': 'slamon_service',
@@ -3261,6 +3261,7 @@ class ProgressBar:
     def __init__(self, stdscr: "_curses._CursesWindow",
         fraction: float = 0,
         width: int = 21,
+        body: str = None,
         attr_fg: Optional[int] = None,
         attr_bg: Optional[int] = None,
         yoffset: int = 0) -> None:
@@ -3286,6 +3287,7 @@ class ProgressBar:
         """
         self.stdscr = stdscr
         self.fraction = fraction
+        self.body = body or "Wait"
         self.width = width
         self.attr_fg = attr_fg or curses.color_pair(221)|curses.A_REVERSE
         self.attr_bg = attr_bg or curses.color_pair(239)|curses.A_REVERSE
@@ -3293,7 +3295,7 @@ class ProgressBar:
         begin_y = maxy // 2 + yoffset
         begin_x = maxx // 2 - (width // 2)
         self.win = curses.newwin(1, width, begin_y, begin_x)
-        curses.panel.new_panel(self.win)
+        self.panel = curses.panel.new_panel(self.win)
         self.win.attron(self.attr_bg)
 
     def draw(self, fraction: Optional[float] = None) -> "ProgressBar":
@@ -3317,14 +3319,30 @@ class ProgressBar:
         filled_width = int(self.fraction * self.width)
         remaining_width = self.width - filled_width
         
+        #try:
+        #    self.win.addstr(0, 0, " " * filled_width, self.attr_fg)
+        #except _curses.error:
+        #    pass
         try:
-            self.win.addstr(0, 0, " " * filled_width, self.attr_fg)
-            self.win.addstr(0, filled_width, " " * remaining_width, self.attr_bg)
+            self.win.addstr(0, filled_width, f"{self.body:^{self.width}}"[filled_width:], self.attr_bg)
+        except _curses.error:
+            pass
+        #try:
+        #    self.win.addstr(0, filled_width, " " * remaining_width, self.attr_bg)
+        #except _curses.error:
+        #    pass
+        try:
+            self.win.addstr(0, 0, f"{self.body:^{self.width}}"[remaining_width:], self.attr_fg)
         except _curses.error:
             pass
         
-        self.win.refresh()
+        self.refresh()
         return self
+
+    def refresh(self):
+        self.win.noutrefresh()
+        curses.panel.update_panels()
+        curses.doupdate()
 
     def erase(self) -> "ProgressBar":
         """
@@ -3337,7 +3355,10 @@ class ProgressBar:
         """
         self.fraction = 0
         self.win.erase()
-        self.win.refresh()
+        self.win.noutrefresh()
+        self.panel.hide()
+        curses.panel.update_panels()
+        curses.doupdate()
 
 class Confirmation:
     def __init__(self, stdscr, color_scheme=None, body=None,
@@ -3527,6 +3548,8 @@ class MyDisplay():
             self.set_exit()
         elif char in (ord("\t"), curses.KEY_RIGHT,
                       curses.KEY_BACKSPACE, curses.KEY_LEFT):
+            if self.workspaces[self.active_ws_idx].panel:
+                self.workspaces[self.active_ws_idx].panel.hide()
             if char in (ord("\t"), curses.KEY_RIGHT):
                 self.active_ws_idx = (self.active_ws_idx + 1) % len(self.workspaces)
             else:
