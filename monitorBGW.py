@@ -3713,22 +3713,28 @@ def connected_gateways(ip_filter: Optional[Set[str]] = None) -> Dict[str, str]:
     result: Dict[str, str] = {}
     ip_filter = set(ip_filter) if ip_filter else set()
     connections = os.popen("netstat -tan|grep ESTABLISHED").read().splitlines()
-    
+
     for line in connections:
+        ip, proto = None, None
         m = re.search(r"([0-9.]+):(1039|2944|2945)\s+([0-9.]+):([0-9]+)", line)
         if m:
             ip = m.group(3)
-            
-            if m.group(2) in ("1039", "2944"):
-                proto = "encrypted"
-            else:
+            if m.group(2) == "2945":
                 proto = "unencrypted"
+            else:
+                proto = "encrypted"
+        else:
+            m = re.search(r"([0-9.]+):1167 ", line)
+            if m:
+                ip = m.group(1)
+                proto = "encrypted"
+        
+        if ip and proto:
             logger.info(f"Found gateway {ip} using {proto} protocol")
-            
             if not ip_filter or ip in ip_filter:
                 result[ip] = proto
                 logger.info(f"Added gateway {ip} to result dictionary")
-    
+
     if not result: # to be removed
         return {
             "10.10.48.58": "unencrypted",
