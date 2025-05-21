@@ -3506,6 +3506,9 @@ class MyDisplay():
             elif self.confirmation and not self.confirmation.panel.hidden():
                 await self.confirmation.handle_char(char)
 
+            elif chr(char) in ("q", "Q"):
+                self.set_exit()
+
             else:
                 await self.handle_char(char)
 
@@ -3517,9 +3520,7 @@ class MyDisplay():
         self.workspaces[self.active_ws_idx].draw()
 
     async def handle_char(self, char: int) -> None:
-        if chr(char) in ("q", "Q"):
-            self.set_exit()
-        elif char in (ord("\t"), curses.KEY_RIGHT,
+        if char in (ord("\t"), curses.KEY_RIGHT,
                       curses.KEY_BACKSPACE, curses.KEY_LEFT):
             if char in (ord("\t"), curses.KEY_RIGHT):
                 self.active_ws_idx = (self.active_ws_idx + 1) % len(self.workspaces)
