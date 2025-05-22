@@ -2946,7 +2946,6 @@ class Workspace:
         menubar=None,
         name=None,
         storage=None,
-        panels=None,
         yoffset=2,
         xoffset=0,
         title_width=3,
@@ -2965,10 +2964,12 @@ class Workspace:
         self.storage = storage if storage is not None else []
         self.yoffset = yoffset
         self.xoffset = xoffset
-        self.color_scheme = color_scheme or {"normal": 0, "standout": 65536}
         self.title_width = title_width
+        self.color_scheme = color_scheme or {"normal": 0, "standout": 65536}
+
         self.bodywin_posy = 0
         self.bodywin_posx = 0
+        self.autoscroll = True
         self.storage_idx = 0
         self.attr = self.color_scheme["normal"]
         self.maxy = self.stdscr.getmaxyx()[0] - yoffset
@@ -3082,6 +3083,13 @@ class Workspace:
         self.titlewin.refresh()
 
     def draw_bodywin(self):
+        if self.autoscroll:
+            if self.storage_idx + (self.maxy -3) >= len(self.storage):
+                self.storage_idx = max(0, len(self.storage) - (self.maxy - 3))
+            else:
+                self.storage_idx += 1
+            self.bodywin_posy = min(self.maxy - (self.title_width + 2),
+                                    len(self.storage) - 1)
         start_row = self.storage_idx
         end_row = min(self.storage_idx + (self.maxy - 3), len(self.storage))
         
@@ -3114,16 +3122,21 @@ class Workspace:
             if ((self.bodywin_posy < (self.maxy - (self.title_width + 2))) and
                 (len(self.storage) - 1 > self.bodywin_posy)):
                 self.bodywin_posy += 1
+            if self.bodywin_posy == min(len(self.storage) - 1,
+                                        self.maxy - self.title_width - 2):
+                self.autoscroll = True
 
         elif char == curses.KEY_UP:
             if self.storage_idx > 0 and self.bodywin_posy == 0:
                 self.storage_idx -= 1
             if self.bodywin_posy > 0:
                 self.bodywin_posy -= 1
+            self.autoscroll = False
 
         elif char == curses.KEY_HOME:
             self.storage_idx = 0
             self.bodywin_posy = 0
+            self.autoscroll = False
 
         elif char == curses.KEY_END:
             self.bodywin_posy = min(
@@ -3134,6 +3147,7 @@ class Workspace:
                 0,
                 len(self.storage) - (self.maxy - self.title_width)
             )
+            self.autoscroll = True
 
         elif char == curses.KEY_NPAGE:
             self.storage_idx = min(
@@ -3145,6 +3159,7 @@ class Workspace:
             else:
                 self.bodywin_posy = min(len(self.storage) - 1,
                     self.maxy - self.title_width - 2)
+                self.autoscroll = True
 
         elif char == curses.KEY_PPAGE:
             self.bodywin_posy = 0
