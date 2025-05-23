@@ -2926,7 +2926,7 @@ class Tab:
                 pass
 
             xpos += self.tab_width + 2
-        self.win.refresh()
+            self.win.refresh()
 
     async def handle_char(self, char):
         if char in (ord("\t"), curses.KEY_RIGHT):
@@ -3170,7 +3170,7 @@ class Workspace:
             await self.menubar.handle_char(char)
 
         if not self.panel.hidden():
-            self.draw_bodywin()
+            self.draw()
 
 class MyPanel:
     def __init__(self, stdscr,
@@ -3522,6 +3522,7 @@ class MyDisplay():
         
         while not self.done:
             curses.panel.update_panels()
+            curses.doupdate()
             
             char = self.stdscr.getch()
            
@@ -3554,15 +3555,18 @@ class MyDisplay():
             self.set_exit()
         elif char in (ord("\t"), curses.KEY_RIGHT,
                       curses.KEY_BACKSPACE, curses.KEY_LEFT):
-            if self.workspaces[self.active_ws_idx].panel:
-                self.workspaces[self.active_ws_idx].panel.hide()
+            
+            #self.workspaces[self.active_ws_idx].panel.show()
+            
             if char in (ord("\t"), curses.KEY_RIGHT):
                 self.active_ws_idx = (self.active_ws_idx + 1) % len(self.workspaces)
             else:
                 self.active_ws_idx = (self.active_ws_idx - 1) % len(self.workspaces)
         
-            self.stdscr.erase()
+            self.workspaces[self.active_ws_idx].bodywin.erase()
             self.workspaces[self.active_ws_idx].draw()
+            self.workspaces[self.active_ws_idx].panel.show()
+
             await self.tab.handle_char(char)
         else:
             await self.workspaces[self.active_ws_idx].handle_char(char)
@@ -4229,7 +4233,7 @@ def clear_done_callback(mydisplay, fut):
 
 def refresh_workspaces(button):
     if not button.mydisplay.active_workspace.panel.hidden():
-        button.mydisplay.active_workspace.draw_bodywin()
+        button.mydisplay.active_workspace.draw()
     elif not button.rtpstat_panel.panel.hidden():
         show_rtpstat_panel(button)
     if button.mydisplay.confirmation and not button.mydisplay.confirmation.panel.hidden():
